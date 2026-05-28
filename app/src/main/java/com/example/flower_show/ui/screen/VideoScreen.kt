@@ -2,6 +2,7 @@ package com.example.flower_show.ui.screen
 
 import android.content.res.Configuration
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,10 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.ui.PlayerView
@@ -43,6 +47,26 @@ fun VideoScreen(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    // System UI immersive control / 沉浸式系统 UI 控制
+    val view = LocalView.current
+    val window = remember { (view.context as? android.app.Activity)?.window }
+    DisposableEffect(isLandscape) {
+        if (isLandscape) {
+            window?.let { w ->
+                val controller = WindowInsetsControllerCompat(w, view)
+                controller.hide(WindowInsetsCompat.Type.systemBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            window?.let { w ->
+                val controller = WindowInsetsControllerCompat(w, view)
+                controller.show(WindowInsetsCompat.Type.systemBars())
+            }
+        }
+        onDispose { }
+    }
+
     // Play when page changes
     LaunchedEffect(pagerState.currentPage, state.items.size) {
         viewModel.dispatch(VideoIntent.PlayPosition(pagerState.currentPage))
@@ -55,13 +79,9 @@ fun VideoScreen(
     }
 
     // P0-3: Jump to target video from search result
-    LaunchedEffect(targetVideoId, state.items.size) {
+    LaunchedEffect(targetVideoId) {
         val targetId = targetVideoId ?: return@LaunchedEffect
-        if (state.items.isEmpty()) return@LaunchedEffect
-        val index = state.items.indexOfFirst { it is VideoItem && it.id == targetId }
-        if (index >= 0) {
-            pagerState.scrollToPage(index)
-        }
+        viewModel.dispatch(VideoIntent.JumpToVideo(targetId))
     }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
@@ -86,7 +106,7 @@ fun VideoScreen(
             }
 
             if (isLandscape) {
-                // ── Landscape: player-only, minimal controls / 横屏：纯播放器 ──
+                // ── Landscape: full-screen player, tap to toggle system UI + controls ──
                 var showLandscapeControls by remember { mutableStateOf(true) }
                 LaunchedEffect(showLandscapeControls) {
                     if (showLandscapeControls) {
@@ -98,9 +118,22 @@ fun VideoScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable { showLandscapeControls = !showLandscapeControls }
+                        .clickable {
+                            showLandscapeControls = !showLandscapeControls
+                        // Toggle system bars together with controls
+                        window?.let { w ->
+                            val ctrl = WindowInsetsControllerCompat(w, view)
+                            if (showLandscapeControls) {
+                                ctrl.show(WindowInsetsCompat.Type.systemBars())
+                            } else {
+                                ctrl.hide(WindowInsetsCompat.Type.systemBars())
+                                ctrl.systemBarsBehavior =
+                                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                            }
+                        }
+                        }
                 ) {
-                    // Minimal play/pause
+                    // Center play/pause overlay
                     if (showLandscapeControls) {
                         if (viewModel.playerManager.isPlaying) {
                             PauseIcon(
@@ -134,6 +167,7 @@ fun VideoScreen(
                                 playerManager = viewModel.playerManager,
                                 onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
                                 onRecommendWordClick = onRecommendWordClick,
+                                onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SetQuality(name, url)) },
                             )
                             is ImageCardItem -> ImageCard(card = item)
                             is AlbumCardItem -> AlbumCard(card = item)

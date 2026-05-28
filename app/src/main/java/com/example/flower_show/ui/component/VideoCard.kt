@@ -9,6 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -37,6 +39,7 @@ fun VideoCard(
     playerManager: VideoPlayerManager,
     onSeek: (Long) -> Unit = {},
     onRecommendWordClick: (String) -> Unit = {},
+    onSetQuality: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -48,6 +51,7 @@ fun VideoCard(
     var isCollected by remember { mutableStateOf(false) }
     var isDragging by remember { mutableStateOf(false) }
     var sliderPos by remember { mutableFloatStateOf(0f) }
+    var showQualityMenu by remember { mutableStateOf(false) }
 
     LaunchedEffect(isPlaying, controlsVisible) {
         if (isPlaying && controlsVisible) {
@@ -150,6 +154,30 @@ fun VideoCard(
                     Spacer(Modifier.height(22.dp))
                     ShareIcon(size = 32.dp)
                     Text("分享", color = Color.White, fontSize = 12.sp)
+                    // Quality selector
+                    video.qualityUrls?.let { urls ->
+                        if (urls.size > 1) {
+                            Spacer(Modifier.height(22.dp))
+                            Text("画质", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp,
+                                modifier = Modifier.clickable { showQualityMenu = true })
+                            Box {
+                                DropdownMenu(
+                                    expanded = showQualityMenu,
+                                    onDismissRequest = { showQualityMenu = false },
+                                ) {
+                                    urls.forEach { (name, url) ->
+                                        DropdownMenuItem(
+                                            text = { Text(name) },
+                                            onClick = {
+                                                showQualityMenu = false
+                                                onSetQuality(name, url)
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

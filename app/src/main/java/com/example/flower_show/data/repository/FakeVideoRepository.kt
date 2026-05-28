@@ -1,8 +1,10 @@
 package com.example.flower_show.data.repository
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import com.example.flower_show.data.local.AssetJsonLoader
 import com.example.flower_show.model.*
+import com.example.flower_show.util.MetricsCollector
 
 /**
  * FakeVideoRepository - Local data implementation (Singleton + Cache)
@@ -10,7 +12,10 @@ import com.example.flower_show.model.*
  * Data priority: assets/video_data.json → hardcoded FallbackData.
  * Implements IVideoRepository for DIP compliance.
  */
-class FakeVideoRepository private constructor(private val context: Context?) : IVideoRepository {
+class FakeVideoRepository private constructor(
+    private val context: Context?,
+    private val searchMatcher: SearchMatcher = WeightedContainsMatcher(),
+) : IVideoRepository {
 
     private var cachedVideos: List<VideoItem>? = null
 
@@ -21,6 +26,11 @@ class FakeVideoRepository private constructor(private val context: Context?) : I
             return instance ?: synchronized(this) {
                 instance ?: FakeVideoRepository(context?.applicationContext).also { instance = it }
             }
+        }
+
+        @VisibleForTesting
+        fun withMatcher(context: Context?, matcher: SearchMatcher): FakeVideoRepository {
+            return FakeVideoRepository(context?.applicationContext, matcher)
         }
     }
 
@@ -44,21 +54,20 @@ class FakeVideoRepository private constructor(private val context: Context?) : I
             val lower = keyword.lowercase().trim()
             if (lower.isEmpty()) return Result.success(emptyList())
 
-            // Weighted scoring / 加权评分
-            // Title exact match: 1.0, partial: 0.7
-            // Tags match: 0.5 per tag
-            // Recommend words match: 0.3 per word
-            // Minimum threshold: 0.3
+            val startMs = System.currentTimeMillis()
+            val strategyName = searchMatcher.javaClass.simpleName
+
+            // Weighted scoring delegated to strategy
             val scored = videos.mapNotNull { v ->
-                var score = 0f
-                val titleLower = v.title.lowercase()
-                if (titleLower == lower) score += 1.0f
-                else if (titleLower.contains(lower)) score += 0.7f
-                score += v.tags.count { it.lowercase().contains(lower) } * 0.5f
-                score += v.recommendWords.count { it.lowercase().contains(lower) } * 0.3f
-                if (score >= 0.3f) v to score else null
+                val s = searchMatcher.score(v, lower)
+                if (s > 0f) v to s else null
             }
-            Result.success(scored.sortedByDescending { it.second }.map { it.first })
+            val results = scored.sortedByDescending { it.second }.map { it.first }
+            val timeMs = System.currentTimeMillis() - startMs
+
+            MetricsCollector.record("search_query|strategy=${strategyName.lowercase()}", timeMs)
+            MetricsCollector.record("search_result_count", results.size.toLong())
+            Result.success(results)
         } catch (e: Exception) {
             Result.error("搜索失败: ${e.message}")
         }
