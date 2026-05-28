@@ -1,9 +1,5 @@
 package com.example.flower_show.player
 
-/**
- * PlayerCallback — Functional interface for playback events.
- * SAM conversion allows lambda usage: playerManager.addCallback { event -> ... }
- */
 fun interface PlayerCallback {
     fun onEvent(event: PlaybackEvent)
 
@@ -17,5 +13,9 @@ fun interface PlayerCallback {
         data class StateChanged(val isPlaying: Boolean) : PlaybackEvent()
         data object Complete : PlaybackEvent()
         data class Error(val message: String) : PlaybackEvent()
+        /** Player entered buffering state */
+        data class BufferingStart(val timestampMs: Long) : PlaybackEvent()
+        /** Player exited buffering state, [durationMs] is how long it was stuck */
+        data class BufferingEnd(val durationMs: Long) : PlaybackEvent()
     }
 }

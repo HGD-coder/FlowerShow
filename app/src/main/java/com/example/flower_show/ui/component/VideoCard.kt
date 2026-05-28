@@ -40,6 +40,10 @@ fun VideoCard(
     onSeek: (Long) -> Unit = {},
     onRecommendWordClick: (String) -> Unit = {},
     onSetQuality: (String, String) -> Unit = { _, _ -> },
+    onEnableAutoQuality: () -> Unit = {},
+    qualityMode: String = "Auto",       // "Auto" or "Manual"
+    currentQualityName: String? = null,
+    availableQualities: List<String> = emptyList(), // quality names
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -154,26 +158,43 @@ fun VideoCard(
                     Spacer(Modifier.height(22.dp))
                     ShareIcon(size = 32.dp)
                     Text("分享", color = Color.White, fontSize = 12.sp)
-                    // Quality selector
-                    video.qualityUrls?.let { urls ->
-                        if (urls.size > 1) {
-                            Spacer(Modifier.height(22.dp))
-                            Text("画质", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp,
-                                modifier = Modifier.clickable { showQualityMenu = true })
-                            Box {
-                                DropdownMenu(
-                                    expanded = showQualityMenu,
-                                    onDismissRequest = { showQualityMenu = false },
-                                ) {
-                                    urls.forEach { (name, url) ->
-                                        DropdownMenuItem(
-                                            text = { Text(name) },
-                                            onClick = {
-                                                showQualityMenu = false
-                                                onSetQuality(name, url)
-                                            },
+                    // Quality selector: Auto + Manual
+                    if (video.qualityUrls != null && video.qualityUrls!!.size > 1) {
+                        Spacer(Modifier.height(22.dp))
+                        Text("画质", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp,
+                            modifier = Modifier.clickable { showQualityMenu = true })
+                        Box {
+                            DropdownMenu(
+                                expanded = showQualityMenu,
+                                onDismissRequest = { showQualityMenu = false },
+                            ) {
+                                // Auto option
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            if (qualityMode == "Auto") "✓ 自动（当前 ${currentQualityName ?: "自动"}）"
+                                            else "  自动",
+                                            color = Color.Black,
                                         )
-                                    }
+                                    },
+                                    onClick = {
+                                        showQualityMenu = false
+                                        onEnableAutoQuality()
+                                    },
+                                )
+                                // Manual quality options
+                                video.qualityUrls!!.forEach { (name, url) ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            val label = if (qualityMode == "Manual" && currentQualityName == name)
+                                                "✓ $name" else "  $name"
+                                            Text(label, color = Color.Black)
+                                        },
+                                        onClick = {
+                                            showQualityMenu = false
+                                            onSetQuality(name, url)
+                                        },
+                                    )
                                 }
                             }
                         }
@@ -210,6 +231,8 @@ fun VideoCard(
                 is PlayerCallback.PlaybackEvent.StateChanged -> isPlaying = event.isPlaying
                 is PlayerCallback.PlaybackEvent.Complete -> { isPlaying = false; progress = 1f }
                 is PlayerCallback.PlaybackEvent.Error -> {}
+                is PlayerCallback.PlaybackEvent.BufferingStart -> {}
+                is PlayerCallback.PlaybackEvent.BufferingEnd -> {}
             }
         }
         playerManager.addCallback(cb)

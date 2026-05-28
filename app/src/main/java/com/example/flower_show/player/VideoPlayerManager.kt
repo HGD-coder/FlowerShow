@@ -25,6 +25,7 @@ class VideoPlayerManager(context: Context) {
     private var currentVideoUrl: String? = null
     private val callbacks = mutableListOf<PlayerCallback>()
     private var playStartTimeMs: Long = 0
+    private var bufferingStartMs: Long = 0 // Track buffering for auto-quality / 记录缓冲起始时间
 
     companion object {
         private const val TAG = "VideoPlayerManager"
@@ -45,6 +46,12 @@ class VideoPlayerManager(context: Context) {
                     override fun onPlaybackStateChanged(state: Int) {
                         when (state) {
                             Player.STATE_READY -> {
+                                // If we just exited buffering, report duration
+                                if (bufferingStartMs > 0) {
+                                    val dur = System.currentTimeMillis() - bufferingStartMs
+                                    bufferingStartMs = 0
+                                    callbacks.forEach { it.onEvent(PlayerCallback.PlaybackEvent.BufferingEnd(dur)) }
+                                }
                                 val dur = duration
                                 val latency = if (playStartTimeMs > 0) System.currentTimeMillis() - playStartTimeMs else 0
                                 val cached = latency < 200
@@ -52,6 +59,12 @@ class VideoPlayerManager(context: Context) {
                                 playStartTimeMs = 0
                                 callbacks.forEach { it.onEvent(PlayerCallback.PlaybackEvent.Ready(dur)) }
                                 callbacks.forEach { it.onEvent(PlayerCallback.PlaybackEvent.StateChanged(playWhenReady)) }
+                            }
+                            Player.STATE_BUFFERING -> {
+                                if (bufferingStartMs == 0L) {
+                                    bufferingStartMs = System.currentTimeMillis()
+                                    callbacks.forEach { it.onEvent(PlayerCallback.PlaybackEvent.BufferingStart(bufferingStartMs)) }
+                                }
                             }
                             Player.STATE_ENDED -> callbacks.forEach {
                                 it.onEvent(PlayerCallback.PlaybackEvent.Complete)

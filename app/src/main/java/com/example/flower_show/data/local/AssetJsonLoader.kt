@@ -46,11 +46,15 @@ object AssetJsonLoader {
         val host = if (isEmulator) "10.0.2.2" else LAN_IP
         val deviceType = if (isEmulator) "emulator" else "real device"
         Log.d(TAG, "Detected $deviceType, using host: $host")
-        return "http://$host:8080/videos"
+        return "http://$host:8080"
     }
 
     private fun videoUrlFor(awemeId: String): String =
-        "${hostBaseUrl()}/$awemeId/video.mp4"
+        "${hostBaseUrl()}/videos/$awemeId/video.mp4"
+
+    /** Build full URL from a relative path (e.g. "videos/123/video_480p.mp4") */
+    private fun qualityUrlFor(relativePath: String): String =
+        "${hostBaseUrl()}/$relativePath"
 
     fun loadVideos(context: Context): List<VideoItem> {
         return try {
@@ -117,11 +121,13 @@ object AssetJsonLoader {
         // Build video URL from local HTTP server (host auto-detected)
         val videoUrl = videoUrlFor(id)
 
-        // Parse multi-quality URLs if present
+        // Parse multi-quality URLs if present, prepend base URL
         val qualityUrls: Map<String, String>? = when (val qu = raw["quality_urls"]) {
             is Map<*, *> -> {
                 @Suppress("UNCHECKED_CAST")
-                (qu as? Map<String, String>)?.takeIf { it.isNotEmpty() }
+                (qu as? Map<String, String>)?.mapValues { (_, path) ->
+                    if (path.startsWith("http")) path else qualityUrlFor(path)
+                }?.takeIf { it.isNotEmpty() }
             }
             else -> null
         }

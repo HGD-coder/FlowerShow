@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -167,7 +168,10 @@ fun VideoScreen(
                                 playerManager = viewModel.playerManager,
                                 onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
                                 onRecommendWordClick = onRecommendWordClick,
-                                onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SetQuality(name, url)) },
+                                onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SelectManualQuality(name, url)) },
+                                onEnableAutoQuality = { viewModel.dispatch(VideoIntent.EnableAutoQuality) },
+                                qualityMode = state.qualityMode.name,
+                                currentQualityName = state.currentQualityName,
                             )
                             is ImageCardItem -> ImageCard(card = item)
                             is AlbumCardItem -> AlbumCard(card = item)
@@ -180,6 +184,18 @@ fun VideoScreen(
 
         // Search bar — always visible, highest z-order
         SearchBar(onClick = onSearchClick, modifier = Modifier.align(Alignment.TopCenter).zIndex(1f))
+
+        // Auto-quality toast / 自动画质切换提示
+        state.toastMessage?.let { msg ->
+            LaunchedEffect(msg) {
+                kotlinx.coroutines.delay(3000L)
+                viewModel.dispatch(VideoIntent.DismissToast)
+            }
+            Text(msg, color = Color.White, fontSize = 13.sp,
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 80.dp)
+                    .background(Color.Black.copy(alpha = 0.7f), shape = RoundedCornerShape(8.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp))
+        }
 
         // Error snackbar
         state.error?.let { error ->
