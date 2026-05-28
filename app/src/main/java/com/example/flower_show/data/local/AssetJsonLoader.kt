@@ -2,6 +2,7 @@ package com.example.flower_show.data.local
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import com.example.flower_show.model.VideoItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -23,7 +24,10 @@ import java.io.InputStreamReader
  */
 object AssetJsonLoader {
 
-    /** Your computer's LAN IP for real device connections. */
+    /** Your computer's LAN IP for real device connections.
+     *  Run `ipconfig` (Windows) or `ifconfig` (Mac/Linux) to find it.
+     *  Phone and computer MUST be on the same WiFi network.
+     *  Also ensure the HTTP server is running: `python -m http.server 8080` in the videos directory. */
     private const val LAN_IP = "10.138.179.51" // TODO: run `ipconfig` to verify and update
 
     private const val TAG = "AssetJsonLoader"
@@ -40,6 +44,8 @@ object AssetJsonLoader {
                 || Build.HARDWARE.contains("goldfish")
                 || Build.HARDWARE.contains("ranchu")
         val host = if (isEmulator) "10.0.2.2" else LAN_IP
+        val deviceType = if (isEmulator) "emulator" else "real device"
+        Log.d(TAG, "Detected $deviceType, using host: $host")
         return "http://$host:8080/videos"
     }
 
@@ -111,11 +117,21 @@ object AssetJsonLoader {
         // Build video URL from local HTTP server (host auto-detected)
         val videoUrl = videoUrlFor(id)
 
+        // Parse multi-quality URLs if present
+        val qualityUrls: Map<String, String>? = when (val qu = raw["quality_urls"]) {
+            is Map<*, *> -> {
+                @Suppress("UNCHECKED_CAST")
+                (qu as? Map<String, String>)?.takeIf { it.isNotEmpty() }
+            }
+            else -> null
+        }
+
         return VideoItem(
             id = id, title = title, author = author, avatarUrl = avatarUrl,
             videoUrl = videoUrl, coverUrl = coverUrl,
             likes = likes, comments = comments, collections = collections, shares = shares,
             tags = tags, recommendWords = recommendWords,
+            qualityUrls = qualityUrls,
         )
     }
 

@@ -30,4 +30,10 @@ sealed interface VideoIntent {
 
     /** Error dismissed by user / 用户关闭错误 */
     data object DismissError : VideoIntent
+
+    /** Jump to video by ID, loading pages until found / 跳转到指定视频，未找到则持续分页加载 */
+    data class JumpToVideo(val videoId: String) : VideoIntent
+
+    /** Switch video quality / 切换画质 */
+    data class SetQuality(val qualityName: String, val qualityUrl: String) : VideoIntent
 }

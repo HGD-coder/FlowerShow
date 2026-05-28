@@ -16,4 +16,5 @@ data class VideoState(
     val currentPosition: Int = 0,
     val isPlayerReady: Boolean = false,
     val error: String? = null,
+    val targetVideoId: String? = null,
 )
