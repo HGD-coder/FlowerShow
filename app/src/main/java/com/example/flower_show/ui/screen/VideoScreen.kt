@@ -1,6 +1,7 @@
 package com.example.flower_show.ui.screen
 
 import android.content.res.Configuration
+import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,9 +17,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.ui.PlayerView
+import com.example.flower_show.R
 import com.example.flower_show.model.*
 import com.example.flower_show.ui.component.*
 import com.example.flower_show.viewmodel.VideoIntent
@@ -70,14 +73,13 @@ fun VideoScreen(
             if (state.isPlayerReady) {
                 AndroidView(
                     factory = { ctx ->
-                        PlayerView(ctx).apply {
-                            player = viewModel.playerManager.getPlayer()
-                            useController = false
-                            controllerAutoShow = false
-                            layoutParams = ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT)
-                        }
+                        val inflater = LayoutInflater.from(ctx)
+                        val view = inflater.inflate(R.layout.player_view, null) as PlayerView
+                        view.player = viewModel.playerManager.getPlayer()
+                        view.layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT)
+                        view
                     },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -139,11 +141,11 @@ fun VideoScreen(
                         }
                     }
                 }
-
-                // Search bar
-                SearchBar(onClick = onSearchClick, modifier = Modifier.align(Alignment.TopCenter))
             }
         }
+
+        // Search bar — always visible, highest z-order
+        SearchBar(onClick = onSearchClick, modifier = Modifier.align(Alignment.TopCenter).zIndex(1f))
 
         // Error snackbar
         state.error?.let { error ->

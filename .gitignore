@@ -18,3 +18,5 @@ local.properties
 *.keystore
 *.log
 **/video_data.json*
+/.agents
+/.codex
