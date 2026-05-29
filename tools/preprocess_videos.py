@@ -11,7 +11,7 @@ Usage:
   python tools/preprocess_videos.py --transcode --force  # overwrite existing transcoded files
 """
 
-import json, os, subprocess, sys, argparse, time
+import json, subprocess, sys, argparse, time
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
@@ -46,8 +46,11 @@ class VideoMeta:
         return f"{self.height}p"
 
     def available_tiers(self) -> list[int]:
-        """Quality tiers available for this video (<= source height)."""
-        return [t for t in ALL_QUALITY_TIERS if t <= self.height]
+        """Quality tiers available for this video (<= source height).
+        Always includes source height as the highest tier."""
+        tiers = [t for t in ALL_QUALITY_TIERS if t < self.height]
+        tiers.append(self.height)  # source height = highest tier
+        return sorted(set(tiers), reverse=True)
 
 
 @dataclass
