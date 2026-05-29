@@ -25,7 +25,9 @@ class VideoPlayerManager(context: Context) {
     private var currentVideoUrl: String? = null
     private val callbacks = mutableListOf<PlayerCallback>()
     private var playStartTimeMs: Long = 0
-    private var bufferingStartMs: Long = 0 // Track buffering for auto-quality / 记录缓冲起始时间
+    private var bufferingStartMs: Long = 0
+    private var lastBufferedPos: Long = 0
+    private var lastBufferedTime: Long = 0
 
     companion object {
         private const val TAG = "VideoPlayerManager"
@@ -118,8 +120,20 @@ class VideoPlayerManager(context: Context) {
     fun notifyProgress() {
         val p = player ?: return
         if (p.isPlaying) {
-            val bufferedPercent = if (p.duration > 0) (p.bufferedPosition.toFloat() / p.duration * 100).toInt() else 0
-            val evt = PlayerCallback.PlaybackEvent.Progress(p.currentPosition, p.bufferedPosition, bufferedPercent)
+            val now = System.currentTimeMillis()
+            val buffered = p.bufferedPosition
+            // Compute bandwidth: delta bytes / delta time (kbps)
+            var estBwKbps = 0
+            if (lastBufferedTime > 0 && buffered > lastBufferedPos) {
+                val deltaBytes = buffered - lastBufferedPos
+                val deltaSec = (now - lastBufferedTime) / 1000f
+                if (deltaSec > 0.1f) estBwKbps = (deltaBytes * 8f / deltaSec / 1000f).toInt()
+            }
+            lastBufferedPos = buffered
+            lastBufferedTime = now
+
+            val bufferedPercent = if (p.duration > 0) (buffered.toFloat() / p.duration * 100).toInt() else 0
+            val evt = PlayerCallback.PlaybackEvent.Progress(p.currentPosition, buffered, bufferedPercent, estBwKbps)
             callbacks.forEach { it.onEvent(evt) }
         }
     }
