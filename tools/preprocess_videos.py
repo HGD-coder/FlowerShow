@@ -14,7 +14,7 @@ Usage:
   python preprocess_videos.py --jsonl-path D:\other\data.jsonl   # custom JSONL path
 """
 
-import json, sys, argparse, time, shutil, tempfile
+import json, sys, argparse, time, shutil, tempfile, subprocess
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
@@ -136,15 +136,24 @@ def detect_video(video_path: Path) -> Optional[VideoMeta]:
     )
 
 
-def validate_video(video_path: Path) -> bool:
-    """Check if an existing video file is valid (playable, has expected resolution)."""
+def validate_video(video_path: Path, expected_short_side: int = 0) -> bool:
+    """Check if an existing video file is valid: playable AND has correct resolution."""
     data = run_ffprobe(video_path)
     if data is None:
         return False
     streams = data.get("streams", [])
-    has_video = any(s.get("codec_type") == "video" for s in streams)
+    video_stream = next((s for s in streams if s.get("codec_type") == "video"), None)
+    if video_stream is None:
+        return False
     has_duration = float(data.get("format", {}).get("duration", 0) or 0) > 0
-    return has_video and has_duration
+    if not has_duration:
+        return False
+    # Check resolution if expected
+    if expected_short_side > 0:
+        actual_short = min(int(video_stream.get("width", 0)), int(video_stream.get("height", 0)))
+        if actual_short != expected_short_side:
+            return False
+    return True
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -170,7 +179,7 @@ def transcode_video(source: Path, meta: VideoMeta,
 
     # Check existing
     if final_path.exists():
-        if not force and validate_video(final_path):
+        if not force and validate_video(final_path, target_short_side):
             print(f"      [SKIP] already exists and valid")
             return TranscodeResult(height=target_short_side, output_path=final_path, success=True)
         elif force:

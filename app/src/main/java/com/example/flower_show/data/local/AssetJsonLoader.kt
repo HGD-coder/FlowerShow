@@ -27,7 +27,10 @@ object AssetJsonLoader {
     /** Your computer's LAN IP for real device connections.
      *  Run `ipconfig` (Windows) or `ifconfig` (Mac/Linux) to find it.
      *  Phone and computer MUST be on the same WiFi network.
-     *  Also ensure the HTTP server is running: `python -m http.server 8080` in the videos directory. */
+     *  Also ensure the HTTP server is running in the douyin directory:
+     *    cd D:\MediaCrawler\MediaCrawler\data\douyin
+     *    python -m http.server 8080
+     *  Or just double-click start_video_server.bat in MediaCrawler/. */
     private const val LAN_IP = "10.138.179.51" // TODO: run `ipconfig` to verify and update
 
     private const val TAG = "AssetJsonLoader"

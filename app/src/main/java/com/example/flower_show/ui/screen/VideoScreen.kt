@@ -182,8 +182,10 @@ fun VideoScreen(
             }
         }
 
-        // Search bar — always visible, highest z-order
-        SearchBar(onClick = onSearchClick, modifier = Modifier.align(Alignment.TopCenter).zIndex(1f))
+        // Search bar — visible only in portrait / 搜索框仅在竖屏显示
+        if (!isLandscape) {
+            SearchBar(onClick = onSearchClick, modifier = Modifier.align(Alignment.TopCenter).zIndex(1f))
+        }
 
         // Auto-quality toast / 自动画质切换提示
         state.toastMessage?.let { msg ->

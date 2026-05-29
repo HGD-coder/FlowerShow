@@ -141,31 +141,33 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ── Auto-quality: upgrade on stable playback ──
+    // ── Auto-quality: upgrade on stable playback (loops until at highest) ──
 
     private fun evaluateAutoQuality() {
         if (_state.value.qualityMode != QualityMode.Auto) return
         qualityJob?.cancel()
         qualityJob = viewModelScope.launch {
-            delay(STABLE_UPGRADE_MS)
-            val s = _state.value
-            val qualities = s.availableQualities
-            if (qualities.isEmpty()) return@launch
+            while (isActive) {
+                delay(STABLE_UPGRADE_MS)
+                val s = _state.value
+                if (s.qualityMode != QualityMode.Auto) return@launch
+                val qualities = s.availableQualities
+                if (qualities.isEmpty()) continue
 
-            val currentIdx = qualities.indexOfFirst { it.name == s.currentQualityName }
-            if (currentIdx <= 0) return@launch // already at highest
+                val currentIdx = qualities.indexOfFirst { it.name == s.currentQualityName }
+                if (currentIdx <= 0) return@launch // at highest, stop trying
 
-            val now = System.currentTimeMillis()
-            if (now - lastAutoSwitchMs < COOLDOWN_MS) return@launch
+                val now = System.currentTimeMillis()
+                if (now - lastAutoSwitchMs < COOLDOWN_MS) continue
 
-            // Must have no recent buffering AND sufficient buffer ahead
-            val cutoff = now - BUFFERING_WINDOW_MS
-            val recentBuffers = bufferingHistory.count { it >= cutoff }
-            if (recentBuffers > 0) return@launch
-            if (lastBufferedPercent < UPGRADE_BUFFERED_PCT) return@launch
+                val cutoff = now - BUFFERING_WINDOW_MS
+                val recentBuffers = bufferingHistory.count { it >= cutoff }
+                if (recentBuffers > 0) continue // try again after another stable period
+                if (lastBufferedPercent < UPGRADE_BUFFERED_PCT) continue
 
-            val upgrade = qualities[currentIdx - 1]
-            applyQualitySwitch(upgrade, "升级", false)
+                val upgrade = qualities[currentIdx - 1]
+                applyQualitySwitch(upgrade, "升级", false)
+            }
         }
     }
 
@@ -178,6 +180,8 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         if (showToast) {
             _state.update { it.copy(toastMessage = "网络波动，已自动切换到 ${target.name}") }
         }
+        // After any auto-switch, re-schedule upgrade evaluation
+        evaluateAutoQuality()
     }
 
     private fun resetBufferingState() {
@@ -294,19 +298,22 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             VideoQuality(name, url, name.removeSuffix("p").toIntOrNull() ?: 0)
         }?.sortedByDescending { it.height } ?: emptyList()
 
-        // Best quality = first (highest height)
+        val mode = _state.value.qualityMode
         val bestQuality = qualities.firstOrNull()
-        val initialName = bestQuality?.name
-        // Play the best quality URL — not the default videoUrl
-        val playbackUrl = if (_state.value.qualityMode == QualityMode.Auto) {
-            bestQuality?.url ?: item.videoUrl
-        } else {
-            // Manual mode: keep current quality if available, else fallback
-            val currentName = _state.value.currentQualityName
-            qualities.find { it.name == currentName }?.url ?: bestQuality?.url ?: item.videoUrl
-        }
 
-        _state.update { it.copy(availableQualities = qualities, currentQualityName = initialName) }
+        // Determine which quality to play
+        val targetQuality: VideoQuality?
+        if (mode == QualityMode.Manual) {
+            // Keep user's choice if available in this video's qualities
+            val currentName = _state.value.currentQualityName
+            targetQuality = qualities.find { it.name == currentName } ?: bestQuality
+        } else {
+            targetQuality = bestQuality
+        }
+        val playbackUrl = targetQuality?.url ?: item.videoUrl
+        val displayName = targetQuality?.name
+
+        _state.update { it.copy(availableQualities = qualities, currentQualityName = displayName) }
 
         if (!playerManager.isInitialized) {
             viewModelScope.launch(Dispatchers.IO) {
