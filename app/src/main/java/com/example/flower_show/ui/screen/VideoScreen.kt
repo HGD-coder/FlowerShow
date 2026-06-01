@@ -1,5 +1,6 @@
 package com.example.flower_show.ui.screen
 
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -163,16 +165,27 @@ fun VideoScreen(
                     val item = state.items[page]
                     key(item.hashCode()) {
                         when (item) {
-                            is VideoItem -> VideoCard(
-                                video = item,
-                                playerManager = viewModel.playerManager,
-                                onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
-                                onRecommendWordClick = onRecommendWordClick,
-                                onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SelectManualQuality(name, url)) },
-                                onEnableAutoQuality = { viewModel.dispatch(VideoIntent.EnableAutoQuality) },
-                                qualityMode = state.qualityMode.name,
-                                currentQualityName = state.currentQualityName,
-                            )
+                            is VideoItem -> {
+                                val ctx = LocalContext.current
+                                VideoCard(
+                                    video = item,
+                                    playerManager = viewModel.playerManager,
+                                    onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
+                                    onRecommendWordClick = onRecommendWordClick,
+                                    onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SelectManualQuality(name, url)) },
+                                    onEnableAutoQuality = { viewModel.dispatch(VideoIntent.EnableAutoQuality) },
+                                    qualityMode = state.qualityMode.name,
+                                    currentQualityName = state.currentQualityName,
+                                    onToggleFullscreen = {
+                                        val activity = ctx as? android.app.Activity ?: return@VideoCard
+                                        if (isLandscape) {
+                                            activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                                        } else {
+                                            activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                                        }
+                                    },
+                                )
+                            }
                             is ImageCardItem -> ImageCard(card = item)
                             is AlbumCardItem -> AlbumCard(card = item)
                             else -> {}
@@ -182,9 +195,18 @@ fun VideoScreen(
             }
         }
 
-        // Search bar — visible only in portrait / 搜索框仅在竖屏显示
         if (!isLandscape) {
-            SearchBar(onClick = onSearchClick, modifier = Modifier.align(Alignment.TopCenter).zIndex(1f))
+            TikTokTopNavigation(
+                onSearchClick = onSearchClick,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .zIndex(2f),
+            )
+            TikTokBottomNavigationBar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .zIndex(2f),
+            )
         }
 
         // Auto-quality toast / 自动画质切换提示
