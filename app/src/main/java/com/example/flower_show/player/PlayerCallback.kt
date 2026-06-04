@@ -18,5 +18,6 @@ fun interface PlayerCallback {
         data class BufferingStart(val timestampMs: Long) : PlaybackEvent()
         /** Player exited buffering state, [durationMs] is how long it was stuck */
         data class BufferingEnd(val durationMs: Long) : PlaybackEvent()
+        data class VideoSizeChanged(val width: Int, val height: Int) : PlaybackEvent()
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.flower_show.ui.theme.ArcticColors
 
 @Composable
 fun SearchBar(
@@ -23,13 +24,13 @@ fun SearchBar(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .height(44.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(Color.White.copy(alpha = 0.25f))
+            .clip(RoundedCornerShape(8.dp))
+            .background(ArcticColors.Glass.copy(alpha = 0.54f))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            SearchIcon(tint = Color.White.copy(alpha = 0.8f), size = 18.dp)
+            SearchIcon(tint = ArcticColors.Primary, size = 18.dp)
             Spacer(Modifier.width(8.dp))
             Text("搜索精彩内容", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
         }

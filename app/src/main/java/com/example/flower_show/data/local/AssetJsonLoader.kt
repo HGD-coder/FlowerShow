@@ -3,6 +3,7 @@ package com.example.flower_show.data.local
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import com.example.flower_show.ai.SearchSuggestionEngine
 import com.example.flower_show.model.VideoItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -119,7 +120,11 @@ object AssetJsonLoader {
         val shares = raw.int("share_count")
         val keyword = raw.str("source_keyword") ?: ""
         val tags = if (keyword.isNotEmpty()) listOf(keyword) else emptyList()
-        val recommendWords = listOf(title.take(15))
+        val recommendWords = SearchSuggestionEngine.inferSearches(
+            title = title,
+            tags = tags,
+            count = 10,
+        )
 
         // Build video URL from local HTTP server (host auto-detected)
         val videoUrl = videoUrlFor(id)
@@ -153,10 +158,15 @@ object AssetJsonLoader {
         val avatarUrl = raw.str("avatarUrl") ?: ""
         val videoUrl = raw.str("videoUrl") ?: ""
         val coverUrl = raw.str("coverUrl") ?: ""
+        val recommendWords = SearchSuggestionEngine.inferSearches(
+            title = title,
+            tags = emptyList(),
+            count = 10,
+        )
         return VideoItem(id, title, author, avatarUrl, videoUrl, coverUrl,
             likes = raw.int("likes"), comments = raw.int("comments"),
             collections = raw.int("collections"), shares = raw.int("shares"),
-            tags = emptyList(), recommendWords = emptyList(),
+            tags = emptyList(), recommendWords = recommendWords,
         )
     }
 

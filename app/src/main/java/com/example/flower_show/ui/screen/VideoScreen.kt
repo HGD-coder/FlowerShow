@@ -1,9 +1,6 @@
 package com.example.flower_show.ui.screen
 
-import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,6 +28,7 @@ import androidx.media3.ui.PlayerView
 import com.example.flower_show.R
 import com.example.flower_show.model.*
 import com.example.flower_show.ui.component.*
+import com.example.flower_show.ui.theme.ArcticColors
 import com.example.flower_show.viewmodel.VideoIntent
 import com.example.flower_show.viewmodel.VideoViewModel
 
@@ -48,7 +46,7 @@ fun VideoScreen(
 
     // P1-3: Landscape detection / 横竖屏检测
     val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
 
     // System UI immersive control / 沉浸式系统 UI 控制
     val view = LocalView.current
@@ -71,13 +69,13 @@ fun VideoScreen(
     }
 
     // Play when page changes
-    LaunchedEffect(pagerState.currentPage, state.items.size) {
-        viewModel.dispatch(VideoIntent.PlayPosition(pagerState.currentPage))
+    LaunchedEffect(pagerState.settledPage, state.items.size) {
+        viewModel.dispatch(VideoIntent.PlayPosition(pagerState.settledPage))
     }
 
     // Load more when near end
     LaunchedEffect(pagerState.currentPage, state.items.size) {
-        if (pagerState.currentPage >= state.items.size - 2 && !state.isLoading)
+        if (pagerState.settledPage >= state.items.size - 2 && !state.isLoading)
             viewModel.dispatch(VideoIntent.LoadNextPage)
     }
 
@@ -87,23 +85,14 @@ fun VideoScreen(
         viewModel.dispatch(VideoIntent.JumpToVideo(targetId))
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+    Box(modifier = Modifier.fillMaxSize().background(ArcticColors.Background)) {
         if (state.items.isEmpty()) {
             Text("加载中...", color = Color.White, fontSize = 18.sp,
                 modifier = Modifier.align(Alignment.Center))
         } else {
-            // PlayerView
-            if (state.isPlayerReady) {
-                AndroidView(
-                    factory = { ctx ->
-                        val inflater = LayoutInflater.from(ctx)
-                        val view = inflater.inflate(R.layout.player_view, null) as PlayerView
-                        view.player = viewModel.playerManager.getPlayer()
-                        view.layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT)
-                        view
-                    },
+            if (isLandscape && state.isPlayerReady) {
+                PlayerSurface(
+                    playerViewModel = viewModel,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -111,50 +100,21 @@ fun VideoScreen(
             if (isLandscape) {
                 // ── Landscape: full-screen player, tap to toggle system UI + controls ──
                 var showLandscapeControls by remember { mutableStateOf(true) }
-                LaunchedEffect(showLandscapeControls) {
-                    if (showLandscapeControls) {
-                        kotlinx.coroutines.delay(3000L)
-                        showLandscapeControls = false
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable {
-                            showLandscapeControls = !showLandscapeControls
-                        // Toggle system bars together with controls
-                        window?.let { w ->
-                            val ctrl = WindowInsetsControllerCompat(w, view)
-                            if (showLandscapeControls) {
-                                ctrl.show(WindowInsetsCompat.Type.systemBars())
-                            } else {
-                                ctrl.hide(WindowInsetsCompat.Type.systemBars())
-                                ctrl.systemBarsBehavior =
-                                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                            }
-                        }
-                        }
-                ) {
-                    // Center play/pause overlay
-                    if (showLandscapeControls) {
-                        if (viewModel.playerManager.isPlaying) {
-                            PauseIcon(
-                                tint = Color.White.copy(alpha = 0.8f),
-                                size = 48.dp,
-                                onClick = { viewModel.playerManager.togglePlayPause() },
-                                modifier = Modifier.align(Alignment.Center),
-                            )
-                        } else {
-                            PlayIcon(
-                                tint = Color.White.copy(alpha = 0.8f),
-                                size = 48.dp,
-                                onClick = { viewModel.playerManager.togglePlayPause() },
-                                modifier = Modifier.align(Alignment.Center),
-                            )
-                        }
-                    }
-                }
+                val currentVideo = state.items.getOrNull(state.currentPosition) as? VideoItem
+                    ?: state.items.getOrNull(pagerState.settledPage) as? VideoItem
+                val ctx = LocalContext.current
+                LandscapeVideoControls(
+                    video = currentVideo,
+                    playerManager = viewModel.playerManager,
+                    visible = showLandscapeControls,
+                    onToggleVisible = { showLandscapeControls = !showLandscapeControls },
+                    onBack = {
+                        val activity = ctx as? android.app.Activity ?: return@LandscapeVideoControls
+                        activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    },
+                    onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
+                    modifier = Modifier.fillMaxSize(),
+                )
             } else {
                 // ── Portrait: full feed with cards / 竖屏：完整视频流 ──
                 VerticalPager(
@@ -170,6 +130,16 @@ fun VideoScreen(
                                 VideoCard(
                                     video = item,
                                     playerManager = viewModel.playerManager,
+                                    playerContent = if (state.isPlayerReady && page == pagerState.settledPage) {
+                                        {
+                                            PlayerSurface(
+                                                playerViewModel = viewModel,
+                                                modifier = Modifier.fillMaxSize(),
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
                                     onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
                                     onRecommendWordClick = onRecommendWordClick,
                                     onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SelectManualQuality(name, url)) },
@@ -231,4 +201,27 @@ fun VideoScreen(
     DisposableEffect(Unit) {
         onDispose { viewModel.dispatch(VideoIntent.PausePlayer) }
     }
+}
+
+@Composable
+private fun PlayerSurface(
+    playerViewModel: VideoViewModel,
+    modifier: Modifier = Modifier,
+) {
+    AndroidView(
+        factory = { ctx ->
+            val inflater = LayoutInflater.from(ctx)
+            val view = inflater.inflate(R.layout.player_view, null) as PlayerView
+            view.player = playerViewModel.playerManager.getPlayer()
+            view.layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+            view
+        },
+        update = { playerView ->
+            playerView.player = playerViewModel.playerManager.getPlayer()
+        },
+        modifier = modifier,
+    )
 }

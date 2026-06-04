@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -28,6 +29,8 @@ class VideoPlayerManager(context: Context) {
     private var bufferingStartMs: Long = 0
     private var lastBufferedPos: Long = 0
     private var lastBufferedTime: Long = 0
+    private var currentVideoWidth: Int = 0
+    private var currentVideoHeight: Int = 0
 
     companion object {
         private const val TAG = "VideoPlayerManager"
@@ -83,6 +86,19 @@ class VideoPlayerManager(context: Context) {
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
                         callbacks.forEach { it.onEvent(PlayerCallback.PlaybackEvent.StateChanged(isPlaying)) }
                     }
+
+                    override fun onVideoSizeChanged(videoSize: VideoSize) {
+                        currentVideoWidth = videoSize.width
+                        currentVideoHeight = videoSize.height
+                        callbacks.forEach {
+                            it.onEvent(
+                                PlayerCallback.PlaybackEvent.VideoSizeChanged(
+                                    width = videoSize.width,
+                                    height = videoSize.height,
+                                ),
+                            )
+                        }
+                    }
                 })
             }
     }
@@ -111,6 +127,7 @@ class VideoPlayerManager(context: Context) {
     val duration: Long get() = player?.duration ?: 0
     val isPlaying: Boolean get() = player?.isPlaying == true
     val isInitialized: Boolean get() = player != null
+    val isCurrentVideoLandscape: Boolean get() = currentVideoWidth > currentVideoHeight && currentVideoHeight > 0
     fun getPlayer(): ExoPlayer? = player
 
     fun addCallback(cb: PlayerCallback) { callbacks.add(cb) }
@@ -190,5 +207,7 @@ class VideoPlayerManager(context: Context) {
         player?.release()
         player = null
         currentVideoUrl = null
+        currentVideoWidth = 0
+        currentVideoHeight = 0
     }
 }

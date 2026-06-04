@@ -48,9 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.flower_show.ui.theme.ArcticColors
 
-private val TikTokPink = Color(0xFFFF2D55)
-private val TikTokCyan = Color(0xFF25F4EE)
+private val TikTokPink = ArcticColors.PrimaryContainer
 
 @Composable
 fun TikTokTopNavigation(
@@ -74,7 +74,7 @@ fun TikTokTopNavigation(
             Box {
                 Text(
                     text = "Following",
-                    color = Color.White.copy(alpha = 0.56f),
+                    color = ArcticColors.OnSurfaceVariant.copy(alpha = 0.68f),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                 )
@@ -83,14 +83,14 @@ fun TikTokTopNavigation(
                         .align(Alignment.TopEnd)
                         .offset(x = 12.dp, y = (-1).dp)
                         .size(8.dp)
-                        .background(TikTokPink, CircleShape),
+                        .background(ArcticColors.PrimaryContainer, CircleShape),
                 )
             }
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "For you",
-                    color = Color.White,
+                    color = ArcticColors.Primary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -98,18 +98,27 @@ fun TikTokTopNavigation(
                 Box(
                     modifier = Modifier
                         .width(30.dp)
-                        .height(3.dp)
-                        .background(Color.White, RoundedCornerShape(2.dp)),
+                        .height(2.dp)
+                        .background(ArcticColors.PrimaryContainer, RoundedCornerShape(2.dp)),
                 )
             }
         }
 
-        SearchIcon(
-            tint = Color.White,
-            size = 42.dp,
-            onClick = onSearchClick,
-            modifier = Modifier.align(Alignment.CenterEnd),
-        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(ArcticColors.Glass.copy(alpha = 0.24f))
+                .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
+                .clickable(onClick = onSearchClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            SearchIcon(
+                tint = ArcticColors.Primary,
+                size = 24.dp,
+            )
+        }
     }
 }
 
@@ -120,7 +129,8 @@ fun TikTokBottomNavigationBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.Black)
+            .background(ArcticColors.Background.copy(alpha = 0.72f))
+            .border(1.dp, ArcticColors.Outline.copy(alpha = 0.28f))
             .navigationBarsPadding()
             .padding(start = 18.dp, top = 10.dp, end = 18.dp, bottom = 10.dp),
         verticalAlignment = Alignment.Top,
@@ -179,7 +189,7 @@ fun TikTokActionRail(
         TikTokActionItem(
             count = formatCount(if (isLiked) likes + 1 else likes),
             icon = {
-                if (isLiked) HeartFilledIcon(size = 42.dp, onClick = onLikeClick)
+                if (isLiked) HeartFilledIcon(size = 42.dp, tint = ArcticColors.PrimaryContainer, onClick = onLikeClick)
                 else HeartOutlineIcon(size = 42.dp, onClick = onLikeClick)
             },
         )
@@ -191,7 +201,7 @@ fun TikTokActionRail(
             count = if (collections > 0) formatCount(if (isCollected) collections + 1 else collections) else "收藏",
             icon = {
                 BookmarkIcon(
-                    tint = if (isCollected) Color(0xFFFFD75A) else Color.White,
+                    tint = if (isCollected) ArcticColors.PrimaryContainer else Color.White,
                     size = 42.dp, onClick = onCollectClick,
                 )
             },
@@ -261,7 +271,8 @@ fun TikTokCaptionPanel(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(7.dp))
-                    .background(Color.Black.copy(alpha = 0.42f))
+                    .background(ArcticColors.Glass.copy(alpha = 0.42f))
+                    .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(7.dp))
                     .clickable(enabled = onSubtitleClick != null) {
                         onSubtitleClick?.invoke(subtitle)
                     }
@@ -270,8 +281,8 @@ fun TikTokCaptionPanel(
             ) {
                 Text(
                     text = subtitle,
-                    color = Color.White,
-                    fontSize = 20.sp,
+                    color = ArcticColors.Primary,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -279,8 +290,8 @@ fun TikTokCaptionPanel(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "A",
-                    color = Color.White.copy(alpha = 0.82f),
-                    fontSize = 18.sp,
+                    color = ArcticColors.PrimaryContainer.copy(alpha = 0.82f),
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -288,7 +299,7 @@ fun TikTokCaptionPanel(
 
         Text(
             text = author,
-            color = Color.White,
+            color = ArcticColors.OnSurface,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -296,9 +307,9 @@ fun TikTokCaptionPanel(
         )
         Text(
             text = title,
-            color = Color.White,
-            fontSize = 20.sp,
-            lineHeight = 24.sp,
+            color = ArcticColors.OnSurface,
+            fontSize = 18.sp,
+            lineHeight = 23.sp,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
         )
@@ -310,13 +321,14 @@ private fun LiveBadge(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(7.dp))
-            .border(2.dp, Color.White, RoundedCornerShape(7.dp))
-            .padding(horizontal = 4.dp, vertical = 2.dp),
+            .background(ArcticColors.Glass.copy(alpha = 0.34f))
+            .border(1.dp, ArcticColors.PrimaryContainer.copy(alpha = 0.45f), RoundedCornerShape(7.dp))
+            .padding(horizontal = 6.dp, vertical = 3.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "LIVE",
-            color = Color.White,
+            color = ArcticColors.Primary,
             fontSize = 10.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 0.sp,
@@ -336,7 +348,7 @@ private fun CreatorAvatar(
             modifier = Modifier
                 .size(54.dp)
                 .clip(CircleShape)
-                .border(2.dp, Color.White, CircleShape),
+                .border(1.5.dp, ArcticColors.Primary.copy(alpha = 0.92f), CircleShape),
             contentScale = ContentScale.Crop,
         )
         Box(
@@ -348,7 +360,7 @@ private fun CreatorAvatar(
         ) {
             Text(
                 text = "+",
-                color = Color.White,
+                color = ArcticColors.OnPrimary,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -367,7 +379,7 @@ private fun TikTokActionItem(
         Spacer(Modifier.height(5.dp))
         Text(
             text = count,
-            color = Color.White,
+            color = ArcticColors.OnSurface,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -384,7 +396,8 @@ private fun RotatingDisc(
     Box(
         modifier = modifier
             .size(50.dp)
-            .background(Color(0xFF1B1B1B), CircleShape),
+            .background(ArcticColors.SurfaceHigh.copy(alpha = 0.82f), CircleShape)
+            .border(1.dp, ArcticColors.Outline.copy(alpha = 0.60f), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         AsyncImage(
@@ -405,7 +418,7 @@ private fun TikTokNavItem(
     badge: String? = null,
     icon: @Composable (Color) -> Unit,
 ) {
-    val tint = if (selected) Color.White else Color.White.copy(alpha = 0.58f)
+    val tint = if (selected) ArcticColors.Primary else ArcticColors.OnSurfaceVariant.copy(alpha = 0.64f)
     Column(
         modifier = Modifier.width(58.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -422,7 +435,7 @@ private fun TikTokNavItem(
                 ) {
                     Text(
                         text = badge,
-                        color = Color.White,
+                        color = ArcticColors.OnPrimary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -450,25 +463,15 @@ private fun CreateNavButton() {
     ) {
         Box(
             modifier = Modifier
-                .offset(x = (-5).dp)
-                .size(width = 48.dp, height = 34.dp)
-                .background(TikTokCyan, RoundedCornerShape(10.dp)),
-        )
-        Box(
-            modifier = Modifier
-                .offset(x = 5.dp)
-                .size(width = 48.dp, height = 34.dp)
-                .background(TikTokPink, RoundedCornerShape(10.dp)),
-        )
-        Box(
-            modifier = Modifier
                 .size(width = 54.dp, height = 36.dp)
-                .background(Color.White, RoundedCornerShape(10.dp)),
+                .clip(RoundedCornerShape(10.dp))
+                .background(ArcticColors.Glass.copy(alpha = 0.62f))
+                .border(1.dp, ArcticColors.PrimaryContainer.copy(alpha = 0.70f), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = "+",
-                color = Color.Black,
+                color = ArcticColors.Primary,
                 fontSize = 34.sp,
                 fontWeight = FontWeight.Medium,
             )

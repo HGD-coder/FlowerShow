@@ -50,7 +50,7 @@ fun HeartOutlineIcon(
 @Composable
 fun HeartFilledIcon(
     modifier: Modifier = Modifier,
-    tint: Color = Color(0xFFFF2D55),
+    tint: Color = Color(0xFFA5D8FF),
     size: Dp = 24.dp,
     onClick: (() -> Unit)? = null,
 ) {

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.flower_show.model.AlbumCardItem
+import com.example.flower_show.ui.theme.ArcticColors
 
 @Composable
 fun AlbumCard(
@@ -43,7 +44,7 @@ fun AlbumCard(
                 .height(180.dp)
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color.Black.copy(alpha = 0.32f), Color.Transparent),
+                        listOf(ArcticColors.Background.copy(alpha = 0.48f), Color.Transparent),
                     ),
                 ),
         )
@@ -55,7 +56,7 @@ fun AlbumCard(
                 .height(380.dp)
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color.Transparent, Color.Black.copy(alpha = 0.76f)),
+                        listOf(Color.Transparent, ArcticColors.Background.copy(alpha = 0.84f)),
                     ),
                 ),
         )

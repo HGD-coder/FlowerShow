@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.flower_show.ui.theme.ArcticColors
 
 /**
  * RecommendWordsBar — Horizontal scrolling recommend word chips.
@@ -36,14 +37,14 @@ fun RecommendWordsBar(
         words.forEach { word ->
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White.copy(alpha = 0.25f))
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(ArcticColors.Glass.copy(alpha = 0.50f))
                     .clickable { onWordClick(word) }
                     .padding(horizontal = 14.dp, vertical = 7.dp),
             ) {
                 Text(
                     word,
-                    color = Color.White.copy(alpha = 0.9f),
+                    color = ArcticColors.Primary,
                     fontSize = 13.sp,
                 )
             }
