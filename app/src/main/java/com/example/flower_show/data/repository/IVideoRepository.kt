@@ -8,6 +8,7 @@ import com.example.flower_show.model.Result
  * ViewModel depends on this interface, never on concrete implementation.
  */
 interface IVideoRepository {
+    fun refreshFeedSession() = Unit
     fun loadFeed(page: Int, pageSize: Int): Result<List<CardItem>>
     fun search(keyword: String): Result<List<CardItem>>
     fun getRecommendWords(videoId: String): List<String>

@@ -1,8 +1,11 @@
 package com.example.flower_show.model
 
+import androidx.compose.runtime.Immutable
+
 /**
  * AlbumSlide - Single slide in an album / 图集中一张幻灯片
  */
+@Immutable
 data class AlbumSlide(
     val type: Int,          // TYPE_IMAGE=0 or TYPE_VIDEO=1
     val mediaUrl: String,   // Image or video URL

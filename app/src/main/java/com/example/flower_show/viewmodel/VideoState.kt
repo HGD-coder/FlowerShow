@@ -1,9 +1,11 @@
 package com.example.flower_show.viewmodel
 
+import androidx.compose.runtime.Immutable
 import com.example.flower_show.model.CardItem
 import com.example.flower_show.model.QualityMode
 import com.example.flower_show.model.VideoQuality
 
+@Immutable
 data class VideoState(
     val items: List<CardItem> = emptyList(),
     val isLoading: Boolean = false,

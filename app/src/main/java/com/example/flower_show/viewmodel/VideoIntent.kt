@@ -1,6 +1,7 @@
 package com.example.flower_show.viewmodel
 
 sealed interface VideoIntent {
+    data object EnterHomeFeed : VideoIntent
     data object LoadFirstPage : VideoIntent
     data object LoadNextPage : VideoIntent
     data class PlayPosition(val position: Int) : VideoIntent

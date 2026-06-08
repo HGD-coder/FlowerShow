@@ -10,19 +10,21 @@ import com.example.flower_show.model.QualityMode
 import com.example.flower_show.model.Result
 import com.example.flower_show.model.VideoItem
 import com.example.flower_show.model.VideoQuality
+import com.example.flower_show.model.VideoQualitySelector
 import com.example.flower_show.player.PlayerCallback
 import com.example.flower_show.player.VideoPlayerManager
+import com.example.flower_show.player.VideoPreloadRequest
 import com.example.flower_show.util.MetricsCollector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class VideoViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -35,11 +37,13 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
 
     private var currentPage = 0
     private var playingPosition = -1
+    private var hasHandledHomeEntry = false
     private var progressJob: Job? = null
 
-    // ── Auto-quality tracking ──
-    private val bufferingHistory = mutableListOf<Long>() // buffering start timestamps
-    private var lastBufferedPercent: Int = 0             // from Progress events
+    private val bufferingHistory = mutableListOf<Long>()
+    private var lastPlayableBufferMs: Long = 0
+    private var lastEstimatedBandwidthKbps: Int = 0
+    private var stablePlaybackSinceMs: Long = 0
     private var lastAutoSwitchMs: Long = 0
     private var qualityJob: Job? = null
 
@@ -47,44 +51,54 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         private const val TAG = "VideoViewModel"
         private const val PAGE_SIZE = 10
 
-        // Downgrade thresholds
         private const val BUFFERING_WINDOW_MS = 30_000L
         private const val BUFFERING_MAX_COUNT = 2
-        private const val BUFFERING_MAX_DURATION = 2000L
-        // Upgrade thresholds
+        private const val BUFFERING_MAX_DURATION = 2_000L
+        private const val LOW_PLAYABLE_BUFFER_MS = 1_500L
+        private const val DOWNGRADE_BANDWIDTH_HEADROOM = 0.90
+
         private const val STABLE_UPGRADE_MS = 60_000L
-        private const val UPGRADE_BUFFERED_PCT = 60       // must have >60% buffered
-        // Anti-flap
+        private const val UPGRADE_PLAYABLE_BUFFER_MS = 5_000L
+        private const val UPGRADE_BANDWIDTH_HEADROOM = 1.35
+        private const val AUTO_EVALUATION_INTERVAL_MS = 5_000L
+
         private const val COOLDOWN_MS = 30_000L
+        private const val PRELOAD_BEHIND_COUNT = 1
+        private const val PRELOAD_AHEAD_COUNT = 5
     }
 
-    // ── Player callback: tracks buffering + bandwidth ──
     private val qualityCallback = PlayerCallback { event ->
         when (event) {
             is PlayerCallback.PlaybackEvent.BufferingStart -> {
                 bufferingHistory.add(System.currentTimeMillis())
-                val cutoff = System.currentTimeMillis() - BUFFERING_WINDOW_MS
-                bufferingHistory.removeAll { it < cutoff }
+                pruneBufferingHistory()
+                stablePlaybackSinceMs = 0
+                evaluateAutoDowngrade(reason = "buffering_start", bufferingDurationMs = 0L)
             }
+
             is PlayerCallback.PlaybackEvent.BufferingEnd -> {
                 dispatch(VideoIntent.ReportBuffering(event.durationMs))
             }
+
             is PlayerCallback.PlaybackEvent.Progress -> {
-                lastBufferedPercent = event.bufferedPercent
+                lastPlayableBufferMs = event.playableBufferMs
+                lastEstimatedBandwidthKbps = event.estimatedBandwidthKbps
+                updateStablePlaybackClock()
+                evaluateAutoDowngrade(reason = "low_buffer_or_bandwidth", bufferingDurationMs = 0L)
             }
-            else -> {}
+
+            else -> Unit
         }
     }
 
     init {
         playerManager.addCallback(qualityCallback)
-        loadFirstPage()
+        loadFirstPage(refreshOrder = true)
     }
-
-    // ── Intent dispatch ──
 
     fun dispatch(intent: VideoIntent) {
         when (intent) {
+            is VideoIntent.EnterHomeFeed -> enterHomeFeed()
             is VideoIntent.LoadFirstPage -> loadFirstPage()
             is VideoIntent.LoadNextPage -> loadNextPage()
             is VideoIntent.PlayPosition -> playPosition(intent.position)
@@ -101,92 +115,136 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ── Manual quality selection ──
-
     private fun selectManualQuality(name: String, url: String) {
-        _state.update { it.copy(qualityMode = QualityMode.Manual, currentQualityName = name) }
-        playerManager.setQuality(name, url)
+        val target = _state.value.availableQualities.firstOrNull { it.name == name && it.url == url }
+        if (target == null) {
+            _state.update { it.copy(toastMessage = "清晰度不可用") }
+            MetricsCollector.recordLabel("manual_quality", "unavailable_$name")
+            return
+        }
+
         stopAutoQuality()
-        Log.d(TAG, "Manual quality: $name")
+        _state.update {
+            it.copy(
+                qualityMode = QualityMode.Manual,
+                currentQualityName = target.name,
+            )
+        }
+        playerManager.setQuality(target.name, target.url)
+        refreshPreloadWindow()
+        MetricsCollector.recordLabel("manual_quality", target.name)
+        Log.d(TAG, "Manual quality: ${target.name}")
     }
 
     private fun enableAutoQuality() {
         _state.update { it.copy(qualityMode = QualityMode.Auto) }
-        resetBufferingState()
+        resetQualityRuntimeState()
         evaluateAutoQuality()
         Log.d(TAG, "Auto quality enabled")
     }
 
-    // ── Auto-quality: downgrade on buffering ──
-
     private fun onBufferingReported(durationMs: Long) {
-        if (_state.value.qualityMode != QualityMode.Auto) return
-        val qualities = _state.value.availableQualities
-        if (qualities.isEmpty()) return
+        stablePlaybackSinceMs = 0
+        evaluateAutoDowngrade(reason = "buffering_duration", bufferingDurationMs = durationMs)
+    }
 
-        val current = _state.value.currentQualityName
+    private fun evaluateAutoDowngrade(reason: String, bufferingDurationMs: Long) {
+        val s = _state.value
+        if (s.qualityMode != QualityMode.Auto) return
+        val qualities = s.availableQualities
+        if (qualities.size < 2) return
+
         val now = System.currentTimeMillis()
         if (now - lastAutoSwitchMs < COOLDOWN_MS) return
 
-        val cutoff = now - BUFFERING_WINDOW_MS
-        val recentBuffers = bufferingHistory.count { it >= cutoff }
+        pruneBufferingHistory(now)
+        val recentBuffers = bufferingHistory.count { it >= now - BUFFERING_WINDOW_MS }
+        val current = qualities.find { it.name == s.currentQualityName } ?: return
+        val bandwidthTight = !VideoQualitySelector.hasBandwidthFor(
+            quality = current,
+            estimatedBandwidthKbps = lastEstimatedBandwidthKbps,
+            headroom = DOWNGRADE_BANDWIDTH_HEADROOM,
+        )
+        val lowPlayableBuffer = lastPlayableBufferMs in 1 until LOW_PLAYABLE_BUFFER_MS
+        val shouldDowngrade =
+            recentBuffers >= BUFFERING_MAX_COUNT ||
+                bufferingDurationMs > BUFFERING_MAX_DURATION ||
+                (lowPlayableBuffer && bandwidthTight)
 
-        val shouldDowngrade = recentBuffers >= BUFFERING_MAX_COUNT || durationMs > BUFFERING_MAX_DURATION
         if (!shouldDowngrade) return
 
-        val currentIdx = qualities.indexOfFirst { it.name == current }
-        if (currentIdx < qualities.lastIndex) {
-            val downgrade = qualities[currentIdx + 1]
-            applyQualitySwitch(downgrade, "降级", true)
-        }
+        val downgrade = VideoQualitySelector.lowerThan(qualities, current.name) ?: return
+        applyAutoQualitySwitch(downgrade, direction = "down", reason = reason, showToast = true)
     }
-
-    // ── Auto-quality: upgrade on stable playback (loops until at highest) ──
 
     private fun evaluateAutoQuality() {
         if (_state.value.qualityMode != QualityMode.Auto) return
         qualityJob?.cancel()
         qualityJob = viewModelScope.launch {
             while (isActive) {
-                delay(STABLE_UPGRADE_MS)
+                delay(AUTO_EVALUATION_INTERVAL_MS)
                 val s = _state.value
                 if (s.qualityMode != QualityMode.Auto) return@launch
-                val qualities = s.availableQualities
-                if (qualities.isEmpty()) continue
 
-                val currentIdx = qualities.indexOfFirst { it.name == s.currentQualityName }
-                if (currentIdx <= 0) return@launch // at highest, stop trying
+                val qualities = s.availableQualities
+                if (qualities.size < 2) continue
 
                 val now = System.currentTimeMillis()
                 if (now - lastAutoSwitchMs < COOLDOWN_MS) continue
 
-                val cutoff = now - BUFFERING_WINDOW_MS
-                val recentBuffers = bufferingHistory.count { it >= cutoff }
-                if (recentBuffers > 0) continue // try again after another stable period
-                if (lastBufferedPercent < UPGRADE_BUFFERED_PCT) continue
+                pruneBufferingHistory(now)
+                val recentBuffers = bufferingHistory.count { it >= now - BUFFERING_WINDOW_MS }
+                if (recentBuffers > 0 || lastPlayableBufferMs < UPGRADE_PLAYABLE_BUFFER_MS) {
+                    stablePlaybackSinceMs = 0
+                    continue
+                }
 
-                val upgrade = qualities[currentIdx - 1]
-                applyQualitySwitch(upgrade, "升级", false)
+                val stableSince = stablePlaybackSinceMs.takeIf { it > 0 } ?: now.also {
+                    stablePlaybackSinceMs = it
+                }
+                if (now - stableSince < STABLE_UPGRADE_MS) continue
+
+                val upgrade = VideoQualitySelector.higherThan(qualities, s.currentQualityName) ?: continue
+                val hasHeadroom = VideoQualitySelector.hasBandwidthFor(
+                    quality = upgrade,
+                    estimatedBandwidthKbps = lastEstimatedBandwidthKbps,
+                    headroom = UPGRADE_BANDWIDTH_HEADROOM,
+                )
+                if (!hasHeadroom) continue
+
+                applyAutoQualitySwitch(
+                    target = upgrade,
+                    direction = "up",
+                    reason = "stable",
+                    showToast = false,
+                )
             }
         }
     }
 
-    private fun applyQualitySwitch(target: VideoQuality, direction: String, showToast: Boolean) {
+    private fun applyAutoQualitySwitch(
+        target: VideoQuality,
+        direction: String,
+        reason: String,
+        showToast: Boolean,
+    ) {
         _state.update { it.copy(currentQualityName = target.name) }
         playerManager.setQuality(target.name, target.url)
         lastAutoSwitchMs = System.currentTimeMillis()
-        MetricsCollector.recordLabel("auto_quality", "${direction}_${target.name}")
-        Log.d(TAG, "Auto $direction: -> ${target.name}")
+        stablePlaybackSinceMs = 0
+        refreshPreloadWindow()
+        MetricsCollector.recordLabel("auto_quality", "${direction}_${target.name}_$reason")
+        Log.d(TAG, "Auto quality $direction -> ${target.name}, reason=$reason")
         if (showToast) {
             _state.update { it.copy(toastMessage = "网络波动，已自动切换到 ${target.name}") }
         }
-        // After any auto-switch, re-schedule upgrade evaluation
-        evaluateAutoQuality()
     }
 
-    private fun resetBufferingState() {
+    private fun resetQualityRuntimeState() {
         bufferingHistory.clear()
-        lastBufferedPercent = 0
+        lastPlayableBufferMs = 0
+        lastEstimatedBandwidthKbps = 0
+        stablePlaybackSinceMs = 0
     }
 
     private fun stopAutoQuality() {
@@ -194,24 +252,62 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         qualityJob = null
     }
 
-    // ── Data loading ──
+    private fun updateStablePlaybackClock() {
+        val now = System.currentTimeMillis()
+        pruneBufferingHistory(now)
+        val hasRecentBuffering = bufferingHistory.any { it >= now - BUFFERING_WINDOW_MS }
+        if (hasRecentBuffering || lastPlayableBufferMs < UPGRADE_PLAYABLE_BUFFER_MS) {
+            stablePlaybackSinceMs = 0
+        } else if (stablePlaybackSinceMs == 0L) {
+            stablePlaybackSinceMs = now
+        }
+    }
 
-    private fun loadFirstPage() {
+    private fun pruneBufferingHistory(now: Long = System.currentTimeMillis()) {
+        val cutoff = now - BUFFERING_WINDOW_MS
+        bufferingHistory.removeAll { it < cutoff }
+    }
+
+    private fun enterHomeFeed() {
+        val state = _state.value
+        if (!hasHandledHomeEntry) {
+            hasHandledHomeEntry = true
+            if (state.items.isEmpty() && !state.isLoading) {
+                loadFirstPage(refreshOrder = true)
+            }
+            return
+        }
+
+        if (!state.isLoading) {
+            loadFirstPage(refreshOrder = true)
+        }
+    }
+
+    private fun loadFirstPage(refreshOrder: Boolean = false) {
+        if (refreshOrder) {
+            repository.refreshFeedSession()
+        }
         currentPage = 0
-        _state.update { it.copy(isLoading = true, error = null) }
+        _state.update { it.copy(isLoading = true, error = null, targetVideoId = null) }
         viewModelScope.launch(Dispatchers.IO) {
             when (val result = repository.loadFeed(1, PAGE_SIZE)) {
                 is Result.Success -> withContext(Dispatchers.Main) {
-                    _state.update { it.copy(
-                        items = result.data, isLoading = false,
-                        hasMore = result.data.isNotEmpty(), currentPosition = 0,
-                    ) }
+                    _state.update {
+                        it.copy(
+                            items = result.data,
+                            isLoading = false,
+                            hasMore = result.data.isNotEmpty(),
+                            currentPosition = 0,
+                        )
+                    }
                     currentPage = 1
                 }
+
                 is Result.Error -> withContext(Dispatchers.Main) {
                     _state.update { it.copy(isLoading = false, error = result.message) }
                 }
-                is Result.Loading -> {}
+
+                is Result.Loading -> Unit
             }
         }
     }
@@ -225,26 +321,34 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             when (val result = repository.loadFeed(nextPage, PAGE_SIZE)) {
                 is Result.Success -> withContext(Dispatchers.Main) {
                     val newItems = s.items + result.data
-                    _state.update { it.copy(items = newItems, isLoading = false, hasMore = result.data.isNotEmpty()) }
+                    _state.update {
+                        it.copy(
+                            items = newItems,
+                            isLoading = false,
+                            hasMore = result.data.isNotEmpty(),
+                        )
+                    }
                     currentPage = nextPage
+                    refreshPreloadWindow()
                 }
+
                 is Result.Error -> withContext(Dispatchers.Main) {
                     _state.update { it.copy(isLoading = false, error = result.message) }
                 }
-                is Result.Loading -> {}
+
+                is Result.Loading -> Unit
             }
         }
     }
 
-    // ── Jump to video ──
-
     private fun jumpToVideo(videoId: String) {
         val existingIndex = _state.value.items.indexOfFirst { it is VideoItem && it.id == videoId }
         if (existingIndex >= 0) {
-            _state.update { it.copy(targetVideoId = videoId, currentPosition = existingIndex) }
+            _state.update { it.copy(targetVideoId = null, currentPosition = existingIndex) }
             playPosition(existingIndex)
             return
         }
+
         _state.update { it.copy(targetVideoId = videoId) }
         viewModelScope.launch(Dispatchers.IO) {
             var nextPage = currentPage + 1
@@ -259,103 +363,154 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                         if (index >= 0) {
                             found = true
                             withContext(Dispatchers.Main) {
-                                _state.update { it.copy(items = newItems, isLoading = false,
-                                    hasMore = result.data.isNotEmpty(), currentPosition = index, targetVideoId = null) }
+                                _state.update {
+                                    it.copy(
+                                        items = newItems,
+                                        isLoading = false,
+                                        hasMore = result.data.isNotEmpty(),
+                                        currentPosition = index,
+                                        targetVideoId = null,
+                                    )
+                                }
                                 currentPage = nextPage
                                 playPosition(index)
                             }
                         } else {
                             if (result.data.isEmpty()) {
-                                withContext(Dispatchers.Main) { _state.update { it.copy(isLoading = false, hasMore = false, targetVideoId = null) } }
+                                withContext(Dispatchers.Main) {
+                                    _state.update {
+                                        it.copy(
+                                            isLoading = false,
+                                            hasMore = false,
+                                            targetVideoId = null,
+                                        )
+                                    }
+                                }
                                 break
                             }
-                            withContext(Dispatchers.Main) { _state.update { it.copy(items = newItems, isLoading = false, hasMore = true) } }
+                            withContext(Dispatchers.Main) {
+                                _state.update {
+                                    it.copy(items = newItems, isLoading = false, hasMore = true)
+                                }
+                            }
                             currentPage = nextPage
                             nextPage++
                         }
                     }
+
                     is Result.Error -> {
-                        withContext(Dispatchers.Main) { _state.update { it.copy(isLoading = false, targetVideoId = null) } }
+                        withContext(Dispatchers.Main) {
+                            _state.update { it.copy(isLoading = false, targetVideoId = null) }
+                        }
                         break
                     }
-                    is Result.Loading -> {}
+
+                    is Result.Loading -> Unit
                 }
             }
         }
     }
 
-    // ── Play position (fixed: plays highest quality URL when available) ──
-
     private fun playPosition(position: Int) {
         val item = _state.value.items.getOrNull(position) ?: return
-        if (item !is VideoItem) { playerManager.pause(); stopProgress(); return }
-
-        _state.update { it.copy(currentPosition = position) }
-        resetBufferingState()
-
-        // Parse qualities, sorted highest→lowest
-        val qualities = item.qualityUrls?.map { (name, url) ->
-            VideoQuality(name, url, name.removeSuffix("p").toIntOrNull() ?: 0)
-        }?.sortedByDescending { it.height } ?: emptyList()
-
-        val mode = _state.value.qualityMode
-        val bestQuality = qualities.firstOrNull()
-
-        // Determine which quality to play
-        val targetQuality: VideoQuality?
-        if (mode == QualityMode.Manual) {
-            // Keep user's choice if available in this video's qualities
-            val currentName = _state.value.currentQualityName
-            targetQuality = qualities.find { it.name == currentName } ?: bestQuality
-        } else {
-            targetQuality = bestQuality
+        if (item !is VideoItem) {
+            playerManager.pause()
+            stopProgress()
+            return
         }
+
+        val qualities = qualitiesFor(item)
+        val targetQuality = selectPlaybackQuality(qualities)
         val playbackUrl = targetQuality?.url ?: item.videoUrl
         val displayName = targetQuality?.name
 
-        _state.update { it.copy(availableQualities = qualities, currentQualityName = displayName) }
+        _state.update {
+            it.copy(
+                currentPosition = position,
+                availableQualities = qualities,
+                currentQualityName = displayName,
+            )
+        }
+        resetQualityRuntimeState()
 
         if (!playerManager.isInitialized) {
             viewModelScope.launch(Dispatchers.IO) {
                 playerManager.initialize()
                 withContext(Dispatchers.Main) {
                     _state.update { it.copy(isPlayerReady = true) }
-                    playerManager.play(playbackUrl)
+                    refreshPreloadWindow()
+                    playerManager.play(playbackUrl, position)
                     playingPosition = position
                     startProgress()
-                    preloadNextVideo()
+                    refreshPreloadWindow()
                     if (_state.value.qualityMode == QualityMode.Auto) evaluateAutoQuality()
                 }
             }
             return
         }
 
-        playerManager.play(playbackUrl)
+        refreshPreloadWindow()
+        playerManager.play(playbackUrl, position)
         playingPosition = position
         startProgress()
-        preloadNextVideo()
+        refreshPreloadWindow()
         if (_state.value.qualityMode == QualityMode.Auto) evaluateAutoQuality()
     }
 
-    private fun preloadNextVideo() {
-        val nextIndex = _state.value.currentPosition + 1
-        val nextItem = _state.value.items.getOrNull(nextIndex)
-        if (nextItem is VideoItem) playerManager.prefetchUrl(nextItem.videoUrl, viewModelScope)
+    private fun qualitiesFor(item: VideoItem): List<VideoQuality> {
+        return VideoQualitySelector.from(item.qualityUrls)
     }
 
-    private fun pausePlayer() { playerManager.pause(); stopProgress() }
-    private fun resumePlayer() { if (playingPosition >= 0) { playerManager.resume(); startProgress() } }
+    private fun selectPlaybackQuality(qualities: List<VideoQuality>): VideoQuality? {
+        return VideoQualitySelector.chooseForMode(
+            qualities = qualities,
+            mode = _state.value.qualityMode,
+            currentQualityName = _state.value.currentQualityName,
+        )
+    }
 
-    // ── Progress polling ──
+    private fun playbackUrlFor(item: VideoItem): String {
+        return selectPlaybackQuality(qualitiesFor(item))?.url ?: item.videoUrl
+    }
+
+    private fun refreshPreloadWindow() {
+        if (!playerManager.isInitialized) return
+        val s = _state.value
+        val currentIndex = s.currentPosition
+        val requests = ((currentIndex - PRELOAD_BEHIND_COUNT)..(currentIndex + PRELOAD_AHEAD_COUNT))
+            .mapNotNull { index ->
+                val video = s.items.getOrNull(index) as? VideoItem ?: return@mapNotNull null
+                VideoPreloadRequest(index = index, url = playbackUrlFor(video))
+            }
+        playerManager.updatePreloadWindow(currentIndex, requests)
+    }
+
+    private fun pausePlayer() {
+        playerManager.pause()
+        stopProgress()
+    }
+
+    private fun resumePlayer() {
+        if (playingPosition >= 0) {
+            playerManager.resume()
+            startProgress()
+        }
+    }
 
     private fun startProgress() {
         stopProgress()
         progressJob = viewModelScope.launch {
-            while (isActive) { playerManager.notifyProgress(); delay(200) }
+            while (isActive) {
+                playerManager.notifyProgress()
+                delay(200)
+            }
         }
     }
 
-    private fun stopProgress() { progressJob?.cancel(); progressJob = null }
+    private fun stopProgress() {
+        progressJob?.cancel()
+        progressJob = null
+    }
 
     override fun onCleared() {
         super.onCleared()
@@ -368,6 +523,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             Log.d("FlowerMetrics", report)
             val file = java.io.File(getApplication<Application>().cacheDir, "flower_metrics.txt")
             file.writeText(report)
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
     }
 }

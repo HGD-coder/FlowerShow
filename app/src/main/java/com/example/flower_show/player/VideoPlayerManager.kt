@@ -1,19 +1,21 @@
 package com.example.flower_show.player
 
 import android.content.Context
+import android.os.Looper
 import android.util.Log
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.upstream.DefaultAllocator
+import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import com.example.flower_show.util.MetricsCollector
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.example.flower_show.util.PerformanceTrace
 
 /**
  * VideoPlayerManager — ExoPlayer (Media3) wrapper with caching.
@@ -23,14 +25,19 @@ class VideoPlayerManager(context: Context) {
 
     private val appContext = context.applicationContext
     private var player: ExoPlayer? = null
+    private var preloadController: FeedPreloadController? = null
     private var currentVideoUrl: String? = null
     private val callbacks = mutableListOf<PlayerCallback>()
     private var playStartTimeMs: Long = 0
     private var bufferingStartMs: Long = 0
-    private var lastBufferedPos: Long = 0
-    private var lastBufferedTime: Long = 0
     private var currentVideoWidth: Int = 0
     private var currentVideoHeight: Int = 0
+    private var bandwidthMeter: DefaultBandwidthMeter? = null
+    private var firstFrameStartMs: Long = 0
+    private var firstFrameTraceCookie: Int? = null
+    private var bufferingTraceCookie: Int? = null
+    private var qualitySwitchStartMs: Long = 0
+    private var qualitySwitchTraceCookie: Int? = null
 
     companion object {
         private const val TAG = "VideoPlayerManager"
@@ -38,15 +45,34 @@ class VideoPlayerManager(context: Context) {
 
     fun initialize() {
         if (player != null) return
-        val cache = CacheManager.getInstance(appContext)
-        val upstreamFactory = DefaultHttpDataSource.Factory()
-        val cacheFactory = CacheDataSource.Factory()
-            .setCache(cache)
-            .setUpstreamDataSourceFactory(upstreamFactory)
-            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+        val cacheFactory = CacheManager.createCacheDataSourceFactory(appContext)
+        val mediaSourceFactory = ProgressiveMediaSource.Factory(cacheFactory)
+        val renderersFactory = DefaultRenderersFactory(appContext)
+        val trackSelector = DefaultTrackSelector(appContext)
+        val bandwidthMeter = DefaultBandwidthMeter.Builder(appContext).build()
+        this.bandwidthMeter = bandwidthMeter
+        val allocator = DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE)
+        val loadControlSettings = ShortVideoLoadControl.defaultSettings()
+        val loadControl = ShortVideoLoadControl.create(allocator, loadControlSettings)
+        ShortVideoLoadControl.recordMetrics(loadControlSettings)
+        val playbackLooper = Looper.getMainLooper()
         player = ExoPlayer.Builder(appContext)
-            .setMediaSourceFactory(ProgressiveMediaSource.Factory(cacheFactory))
+            .setRenderersFactory(renderersFactory)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .setTrackSelector(trackSelector)
+            .setBandwidthMeter(bandwidthMeter)
+            .setLoadControl(loadControl)
+            .setLooper(playbackLooper)
             .build().apply {
+                Log.d(
+                    TAG,
+                    "LoadControl profile=${loadControlSettings.profile.id} " +
+                        "min=${loadControlSettings.minBufferMs}ms " +
+                        "max=${loadControlSettings.maxBufferMs}ms " +
+                        "start=${loadControlSettings.bufferForPlaybackMs}ms " +
+                        "rebuffer=${loadControlSettings.bufferForPlaybackAfterRebufferMs}ms " +
+                        "back=${loadControlSettings.backBufferMs}ms",
+                )
                 addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(state: Int) {
                         when (state) {
@@ -55,6 +81,8 @@ class VideoPlayerManager(context: Context) {
                                 if (bufferingStartMs > 0) {
                                     val dur = System.currentTimeMillis() - bufferingStartMs
                                     bufferingStartMs = 0
+                                    endBufferingTrace()
+                                    MetricsCollector.record("video_buffering", dur)
                                     callbacks.forEach { it.onEvent(PlayerCallback.PlaybackEvent.BufferingEnd(dur)) }
                                 }
                                 val dur = duration
@@ -68,6 +96,7 @@ class VideoPlayerManager(context: Context) {
                             Player.STATE_BUFFERING -> {
                                 if (bufferingStartMs == 0L) {
                                     bufferingStartMs = System.currentTimeMillis()
+                                    beginBufferingTrace()
                                     callbacks.forEach { it.onEvent(PlayerCallback.PlaybackEvent.BufferingStart(bufferingStartMs)) }
                                 }
                             }
@@ -80,7 +109,23 @@ class VideoPlayerManager(context: Context) {
                     override fun onPlayerError(error: PlaybackException) {
                         val msg = "播放失败: ${error.errorCodeName} - ${error.message} | url=$currentVideoUrl"
                         Log.e(TAG, msg)
+                        endFirstFrameTrace()
+                        endBufferingTrace()
+                        endQualitySwitchTrace()
                         callbacks.forEach { it.onEvent(PlayerCallback.PlaybackEvent.Error(msg)) }
+                    }
+
+                    override fun onRenderedFirstFrame() {
+                        val firstFrameLatency = if (firstFrameStartMs > 0) {
+                            System.currentTimeMillis() - firstFrameStartMs
+                        } else {
+                            0
+                        }
+                        if (firstFrameLatency > 0) {
+                            MetricsCollector.record("video_first_frame", firstFrameLatency)
+                        }
+                        endFirstFrameTrace()
+                        endQualitySwitchTrace()
                     }
 
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -101,9 +146,17 @@ class VideoPlayerManager(context: Context) {
                     }
                 })
             }
+        preloadController = FeedPreloadController(
+            mediaSourceFactory = mediaSourceFactory,
+            trackSelector = trackSelector,
+            bandwidthMeter = bandwidthMeter,
+            renderersFactory = renderersFactory,
+            allocator = allocator,
+            preloadLooper = playbackLooper,
+        )
     }
 
-    fun play(videoUrl: String) {
+    fun play(videoUrl: String, feedIndex: Int = C.INDEX_UNSET) {
         val p = player ?: run { initialize(); player } ?: return
         Log.d(TAG, "play() url=$videoUrl")
         playStartTimeMs = System.currentTimeMillis()
@@ -113,9 +166,20 @@ class VideoPlayerManager(context: Context) {
             return
         }
         currentVideoUrl = videoUrl
-        p.setMediaItem(MediaItem.fromUri(videoUrl))
+        beginFirstFrameTrace()
+        val preloadedMediaSource = preloadController?.getMediaSource(videoUrl)
+        if (preloadedMediaSource != null) {
+            p.setMediaSource(preloadedMediaSource)
+            MetricsCollector.recordLabel("preload_playback_source", "hit")
+        } else {
+            p.setMediaItem(MediaItem.fromUri(videoUrl))
+            MetricsCollector.recordLabel("preload_playback_source", "miss")
+        }
         p.prepare()
         p.play()
+        if (feedIndex != C.INDEX_UNSET) {
+            preloadController?.onPlaybackStarted(feedIndex, videoUrl)
+        }
     }
 
     fun pause() = player?.pause()
@@ -137,51 +201,29 @@ class VideoPlayerManager(context: Context) {
     fun notifyProgress() {
         val p = player ?: return
         if (p.isPlaying) {
-            val now = System.currentTimeMillis()
             val buffered = p.bufferedPosition
-            // Compute bandwidth: delta bytes / delta time (kbps)
-            var estBwKbps = 0
-            if (lastBufferedTime > 0 && buffered > lastBufferedPos) {
-                val deltaBytes = buffered - lastBufferedPos
-                val deltaSec = (now - lastBufferedTime) / 1000f
-                if (deltaSec > 0.1f) estBwKbps = (deltaBytes * 8f / deltaSec / 1000f).toInt()
+            val playableBufferMs = (buffered - p.currentPosition).coerceAtLeast(0L)
+            val bitrateEstimate = bandwidthMeter?.bitrateEstimate ?: 0L
+            val estBwKbps = if (bitrateEstimate > 0L) {
+                (bitrateEstimate / 1000L).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+            } else {
+                0
             }
-            lastBufferedPos = buffered
-            lastBufferedTime = now
-
             val bufferedPercent = if (p.duration > 0) (buffered.toFloat() / p.duration * 100).toInt() else 0
-            val evt = PlayerCallback.PlaybackEvent.Progress(p.currentPosition, buffered, bufferedPercent, estBwKbps)
+            val evt = PlayerCallback.PlaybackEvent.Progress(
+                positionMs = p.currentPosition,
+                bufferedMs = buffered,
+                bufferedPercent = bufferedPercent,
+                estimatedBandwidthKbps = estBwKbps,
+                playableBufferMs = playableBufferMs,
+            )
             callbacks.forEach { it.onEvent(evt) }
         }
     }
 
-    /**
-     * Prefetch a video URL into cache for faster playback on next access.
-     * Uses a fire-and-forget cache-aware read to warm the LRU cache.
-     */
-    fun prefetchUrl(videoUrl: String, scope: CoroutineScope) {
-        scope.launch(Dispatchers.IO) {
-            try {
-                val cache = CacheManager.getInstance(appContext)
-                val dataSourceFactory = CacheDataSource.Factory()
-                    .setCache(cache)
-                    .setUpstreamDataSourceFactory(DefaultHttpDataSource.Factory())
-                val dataSource = dataSourceFactory.createDataSource()
-                val dataSpec = androidx.media3.datasource.DataSpec(android.net.Uri.parse(videoUrl))
-                dataSource.open(dataSpec)
-                val buffer = ByteArray(64 * 1024)
-                var totalRead = 0L
-                var bytesRead: Int
-                // Read first 1 MB to warm the beginning of the video
-                while (dataSource.read(buffer, 0, buffer.size).also { bytesRead = it } != -1 && totalRead < 1_048_576L) {
-                    totalRead += bytesRead
-                }
-                dataSource.close()
-                Log.d(TAG, "Prefetch complete: $totalRead bytes from $videoUrl")
-            } catch (e: Exception) {
-                Log.w(TAG, "Prefetch failed: ${e.message}")
-            }
-        }
+    fun updatePreloadWindow(currentIndex: Int, requests: List<VideoPreloadRequest>) {
+        if (player == null) initialize()
+        preloadController?.updateWindow(currentIndex, requests)
     }
 
     /**
@@ -189,25 +231,81 @@ class VideoPlayerManager(context: Context) {
      */
     fun setQuality(qualityName: String, qualityUrl: String) {
         val p = player ?: return
-        if (qualityUrl == currentVideoUrl) return
+        beginQualitySwitchTrace()
+        if (qualityUrl == currentVideoUrl) {
+            MetricsCollector.record("quality_switch|noop=true", 0)
+            endQualitySwitchTrace()
+            return
+        }
         val pos = p.currentPosition
-        val switchStartMs = System.currentTimeMillis()
+        val shouldPlay = p.playWhenReady || p.isPlaying
         currentVideoUrl = qualityUrl
-        p.setMediaItem(MediaItem.fromUri(qualityUrl))
+        beginFirstFrameTrace()
+        val preloadedMediaSource = preloadController?.getMediaSource(qualityUrl)
+        if (preloadedMediaSource != null) {
+            p.setMediaSource(preloadedMediaSource, pos)
+            MetricsCollector.recordLabel("quality_switch_source", "preload_hit")
+        } else {
+            p.setMediaItem(MediaItem.fromUri(qualityUrl), pos)
+            MetricsCollector.recordLabel("quality_switch_source", "direct")
+        }
         p.prepare()
-        p.play()
-        p.seekTo(pos)
-        val latency = System.currentTimeMillis() - switchStartMs
-        MetricsCollector.record("quality_switch", latency)
-        Log.d(TAG, "Switched quality to $qualityName (${latency}ms)")
+        p.playWhenReady = shouldPlay
+        if (shouldPlay) p.play()
+        Log.d(TAG, "Switching quality to $qualityName")
     }
 
     fun release() {
+        endFirstFrameTrace()
+        endBufferingTrace()
+        endQualitySwitchTrace()
+        preloadController?.release()
+        preloadController = null
         clearCallbacks()
         player?.release()
         player = null
         currentVideoUrl = null
         currentVideoWidth = 0
         currentVideoHeight = 0
+        bandwidthMeter = null
+    }
+
+    private fun beginFirstFrameTrace() {
+        endFirstFrameTrace()
+        firstFrameStartMs = System.currentTimeMillis()
+        firstFrameTraceCookie = PerformanceTrace.beginAsyncSection(PerformanceTrace.VIDEO_FIRST_FRAME)
+    }
+
+    private fun endFirstFrameTrace() {
+        PerformanceTrace.endAsyncSection(PerformanceTrace.VIDEO_FIRST_FRAME, firstFrameTraceCookie)
+        firstFrameTraceCookie = null
+        firstFrameStartMs = 0
+    }
+
+    private fun beginBufferingTrace() {
+        if (bufferingTraceCookie == null) {
+            bufferingTraceCookie = PerformanceTrace.beginAsyncSection(PerformanceTrace.VIDEO_BUFFERING)
+        }
+    }
+
+    private fun endBufferingTrace() {
+        PerformanceTrace.endAsyncSection(PerformanceTrace.VIDEO_BUFFERING, bufferingTraceCookie)
+        bufferingTraceCookie = null
+    }
+
+    private fun beginQualitySwitchTrace() {
+        endQualitySwitchTrace()
+        qualitySwitchStartMs = System.currentTimeMillis()
+        qualitySwitchTraceCookie = PerformanceTrace.beginAsyncSection(PerformanceTrace.QUALITY_SWITCH)
+    }
+
+    private fun endQualitySwitchTrace() {
+        val cookie = qualitySwitchTraceCookie
+        if (cookie != null && qualitySwitchStartMs > 0) {
+            MetricsCollector.record("quality_switch", System.currentTimeMillis() - qualitySwitchStartMs)
+        }
+        PerformanceTrace.endAsyncSection(PerformanceTrace.QUALITY_SWITCH, cookie)
+        qualitySwitchTraceCookie = null
+        qualitySwitchStartMs = 0
     }
 }

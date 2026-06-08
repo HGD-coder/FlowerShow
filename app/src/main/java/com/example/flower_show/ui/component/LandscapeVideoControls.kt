@@ -1,6 +1,5 @@
 package com.example.flower_show.ui.component
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +19,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -35,14 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -470,130 +472,72 @@ private fun AvatarDot() {
 
 @Composable
 private fun BackArrowIcon(tint: Color, size: Dp) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        drawLine(tint, Offset(s * 0.68f, s * 0.14f), Offset(s * 0.30f, s * 0.50f), s * 0.09f, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.30f, s * 0.50f), Offset(s * 0.68f, s * 0.86f), s * 0.09f, StrokeCap.Round)
-    }
+    Icon(
+        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+        contentDescription = "返回",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
 private fun SunIcon(tint: Color, size: Dp) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        drawCircle(tint, radius = s * 0.18f, center = Offset(s * 0.5f, s * 0.5f))
-        repeat(8) { i ->
-            val angle = Math.toRadians((i * 45).toDouble())
-            val start = Offset(
-                x = s * 0.5f + kotlin.math.cos(angle).toFloat() * s * 0.30f,
-                y = s * 0.5f + kotlin.math.sin(angle).toFloat() * s * 0.30f,
-            )
-            val end = Offset(
-                x = s * 0.5f + kotlin.math.cos(angle).toFloat() * s * 0.43f,
-                y = s * 0.5f + kotlin.math.sin(angle).toFloat() * s * 0.43f,
-            )
-            drawLine(tint, start, end, s * 0.08f, StrokeCap.Round)
-        }
-    }
+    Icon(
+        imageVector = Icons.Filled.WbSunny,
+        contentDescription = "亮度",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
 private fun LockIcon(tint: Color, size: Dp) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val stroke = s * 0.08f
-        drawArc(
-            color = tint,
-            startAngle = 190f,
-            sweepAngle = 160f,
-            useCenter = false,
-            topLeft = Offset(s * 0.27f, s * 0.12f),
-            size = Size(s * 0.46f, s * 0.50f),
-            style = Stroke(width = stroke, cap = StrokeCap.Round),
-        )
-        drawRoundRect(
-            color = tint,
-            topLeft = Offset(s * 0.22f, s * 0.43f),
-            size = Size(s * 0.56f, s * 0.42f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.08f, s * 0.08f),
-            style = Stroke(width = stroke, cap = StrokeCap.Round, join = StrokeJoin.Round),
-        )
-    }
+    Icon(
+        imageVector = Icons.Filled.Lock,
+        contentDescription = "锁定",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
 private fun VolumeIcon(tint: Color, size: Dp) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val body = Path().apply {
-            moveTo(s * 0.12f, s * 0.42f)
-            lineTo(s * 0.30f, s * 0.42f)
-            lineTo(s * 0.54f, s * 0.22f)
-            lineTo(s * 0.54f, s * 0.78f)
-            lineTo(s * 0.30f, s * 0.58f)
-            lineTo(s * 0.12f, s * 0.58f)
-            close()
-        }
-        drawPath(body, tint)
-        drawArc(
-            color = tint,
-            startAngle = -42f,
-            sweepAngle = 84f,
-            useCenter = false,
-            topLeft = Offset(s * 0.48f, s * 0.30f),
-            size = Size(s * 0.32f, s * 0.40f),
-            style = Stroke(width = s * 0.08f, cap = StrokeCap.Round),
-        )
-    }
+    Icon(
+        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+        contentDescription = "音量",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
 private fun TVIcon(tint: Color, size: Dp) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val stroke = s * 0.08f
-        drawRoundRect(
-            color = tint,
-            topLeft = Offset(s * 0.12f, s * 0.22f),
-            size = Size(s * 0.76f, s * 0.54f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.08f, s * 0.08f),
-            style = Stroke(width = stroke, cap = StrokeCap.Round, join = StrokeJoin.Round),
-        )
-        drawLine(tint, Offset(s * 0.38f, s * 0.76f), Offset(s * 0.30f, s * 0.92f), stroke, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.62f, s * 0.76f), Offset(s * 0.70f, s * 0.92f), stroke, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.34f, s * 0.36f), Offset(s * 0.66f, s * 0.64f), stroke, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.66f, s * 0.36f), Offset(s * 0.34f, s * 0.64f), stroke, StrokeCap.Round)
-    }
+    Icon(
+        imageVector = Icons.Filled.Tv,
+        contentDescription = "投屏",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
 private fun ShareLandscapeIcon(tint: Color, size: Dp) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val stroke = s * 0.09f
-        drawLine(tint, Offset(s * 0.18f, s * 0.58f), Offset(s * 0.72f, s * 0.26f), stroke, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.72f, s * 0.26f), Offset(s * 0.72f, s * 0.48f), stroke, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.72f, s * 0.26f), Offset(s * 0.50f, s * 0.26f), stroke, StrokeCap.Round)
-        drawArc(
-            color = tint,
-            startAngle = 190f,
-            sweepAngle = 220f,
-            useCenter = false,
-            topLeft = Offset(s * 0.14f, s * 0.34f),
-            size = Size(s * 0.60f, s * 0.50f),
-            style = Stroke(width = stroke, cap = StrokeCap.Round),
-        )
-    }
+    Icon(
+        imageVector = Icons.Filled.Share,
+        contentDescription = "分享",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
 private fun MoreDotsIcon(tint: Color, size: Dp) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        drawCircle(tint, radius = s * 0.07f, center = Offset(s * 0.30f, s * 0.50f))
-        drawCircle(tint, radius = s * 0.07f, center = Offset(s * 0.50f, s * 0.50f))
-        drawCircle(tint, radius = s * 0.07f, center = Offset(s * 0.70f, s * 0.50f))
-    }
+    Icon(
+        imageVector = Icons.Filled.MoreHoriz,
+        contentDescription = "更多",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 private fun Long.validDuration(): Long = if (this > 0L && this < Long.MAX_VALUE / 2) this else 0L

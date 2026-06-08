@@ -2,6 +2,7 @@ package com.example.flower_show.model
 
 import org.junit.Assert.*
 import org.junit.Test
+import com.example.flower_show.ui.component.preferredCoverUrl
 
 class VideoItemTest {
 
@@ -37,5 +38,34 @@ class VideoItemTest {
     fun itemType_isTypeVideo() {
         val video = VideoItem("v001", "A", "A", "a", "v")
         assertEquals(CardItem.TypeVideo, video.itemType)
+    }
+
+    @Test
+    fun preferredCoverUrlUsesThumbnailWhenAvailable() {
+        val video = VideoItem(
+            id = "v001",
+            title = "A",
+            author = "A",
+            avatarUrl = "a",
+            videoUrl = "v",
+            coverUrl = "cover.jpg",
+            coverThumbnailUrl = "cover_360.jpg",
+        )
+
+        assertEquals("cover_360.jpg", video.preferredCoverUrl())
+    }
+
+    @Test
+    fun preferredCoverUrlFallsBackToCover() {
+        val video = VideoItem(
+            id = "v001",
+            title = "A",
+            author = "A",
+            avatarUrl = "a",
+            videoUrl = "v",
+            coverUrl = "cover.jpg",
+        )
+
+        assertEquals("cover.jpg", video.preferredCoverUrl())
     }
 }

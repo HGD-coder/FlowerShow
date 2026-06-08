@@ -8,10 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.flower_show.model.ImageCardItem
 import com.example.flower_show.ui.theme.ArcticColors
 
@@ -25,8 +23,10 @@ fun ImageCard(
 
     Box(modifier = modifier.fillMaxSize()) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(card.imageUrl).crossfade(true).build(),
+            model = rememberFlowerImageRequest(
+                data = card.imageUrl,
+                slot = FlowerImageSlot.FeedImage,
+            ),
             contentDescription = "图片",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,

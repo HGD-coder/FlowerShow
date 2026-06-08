@@ -2,6 +2,7 @@ package com.example.flower_show.ui.screen
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,12 +11,16 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -32,6 +37,7 @@ import com.example.flower_show.ui.theme.ArcticColors
 import com.example.flower_show.viewmodel.VideoIntent
 import com.example.flower_show.viewmodel.VideoViewModel
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun VideoScreen(
     targetVideoId: String? = null,
@@ -40,9 +46,12 @@ fun VideoScreen(
     viewModel: VideoViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    ReportDrawnWhen { state.items.isNotEmpty() && !state.isLoading }
+
     @Suppress("UNUSED_EXPRESSION")
     state.isPlayerReady
     val pagerState = rememberPagerState(pageCount = { state.items.size.coerceAtLeast(1) })
+    var pendingTargetVideoId by remember { mutableStateOf<String?>(targetVideoId) }
 
     // P1-3: Landscape detection / 横竖屏检测
     val configuration = LocalConfiguration.current
@@ -68,8 +77,38 @@ fun VideoScreen(
         onDispose { }
     }
 
-    // Play when page changes
-    LaunchedEffect(pagerState.settledPage, state.items.size) {
+    // P0-3: Jump to target video from search result
+    LaunchedEffect(targetVideoId) {
+        pendingTargetVideoId = targetVideoId
+        val targetId = targetVideoId
+        if (targetId == null) {
+            viewModel.dispatch(VideoIntent.EnterHomeFeed)
+            return@LaunchedEffect
+        }
+        viewModel.dispatch(VideoIntent.JumpToVideo(targetId))
+    }
+
+    LaunchedEffect(state.currentPosition, state.items.size, isLandscape) {
+        if (isLandscape || state.items.isEmpty()) return@LaunchedEffect
+        val targetPage = state.currentPosition.coerceIn(0, state.items.lastIndex)
+        if (pagerState.currentPage != targetPage) {
+            pagerState.scrollToPage(targetPage)
+        }
+        val pendingId = pendingTargetVideoId
+        val currentVideoId = (state.items.getOrNull(targetPage) as? VideoItem)?.id
+        if (pendingId != null && pendingId == currentVideoId) {
+            pendingTargetVideoId = null
+        }
+    }
+
+    // Play when page changes. During a search jump, ignore stale page 0 until the pager reaches the target.
+    LaunchedEffect(pagerState.settledPage, state.items.size, pendingTargetVideoId) {
+        if (state.items.isEmpty()) return@LaunchedEffect
+        val pendingId = pendingTargetVideoId
+        if (pendingId != null) {
+            val settledVideoId = (state.items.getOrNull(pagerState.settledPage) as? VideoItem)?.id
+            if (settledVideoId != pendingId) return@LaunchedEffect
+        }
         viewModel.dispatch(VideoIntent.PlayPosition(pagerState.settledPage))
     }
 
@@ -79,13 +118,13 @@ fun VideoScreen(
             viewModel.dispatch(VideoIntent.LoadNextPage)
     }
 
-    // P0-3: Jump to target video from search result
-    LaunchedEffect(targetVideoId) {
-        val targetId = targetVideoId ?: return@LaunchedEffect
-        viewModel.dispatch(VideoIntent.JumpToVideo(targetId))
-    }
-
-    Box(modifier = Modifier.fillMaxSize().background(ArcticColors.Background)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ArcticColors.Background)
+            .semantics { testTagsAsResourceId = true }
+            .testTag("video_screen"),
+    ) {
         if (state.items.isEmpty()) {
             Text("加载中...", color = Color.White, fontSize = 18.sp,
                 modifier = Modifier.align(Alignment.Center))
@@ -93,7 +132,9 @@ fun VideoScreen(
             if (isLandscape && state.isPlayerReady) {
                 PlayerSurface(
                     playerViewModel = viewModel,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag("player_surface"),
                 )
             }
 
@@ -119,47 +160,60 @@ fun VideoScreen(
                 // ── Portrait: full feed with cards / 竖屏：完整视频流 ──
                 VerticalPager(
                     state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag("feed_pager"),
                     beyondViewportPageCount = 1,
+                    key = { page ->
+                        state.items.getOrNull(page)?.feedStableKey(page) ?: "placeholder:$page"
+                    },
                 ) { page ->
                     val item = state.items[page]
-                    key(item.hashCode()) {
-                        when (item) {
-                            is VideoItem -> {
-                                val ctx = LocalContext.current
-                                VideoCard(
-                                    video = item,
-                                    playerManager = viewModel.playerManager,
-                                    playerContent = if (state.isPlayerReady && page == pagerState.settledPage) {
-                                        {
-                                            PlayerSurface(
-                                                playerViewModel = viewModel,
-                                                modifier = Modifier.fillMaxSize(),
-                                            )
-                                        }
+                    when (item) {
+                        is VideoItem -> {
+                            val ctx = LocalContext.current
+                            val isActivePage = page == pagerState.settledPage
+                            val isCurrentPlaybackPage = page == state.currentPosition
+                            VideoCard(
+                                video = item,
+                                playerManager = viewModel.playerManager,
+                                playerContent = if (state.isPlayerReady && isActivePage) {
+                                    {
+                                        PlayerSurface(
+                                            playerViewModel = viewModel,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .testTag("player_surface"),
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                                isActive = isActivePage,
+                                onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
+                                onRecommendWordClick = onRecommendWordClick,
+                                onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SelectManualQuality(name, url)) },
+                                onEnableAutoQuality = { viewModel.dispatch(VideoIntent.EnableAutoQuality) },
+                                qualityMode = if (isCurrentPlaybackPage) state.qualityMode.name else "Auto",
+                                currentQualityName = if (isCurrentPlaybackPage) state.currentQualityName else null,
+                                availableQualities = if (isCurrentPlaybackPage) {
+                                    state.availableQualities
+                                } else {
+                                    emptyList()
+                                },
+                                onToggleFullscreen = {
+                                    val activity = ctx as? android.app.Activity ?: return@VideoCard
+                                    if (isLandscape) {
+                                        activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                                     } else {
-                                        null
-                                    },
-                                    onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
-                                    onRecommendWordClick = onRecommendWordClick,
-                                    onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SelectManualQuality(name, url)) },
-                                    onEnableAutoQuality = { viewModel.dispatch(VideoIntent.EnableAutoQuality) },
-                                    qualityMode = state.qualityMode.name,
-                                    currentQualityName = state.currentQualityName,
-                                    onToggleFullscreen = {
-                                        val activity = ctx as? android.app.Activity ?: return@VideoCard
-                                        if (isLandscape) {
-                                            activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                                        } else {
-                                            activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                                        }
-                                    },
-                                )
-                            }
-                            is ImageCardItem -> ImageCard(card = item)
-                            is AlbumCardItem -> AlbumCard(card = item)
-                            else -> {}
+                                        activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                                    }
+                                },
+                            )
                         }
+                        is ImageCardItem -> ImageCard(card = item)
+                        is AlbumCardItem -> AlbumCard(card = item)
+                        else -> {}
                     }
                 }
             }
@@ -201,6 +255,15 @@ fun VideoScreen(
     DisposableEffect(Unit) {
         onDispose { viewModel.dispatch(VideoIntent.PausePlayer) }
     }
+}
+
+private fun CardItem.feedStableKey(index: Int): String = when (this) {
+    is VideoItem -> "video:$id"
+    is ImageCardItem -> "image:$id"
+    is AlbumCardItem -> "album:$id"
+    CardItem.TypeVideo -> "type_video:$index"
+    CardItem.TypeImage -> "type_image:$index"
+    CardItem.TypeAlbum -> "type_album:$index"
 }
 
 @Composable

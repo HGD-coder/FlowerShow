@@ -1,5 +1,7 @@
 package com.example.flower_show.model
 
+import androidx.compose.runtime.Immutable
+
 /**
  * VideoQuality — A single quality option for video playback.
  * 单个视频清晰度选项
@@ -9,6 +11,7 @@ package com.example.flower_show.model
  * @param height Vertical resolution in pixels
  * @param bitrateKbps Estimated bitrate in kbps
  */
+@Immutable
 data class VideoQuality(
     val name: String,
     val url: String,

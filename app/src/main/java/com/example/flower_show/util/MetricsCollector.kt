@@ -47,8 +47,26 @@ object MetricsCollector {
                     val avg = series.avg()
                     sb.appendLine(
                         "[$key]  samples=${series.count}  " +
-                        "avg=${formatMs(avg)}  p50=${formatMs(series.p50())}  " +
-                        "p95=${formatMs(series.p95())}  min=${formatMs(series.min)}  max=${formatMs(series.max)}"
+                        "avg=${formatValue(metricName, avg)}  p50=${formatValue(metricName, series.p50())}  " +
+                        "p95=${formatValue(metricName, series.p95())}  min=${formatValue(metricName, series.min)}  " +
+                        "max=${formatValue(metricName, series.max)}"
+                    )
+                }
+            }
+
+            if (metricName == "cache_bytes") {
+                val cachedBytes = entries
+                    .filter { it.key.contains("source=cache") }
+                    .sumOf { it.value.sum() }
+                val upstreamBytes = entries
+                    .filter { it.key.contains("source=upstream") }
+                    .sumOf { it.value.sum() }
+                val totalBytes = cachedBytes + upstreamBytes
+                if (totalBytes > 0) {
+                    val hitRatio = cachedBytes.toDouble() / totalBytes * 100.0
+                    sb.appendLine(
+                        "  -> Cache hit ratio: ${"%.1f".format(hitRatio)}% " +
+                            "(${formatBytes(cachedBytes)} cached / ${formatBytes(totalBytes)} total)"
                     )
                 }
             }
@@ -83,9 +101,24 @@ object MetricsCollector {
         samples.clear()
     }
 
+    private fun formatValue(metricName: String, value: Number): String = when {
+        metricName.endsWith("_bytes") -> formatBytes(value)
+        else -> formatMs(value)
+    }
+
     private fun formatMs(ms: Number): String = when {
         ms.toLong() < 1000 -> "${ms.toLong()}ms"
         else -> "${"%.1f".format(ms.toDouble() / 1000.0)}s"
+    }
+
+    private fun formatBytes(bytes: Number): String {
+        val rawBytes = bytes.toDouble()
+        return when {
+            rawBytes < 1024.0 -> "${rawBytes.toLong()}B"
+            rawBytes < 1024.0 * 1024.0 -> "${"%.1f".format(rawBytes / 1024.0)}KB"
+            rawBytes < 1024.0 * 1024.0 * 1024.0 -> "${"%.1f".format(rawBytes / 1024.0 / 1024.0)}MB"
+            else -> "${"%.1f".format(rawBytes / 1024.0 / 1024.0 / 1024.0)}GB"
+        }
     }
 
     /**
@@ -107,6 +140,9 @@ object MetricsCollector {
 
         @Synchronized
         fun avg(): Double = if (values.isEmpty()) 0.0 else values.average()
+
+        @Synchronized
+        fun sum(): Long = values.sum()
 
         @Synchronized
         fun p50(): Long = percentile(50)

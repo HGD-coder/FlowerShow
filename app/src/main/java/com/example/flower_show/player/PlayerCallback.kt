@@ -10,6 +10,7 @@ fun interface PlayerCallback {
             val bufferedMs: Long,
             val bufferedPercent: Int = 0,
             val estimatedBandwidthKbps: Int = 0,
+            val playableBufferMs: Long = 0,
         ) : PlaybackEvent()
         data class StateChanged(val isPlaying: Boolean) : PlaybackEvent()
         data object Complete : PlaybackEvent()

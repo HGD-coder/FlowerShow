@@ -1,5 +1,8 @@
 package com.example.flower_show.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class ImageCardItem(
     val id: String,
     val title: String,

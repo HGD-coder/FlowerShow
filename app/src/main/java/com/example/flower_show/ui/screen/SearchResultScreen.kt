@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,9 +45,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.flower_show.model.VideoItem
+import com.example.flower_show.ui.component.FlowerImageSlot
 import com.example.flower_show.ui.component.SearchIcon
+import com.example.flower_show.ui.component.preferredCoverUrl
+import com.example.flower_show.ui.component.rememberFlowerImageRequest
 import com.example.flower_show.ui.theme.ArcticColors
 import com.example.flower_show.viewmodel.SearchIntent
 import com.example.flower_show.viewmodel.SearchViewModel
@@ -226,7 +227,6 @@ private fun SearchResultRow(
     video: VideoItem,
     onClick: () -> Unit,
 ) {
-    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -235,7 +235,10 @@ private fun SearchResultRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(context).data(video.coverUrl).crossfade(true).build(),
+            model = rememberFlowerImageRequest(
+                data = video.preferredCoverUrl(),
+                slot = FlowerImageSlot.SearchThumbnail,
+            ),
             contentDescription = "\u7f29\u7565\u56fe",
             modifier = Modifier
                 .size(width = 130.dp, height = 78.dp)

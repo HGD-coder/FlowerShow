@@ -141,18 +141,44 @@ app/src/main/java/com/example/flower_show/
 - 右侧互动栏新增收藏图标 + 计数 (本地状态)
 
 **P1-1: 预加载优化 (ExoPlayer Cache)**
-- SimpleCache + CacheDataSource.Factory (200MB LRU)
+- SimpleCache + CacheDataSource.Factory (500MB LRU 单例)
 - PlayerCallback.Progress 增加 bufferedPercent
 - beyondViewportPageCount = 1 (预组合)
 
 **P1-2: 清晰度切换**
-- VideoPlayerManager.setQuality(qualityName, qualityUrl?)
-- 支持 adaptive track selection + fallback URL switch
+- VideoPlayerManager.setQuality(qualityName, qualityUrl) 保留当前播放进度
+- 手动清晰度菜单只展示当前视频已有且 URL 非空的清晰度
+- 自动清晰度基于缓冲次数、单次缓冲时长、可播放缓冲时长、BandwidthMeter 估算带宽进行降级/谨慎升级
+- 短期采用多 MP4 URL 切换；长期建议迁移 HLS/DASH，由 Media3 AdaptiveTrackSelection 做 ABR
 
-**P1-3: 横屏播放**
+**P1-3: 本地视频预处理**
+- `tools/preprocess_videos.py` 使用 ffprobe 识别真实分辨率、码率、编码、时长、旋转信息
+- 以真实短边作为最高可选清晰度，只向下生成 720p/480p/360p 等低清版本，不做超分
+- 原子更新 `quality_urls`，可选生成 `cover_360.jpg`，运行说明见 `docs/VIDEO_PREPROCESSING.md`
+
+**P1-4: 播放器缓冲策略调优**
+- `ShortVideoLoadControl` 将 Media3 默认 50s min/max buffer 改为短视频 profile，默认 `Balanced`
+- `Balanced` 使用 3s min buffer、10s max buffer、250ms 起播阈值、750ms rebuffer 恢复阈值、1.5s back buffer
+- 预留 `FastStart` 与 `RebufferGuard` 两档，便于后续按真机 `video_first_frame`、`video_buffering` 做 A/B 测试
+- `MetricsCollector` 输出 `load_control_profile`、`load_control_buffer_ms`、`load_control_start_playback_ms`、`load_control_back_buffer_ms`
+
+**P1-5: 横屏播放**
 - LocalConfiguration.orientation 检测
 - 横屏: 全屏 PlayerView + 沉浸式模式
 - AndroidManifest configChanges 防止重建
+
+**P1-6: Compose Feed 流畅度优化**
+- `VideoCard` 不再在顶层读取 200ms 播放进度；进度状态已下沉到独立 `VideoProgressSlider`
+- `VideoCard` 顶层只监听 Ready、播放/暂停、完成、视频尺寸等低频播放器事件
+- `VerticalPager` 使用视频/图片/图集 ID 作为稳定 page key，避免使用 `hashCode()` 导致页面身份随字段变化
+- 非当前播放页不再接收动态清晰度菜单参数，减少画质状态变化对离屏/邻近页的重组影响
+- Feed UI model 和 `VideoState` 标注 `@Immutable`，辅助 Compose 强跳过未变化卡片
+
+**P1-7: 封面和图片加载优化**
+- `AssetJsonLoader` 已读取预处理生成的 `cover_thumbnail_url`，并转成可访问的本地 HTTP URL
+- `VideoCard` 与搜索结果缩略图优先使用 `coverThumbnailUrl`，缺失时回退 `coverUrl`
+- `FlowerImageRequests` 统一 Coil `ImageRequest`，按场景限制解码尺寸：视频封面 720x1280、Feed 图片/图集 1080x1920、搜索缩略图 320x192、头像 128x128、唱片头像 96x96
+- 小图入口关闭 crossfade，减少滚动过程中的额外绘制和动画开销
 
 **P2-1: 搜索加权评分**
 - 标题100%匹配(1.0) > 部分匹配(0.7) > 标签(0.5) > 推荐词(0.3)
@@ -173,6 +199,7 @@ data class VideoItem(
     val avatarUrl: String,          // avatar
     val videoUrl: String,           // video_download_url
     val coverUrl: String = "",      // cover_url
+    val coverThumbnailUrl: String = "", // cover_thumbnail_url
     val musicUrl: String? = null,   // music_download_url
     val likes: Int = 0,             // liked_count
     val comments: Int = 0,          // comment_count
@@ -262,10 +289,13 @@ sealed interface VideoIntent {
 
 | 指标 | 优化前基线 | 设计目标 | 实现方案 | 状态 |
 |------|:---:|:---:|------|:--:|
-| 视频首帧时间 | ~800ms (估) | ~300ms | Media3 SimpleCache 200MB LRU | ⚠️ 待实现 (Step 3) |
-| 缓存命中率 | 0% | ~65% | CacheDataSource.Factory 自动缓存 | ⚠️ 待实现 |
-| 滑动缓冲次数 | 每3视频1次 (估) | 每10视频1次 | 缓存 + preloadNextVideo() | ⚠️ 待实现 |
-| 清晰度切换延迟 | N/A | <1s | setQuality() 保持进度 | ⚠️ 待实现 (Step 4) |
+| 视频首帧时间 | ~800ms (估) | ~300ms | Media3 SimpleCache 500MB LRU + 预加载共享缓存 | ✅ 已接入，需真机采样 |
+| 缓存命中率 | 0% | ~65% | CacheDataSource.EventListener + TransferListener 字节级统计 | ✅ 已接入，目标需真机验证 |
+| 滑动缓冲次数 | 每3视频1次 (估) | 每10视频1次 | 缓存 + DefaultPreloadManager + ShortVideoLoadControl(Balanced) | ✅ 已接入，需真机采样 |
+| 起播缓冲门槛 | Media3 默认 2500ms | 约250ms | ShortVideoLoadControl(Balanced) | ✅ 已接入，需 A/B 验证 |
+| Feed 滑动帧率/卡顿 | N/A | 滑动无明显掉帧 | 稳定 Pager key + 进度条局部重组 + 单 Player 实例 | ✅ 已接入，需 Macrobenchmark 真机采样 |
+| 图片解码内存 | 原图尺寸 | 按 UI 场景限尺寸 | Coil ImageRequest size + `cover_thumbnail_url` | ✅ 已接入，需真机/内存采样 |
+| 清晰度切换延迟 | N/A | <1s | setQuality() 保持进度 + Macrobenchmark TraceSectionMetric | ✅ 已接入，需真机采样 |
 | 搜索容错率 | 0% (精确匹配) | 90% (1-2字符容错) | Levenshtein 编辑距离 | ⚠️ 待实现 (Step 5) |
 
 > 注: 以上为设计目标。实际数据将通过代码中内置的 FlowerMetrics Logcat 指标采集机制实时测量。
@@ -288,8 +318,8 @@ sealed interface VideoIntent {
 |:--:|------|------|------|
 | P0 | 搜索结果跳转视频失败 | 搜索结果点击后无法定位到目标视频 | JumpToVideo intent + 分页循环查找 |
 | P0 | 搜索历史顺序丢失 | SharedPreferences StringSet 不保序 | JSON 列表序列化 + 兼容迁移 |
-| P1 | 视频无磁盘缓存 | 每次播放重新下载，流量浪费 | Media3 SimpleCache 200MB LRU |
-| P1 | 清晰度字段闲置 | qualityUrls 已预留但未接通 | 规范数据源 + UI 控件 + setQuality |
+| P1 | 视频无磁盘缓存 | 每次播放重新下载，流量浪费 | Media3 SimpleCache 500MB LRU + 命中率统计 |
+| P1 | 清晰度字段闲置 | qualityUrls 已预留但未接通 | ✅ 已接入数据源 + UI 控件 + setQuality + 自动切换 |
 | P2 | 搜索无容错 | 错别字搜不到，用户体验差 | SearchMatcher 策略 + Levenshtein |
 
 ---

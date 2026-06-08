@@ -14,11 +14,11 @@ import java.io.InputStreamReader
  * AssetJsonLoader - Read crawled video data / 读取爬虫数据
  *
  * Reads MediaCrawler JSONL from assets.
- * Video files served via local HTTP server (python -m http.server 8080).
+ * Video files served via local range-aware HTTP server on port 8081.
  *
  * URL auto-detection:
- *   - Emulator → http://10.0.2.2:8080/videos/{aweme_id}/video.mp4
- *   - Real device → http://{LAN_IP}:8080/videos/{aweme_id}/video.mp4
+ *   - Emulator → http://10.0.2.2:8081/videos/{aweme_id}/video.mp4
+ *   - Real device → http://{LAN_IP}:8081/videos/{aweme_id}/video.mp4
  *
  * Change LAN_IP to your computer's actual local IP when using a real device.
  * Run `ipconfig` (Windows) or `ifconfig` (Mac/Linux) to find it.
@@ -30,7 +30,7 @@ object AssetJsonLoader {
      *  Phone and computer MUST be on the same WiFi network.
      *  Also ensure the HTTP server is running in the douyin directory:
      *    cd D:\MediaCrawler\MediaCrawler\data\douyin
-     *    python -m http.server 8080
+     *    uv run python tools\video_http_server.py --directory data\douyin --port 8081
      *  Or just double-click start_video_server.bat in MediaCrawler/. */
     private const val LAN_IP = "10.138.179.51" // TODO: run `ipconfig` to verify and update
 
@@ -50,14 +50,14 @@ object AssetJsonLoader {
         val host = if (isEmulator) "10.0.2.2" else LAN_IP
         val deviceType = if (isEmulator) "emulator" else "real device"
         Log.d(TAG, "Detected $deviceType, using host: $host")
-        return "http://$host:8080"
+        return "http://$host:8081"
     }
 
     private fun videoUrlFor(awemeId: String): String =
         "${hostBaseUrl()}/videos/$awemeId/video.mp4"
 
     /** Build full URL from a relative path (e.g. "videos/123/video_480p.mp4") */
-    private fun qualityUrlFor(relativePath: String): String =
+    private fun localAssetUrlFor(relativePath: String): String =
         "${hostBaseUrl()}/$relativePath"
 
     fun loadVideos(context: Context): List<VideoItem> {
@@ -72,8 +72,7 @@ object AssetJsonLoader {
                 trimmed.startsWith("[") -> parseJsonArray(trimmed)
                 else -> emptyList()
             }
-            // Shuffle for mixed-category feed / 随机打乱，各类别混排
-            videos.shuffled()
+            videos
         } catch (e: Exception) {
             emptyList()
         }
@@ -114,6 +113,7 @@ object AssetJsonLoader {
         val author = raw.str("nickname") ?: "未知作者"
         val avatarUrl = raw.str("avatar") ?: ""
         val coverUrl = raw.str("cover_url") ?: ""
+        val coverThumbnailUrl = parseLocalOrRemoteUrl(raw.str("cover_thumbnail_url"))
         val likes = raw.int("liked_count")
         val comments = raw.int("comment_count")
         val collections = raw.int("collected_count")
@@ -129,20 +129,11 @@ object AssetJsonLoader {
         // Build video URL from local HTTP server (host auto-detected)
         val videoUrl = videoUrlFor(id)
 
-        // Parse multi-quality URLs if present, prepend base URL
-        val qualityUrls: Map<String, String>? = when (val qu = raw["quality_urls"]) {
-            is Map<*, *> -> {
-                @Suppress("UNCHECKED_CAST")
-                (qu as? Map<String, String>)?.mapValues { (_, path) ->
-                    if (path.startsWith("http")) path else qualityUrlFor(path)
-                }?.takeIf { it.isNotEmpty() }
-            }
-            else -> null
-        }
+        val qualityUrls = parseQualityUrls(raw)
 
         return VideoItem(
             id = id, title = title, author = author, avatarUrl = avatarUrl,
-            videoUrl = videoUrl, coverUrl = coverUrl,
+            videoUrl = videoUrl, coverUrl = coverUrl, coverThumbnailUrl = coverThumbnailUrl,
             likes = likes, comments = comments, collections = collections, shares = shares,
             tags = tags, recommendWords = recommendWords,
             qualityUrls = qualityUrls,
@@ -158,15 +149,20 @@ object AssetJsonLoader {
         val avatarUrl = raw.str("avatarUrl") ?: ""
         val videoUrl = raw.str("videoUrl") ?: ""
         val coverUrl = raw.str("coverUrl") ?: ""
+        val coverThumbnailUrl = parseLocalOrRemoteUrl(
+            raw.str("coverThumbnailUrl") ?: raw.str("cover_thumbnail_url"),
+        )
         val recommendWords = SearchSuggestionEngine.inferSearches(
             title = title,
             tags = emptyList(),
             count = 10,
         )
         return VideoItem(id, title, author, avatarUrl, videoUrl, coverUrl,
+            coverThumbnailUrl = coverThumbnailUrl,
             likes = raw.int("likes"), comments = raw.int("comments"),
             collections = raw.int("collections"), shares = raw.int("shares"),
             tags = emptyList(), recommendWords = recommendWords,
+            qualityUrls = parseQualityUrls(raw),
         )
     }
 
@@ -189,4 +185,20 @@ object AssetJsonLoader {
             is String -> v.toIntOrNull() ?: 0
             else -> 0
         }
+
+    private fun parseQualityUrls(raw: Map<String, Any>): Map<String, String>? {
+        val source = raw["quality_urls"] ?: raw["qualityUrls"] ?: return null
+        if (source !is Map<*, *>) return null
+        return source.mapNotNull { (key, value) ->
+            val name = key as? String ?: return@mapNotNull null
+            val path = value as? String ?: return@mapNotNull null
+            if (name.isBlank() || path.isBlank()) return@mapNotNull null
+            name to parseLocalOrRemoteUrl(path)
+        }.toMap().takeIf { it.isNotEmpty() }
+    }
+
+    private fun parseLocalOrRemoteUrl(path: String?): String {
+        if (path.isNullOrBlank()) return ""
+        return if (path.startsWith("http")) path else localAssetUrlFor(path)
+    }
 }

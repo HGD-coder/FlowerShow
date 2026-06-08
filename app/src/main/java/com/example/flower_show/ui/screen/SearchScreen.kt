@@ -1,6 +1,5 @@
 package com.example.flower_show.ui.screen
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +8,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,13 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -380,23 +381,12 @@ private fun BackChevronIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        drawLine(
-            color = tint,
-            start = Offset(s * 0.68f, s * 0.14f),
-            end = Offset(s * 0.30f, s * 0.50f),
-            strokeWidth = s * 0.10f,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = tint,
-            start = Offset(s * 0.30f, s * 0.50f),
-            end = Offset(s * 0.68f, s * 0.86f),
-            strokeWidth = s * 0.10f,
-            cap = StrokeCap.Round,
-        )
-    }
+    Icon(
+        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+        contentDescription = "返回",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
@@ -405,25 +395,12 @@ private fun ChevronDownIcon(
     size: Dp,
     expanded: Boolean,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val topY = if (expanded) s * 0.64f else s * 0.36f
-        val bottomY = if (expanded) s * 0.36f else s * 0.64f
-        drawLine(
-            color = tint,
-            start = Offset(s * 0.20f, topY),
-            end = Offset(s * 0.50f, bottomY),
-            strokeWidth = s * 0.12f,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = tint,
-            start = Offset(s * 0.80f, topY),
-            end = Offset(s * 0.50f, bottomY),
-            strokeWidth = s * 0.12f,
-            cap = StrokeCap.Round,
-        )
-    }
+    Icon(
+        imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+        contentDescription = if (expanded) "收起" else "展开",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
@@ -431,12 +408,12 @@ private fun MoreVerticalIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        drawCircle(tint, radius = s * 0.08f, center = Offset(s * 0.50f, s * 0.25f))
-        drawCircle(tint, radius = s * 0.08f, center = Offset(s * 0.50f, s * 0.50f))
-        drawCircle(tint, radius = s * 0.08f, center = Offset(s * 0.50f, s * 0.75f))
-    }
+    Icon(
+        imageVector = Icons.Filled.MoreVert,
+        contentDescription = "更多",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
@@ -444,29 +421,12 @@ private fun RefreshIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val strokeWidth = s * 0.10f
-        drawArc(
-            color = tint,
-            startAngle = 40f,
-            sweepAngle = 275f,
-            useCenter = false,
-            topLeft = Offset(s * 0.18f, s * 0.18f),
-            size = Size(s * 0.64f, s * 0.64f),
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-        )
-        val p = Path().apply {
-            moveTo(s * 0.78f, s * 0.20f)
-            lineTo(s * 0.78f, s * 0.45f)
-            lineTo(s * 0.58f, s * 0.34f)
-        }
-        drawPath(
-            path = p,
-            color = tint,
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round),
-        )
-    }
+    Icon(
+        imageVector = Icons.Filled.Refresh,
+        contentDescription = "刷新",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
@@ -474,15 +434,10 @@ private fun TrashOutlineIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val strokeWidth = s * 0.08f
-        drawLine(tint, Offset(s * 0.24f, s * 0.28f), Offset(s * 0.76f, s * 0.28f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.40f, s * 0.16f), Offset(s * 0.60f, s * 0.16f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.32f, s * 0.28f), Offset(s * 0.38f, s * 0.86f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.68f, s * 0.28f), Offset(s * 0.62f, s * 0.86f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.38f, s * 0.86f), Offset(s * 0.62f, s * 0.86f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.46f, s * 0.42f), Offset(s * 0.46f, s * 0.72f), strokeWidth * 0.8f, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.54f, s * 0.42f), Offset(s * 0.54f, s * 0.72f), strokeWidth * 0.8f, StrokeCap.Round)
-    }
+    Icon(
+        imageVector = Icons.Filled.DeleteOutline,
+        contentDescription = "删除",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }

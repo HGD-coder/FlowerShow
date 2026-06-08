@@ -24,4 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "flower-show"
 include(":app")
- 
+include(":macrobenchmark")

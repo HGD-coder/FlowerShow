@@ -10,6 +10,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.flower_show.ui.screen.*
 import com.example.flower_show.ui.theme.FlowerShowTheme
+import com.example.flower_show.util.PerformanceTrace
 
 /**
  * MainActivity — Single Activity, Compose-based navigation.
@@ -24,6 +25,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PerformanceTrace.enableAppTracing()
         enableEdgeToEdge()
 
         // Edge-to-edge: content draws behind system bars

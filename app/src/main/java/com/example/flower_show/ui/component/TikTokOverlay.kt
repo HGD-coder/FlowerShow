@@ -1,6 +1,5 @@
 package com.example.flower_show.ui.component
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,8 +19,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,15 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,10 +46,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import com.example.flower_show.model.VideoQuality
 import com.example.flower_show.ui.theme.ArcticColors
 
 private val TikTokPink = ArcticColors.PrimaryContainer
+private val ActionLikeRed = Color(0xFFFF2D55)
+private val ActionCollectGold = Color(0xFFFFC107)
 
 @Composable
 fun TikTokTopNavigation(
@@ -170,7 +171,7 @@ fun TikTokActionRail(
     shares: Int,
     onLikeClick: () -> Unit,
     onCollectClick: () -> Unit,
-    qualityUrls: Map<String, String>? = null,
+    availableQualities: List<VideoQuality> = emptyList(),
     qualityMode: String = "Auto",
     currentQualityName: String? = null,
     onSetQuality: (String, String) -> Unit = { _, _ -> },
@@ -189,8 +190,8 @@ fun TikTokActionRail(
         TikTokActionItem(
             count = formatCount(if (isLiked) likes + 1 else likes),
             icon = {
-                if (isLiked) HeartFilledIcon(size = 42.dp, tint = ArcticColors.PrimaryContainer, onClick = onLikeClick)
-                else HeartOutlineIcon(size = 42.dp, onClick = onLikeClick)
+                if (isLiked) HeartFilledIcon(size = 42.dp, tint = ActionLikeRed, onClick = onLikeClick)
+                else HeartOutlineIcon(size = 42.dp, tint = Color.White, onClick = onLikeClick)
             },
         )
         TikTokActionItem(
@@ -201,8 +202,10 @@ fun TikTokActionRail(
             count = if (collections > 0) formatCount(if (isCollected) collections + 1 else collections) else "收藏",
             icon = {
                 BookmarkIcon(
-                    tint = if (isCollected) ArcticColors.PrimaryContainer else Color.White,
-                    size = 42.dp, onClick = onCollectClick,
+                    tint = if (isCollected) ActionCollectGold else Color.White,
+                    size = 42.dp,
+                    filled = isCollected,
+                    onClick = onCollectClick,
                 )
             },
         )
@@ -212,8 +215,7 @@ fun TikTokActionRail(
         )
 
         // Quality selector — only visible when multi-quality data exists
-        val urls = qualityUrls
-        if (urls != null && urls.size > 1) {
+        if (availableQualities.size > 1) {
             TikTokActionItem(
                 count = currentQualityName ?: "画质",
                 icon = {
@@ -221,13 +223,16 @@ fun TikTokActionRail(
                         Text(
                             "画质", color = Color.White.copy(alpha = 0.9f),
                             fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clickable { showQualityMenu = true },
+                            modifier = Modifier
+                                .testTag("quality_button")
+                                .clickable { showQualityMenu = true },
                         )
                         DropdownMenu(
                             expanded = showQualityMenu,
                             onDismissRequest = { showQualityMenu = false },
                         ) {
                             DropdownMenuItem(
+                                modifier = Modifier.testTag("quality_option_auto"),
                                 text = {
                                     val label = if (qualityMode == "Auto") "✓ 自动（当前 ${currentQualityName ?: "自动"}）"
                                     else "  自动"
@@ -235,18 +240,33 @@ fun TikTokActionRail(
                                 },
                                 onClick = { showQualityMenu = false; onEnableAutoQuality() },
                             )
-                            urls.forEach { (name, url) ->
+                            availableQualities.forEach { quality ->
                                 DropdownMenuItem(
+                                    modifier = Modifier.testTag("quality_option_${quality.name}"),
                                     text = {
-                                        val label = if (qualityMode == "Manual" && currentQualityName == name)
-                                            "✓ $name" else "  $name"
+                                        val label = if (qualityMode == "Manual" && currentQualityName == quality.name)
+                                            "✓ ${quality.name}" else "  ${quality.name}"
                                         Text(label, color = Color.Black)
                                     },
-                                    onClick = { showQualityMenu = false; onSetQuality(name, url) },
+                                    onClick = {
+                                        showQualityMenu = false
+                                        onSetQuality(quality.name, quality.url)
+                                    },
                                 )
                             }
                         }
                     }
+                },
+            )
+        } else {
+            TikTokActionItem(
+                count = "画质",
+                icon = {
+                    Text(
+                        "画质", color = Color.White.copy(alpha = 0.72f),
+                        fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.testTag("quality_button"),
+                    )
                 },
             )
         }
@@ -343,7 +363,10 @@ private fun CreatorAvatar(
 ) {
     Box(modifier = modifier.size(62.dp), contentAlignment = Alignment.TopCenter) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(avatarUrl).crossfade(true).build(),
+            model = rememberFlowerImageRequest(
+                data = avatarUrl,
+                slot = FlowerImageSlot.Avatar,
+            ),
             contentDescription = "头像",
             modifier = Modifier
                 .size(54.dp)
@@ -401,7 +424,10 @@ private fun RotatingDisc(
         contentAlignment = Alignment.Center,
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(avatarUrl).crossfade(true).build(),
+            model = rememberFlowerImageRequest(
+                data = avatarUrl,
+                slot = FlowerImageSlot.DiscAvatar,
+            ),
             contentDescription = null,
             modifier = Modifier
                 .size(34.dp)
@@ -484,24 +510,12 @@ private fun HomeNavIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val roof = Path().apply {
-            moveTo(s * 0.12f, s * 0.48f)
-            lineTo(s * 0.5f, s * 0.16f)
-            lineTo(s * 0.88f, s * 0.48f)
-            lineTo(s * 0.78f, s * 0.58f)
-            lineTo(s * 0.78f, s * 0.88f)
-            lineTo(s * 0.60f, s * 0.88f)
-            lineTo(s * 0.60f, s * 0.64f)
-            lineTo(s * 0.40f, s * 0.64f)
-            lineTo(s * 0.40f, s * 0.88f)
-            lineTo(s * 0.22f, s * 0.88f)
-            lineTo(s * 0.22f, s * 0.58f)
-            close()
-        }
-        drawPath(roof, tint)
-    }
+    Icon(
+        imageVector = Icons.Filled.Home,
+        contentDescription = "首页",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
@@ -509,29 +523,12 @@ private fun FriendsNavIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        drawCircle(tint, radius = s * 0.15f, center = Offset(s * 0.38f, s * 0.34f), style = Stroke(width = s * 0.09f))
-        drawCircle(tint, radius = s * 0.13f, center = Offset(s * 0.67f, s * 0.39f), style = Stroke(width = s * 0.08f))
-        drawArc(
-            color = tint,
-            startAngle = 200f,
-            sweepAngle = 140f,
-            useCenter = false,
-            topLeft = Offset(s * 0.15f, s * 0.47f),
-            size = Size(s * 0.46f, s * 0.38f),
-            style = Stroke(width = s * 0.09f, cap = StrokeCap.Round),
-        )
-        drawArc(
-            color = tint,
-            startAngle = 210f,
-            sweepAngle = 120f,
-            useCenter = false,
-            topLeft = Offset(s * 0.50f, s * 0.53f),
-            size = Size(s * 0.35f, s * 0.28f),
-            style = Stroke(width = s * 0.08f, cap = StrokeCap.Round),
-        )
-    }
+    Icon(
+        imageVector = Icons.Filled.Group,
+        contentDescription = "朋友",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
@@ -539,20 +536,12 @@ private fun InboxNavIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val p = Path().apply {
-            moveTo(s * 0.16f, s * 0.18f)
-            lineTo(s * 0.84f, s * 0.18f)
-            lineTo(s * 0.84f, s * 0.66f)
-            lineTo(s * 0.56f, s * 0.66f)
-            lineTo(s * 0.44f, s * 0.82f)
-            lineTo(s * 0.44f, s * 0.66f)
-            lineTo(s * 0.16f, s * 0.66f)
-            close()
-        }
-        drawPath(p, tint, style = Stroke(width = s * 0.08f, cap = StrokeCap.Round, join = StrokeJoin.Round))
-    }
+    Icon(
+        imageVector = Icons.Filled.Mail,
+        contentDescription = "消息",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
@@ -560,17 +549,10 @@ private fun ProfileNavIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        drawCircle(tint, radius = s * 0.16f, center = Offset(s * 0.5f, s * 0.32f), style = Stroke(width = s * 0.09f))
-        drawArc(
-            color = tint,
-            startAngle = 200f,
-            sweepAngle = 140f,
-            useCenter = false,
-            topLeft = Offset(s * 0.20f, s * 0.48f),
-            size = Size(s * 0.60f, s * 0.45f),
-            style = Stroke(width = s * 0.09f, cap = StrokeCap.Round),
-        )
-    }
+    Icon(
+        imageVector = Icons.Filled.Person,
+        contentDescription = "我的",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }

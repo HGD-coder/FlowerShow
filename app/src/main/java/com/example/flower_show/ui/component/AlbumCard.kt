@@ -10,10 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.flower_show.model.AlbumCardItem
 import com.example.flower_show.ui.theme.ArcticColors
 
@@ -23,14 +21,16 @@ fun AlbumCard(
     modifier: Modifier = Modifier,
 ) {
     val pagerState = rememberPagerState(pageCount = { card.slideCount })
-    val context = LocalContext.current
     var isLiked by remember { mutableStateOf(false) }
     var isCollected by remember { mutableStateOf(false) }
 
     Box(modifier = modifier.fillMaxSize()) {
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
             AsyncImage(
-                model = ImageRequest.Builder(context).data(card.slides[page].mediaUrl).crossfade(true).build(),
+                model = rememberFlowerImageRequest(
+                    data = card.slides[page].mediaUrl,
+                    slot = FlowerImageSlot.FeedImage,
+                ),
                 contentDescription = "slide ${page + 1}",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,

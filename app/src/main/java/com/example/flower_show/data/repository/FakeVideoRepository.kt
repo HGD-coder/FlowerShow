@@ -18,6 +18,7 @@ class FakeVideoRepository private constructor(
 ) : IVideoRepository {
 
     private var cachedVideos: List<VideoItem>? = null
+    private var cachedFeedItems: List<CardItem>? = null
 
     companion object {
         @Volatile private var instance: FakeVideoRepository? = null
@@ -34,15 +35,13 @@ class FakeVideoRepository private constructor(
         }
     }
 
+    override fun refreshFeedSession() {
+        cachedFeedItems = null
+    }
+
     override fun loadFeed(page: Int, pageSize: Int): Result<List<CardItem>> {
         return try {
-            val jsonVideos = getCachedVideos()
-            val allItems = mutableListOf<CardItem>()
-            if (jsonVideos.isNotEmpty()) allItems.addAll(jsonVideos)
-            else allItems.addAll(FallbackData.createVideos())
-            allItems.addAll(FallbackData.createImageCards())
-            allItems.addAll(FallbackData.createAlbums())
-            Result.success(paginate(allItems, page, pageSize))
+            Result.success(paginate(getSessionFeedItems(), page, pageSize))
         } catch (e: Exception) {
             Result.error("加载失败: ${e.message}")
         }
@@ -83,6 +82,21 @@ class FakeVideoRepository private constructor(
             cachedVideos = context?.let { AssetJsonLoader.loadVideos(it) } ?: emptyList()
         }
         return cachedVideos ?: emptyList()
+    }
+
+    private fun getSessionFeedItems(): List<CardItem> {
+        val cached = cachedFeedItems
+        if (cached != null) return cached
+
+        val videos = getCachedVideos().ifEmpty { FallbackData.createVideos() }
+        val feedItems = buildList<CardItem> {
+            addAll(videos)
+            addAll(FallbackData.createImageCards())
+            addAll(FallbackData.createAlbums())
+        }.shuffled()
+
+        cachedFeedItems = feedItems
+        return feedItems
     }
 
     private fun paginate(items: List<CardItem>, page: Int, pageSize: Int): List<CardItem> {

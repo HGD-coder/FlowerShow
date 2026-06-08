@@ -3,13 +3,15 @@ package com.example.flower_show.ui.component
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -17,22 +19,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.flower_show.ai.SearchSuggestionEngine
 import com.example.flower_show.model.VideoItem
+import com.example.flower_show.model.VideoQuality
 import com.example.flower_show.player.PlayerCallback
 import com.example.flower_show.player.VideoPlayerManager
 import com.example.flower_show.ui.theme.ArcticColors
@@ -43,28 +41,29 @@ fun VideoCard(
     video: VideoItem,
     playerManager: VideoPlayerManager,
     playerContent: (@Composable BoxScope.() -> Unit)? = null,
+    isActive: Boolean = false,
     onSeek: (Long) -> Unit = {},
     onRecommendWordClick: (String) -> Unit = {},
     onSetQuality: (String, String) -> Unit = { _, _ -> },
     onEnableAutoQuality: () -> Unit = {},
     qualityMode: String = "Auto",       // "Auto" or "Manual"
     currentQualityName: String? = null,
-    availableQualities: List<String> = emptyList(), // quality names
+    availableQualities: List<VideoQuality> = emptyList(),
     onToggleFullscreen: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     var isPlaying by remember { mutableStateOf(false) }
-    var progress by remember { mutableFloatStateOf(0f) }
-    var durationMs by remember { mutableLongStateOf(0L) }
+    var hasVideoFrame by remember(video.id) { mutableStateOf(false) }
     var controlsVisible by remember { mutableStateOf(true) }
     var isLiked by remember { mutableStateOf(false) }
     var isCollected by remember { mutableStateOf(false) }
-    var isDragging by remember { mutableStateOf(false) }
-    var sliderPos by remember { mutableFloatStateOf(0f) }
-    var isLandscapeVideo by remember(video.id) { mutableStateOf(playerManager.isCurrentVideoLandscape) }
-    val subtitle = video.recommendWords.firstOrNull() ?: "This is a TikTok subtitle."
-    val relatedSearch = remember(video) { SearchSuggestionEngine.relatedSearch(video) }
+    var isLandscapeVideo by remember(video.id) { mutableStateOf(false) }
+    val subtitle = remember(video.id, video.recommendWords) {
+        video.recommendWords.firstOrNull() ?: "This is a TikTok subtitle."
+    }
+    val relatedSearch = remember(video.id, video.title, video.tags, video.recommendWords) {
+        SearchSuggestionEngine.relatedSearch(video)
+    }
 
     LaunchedEffect(isPlaying, controlsVisible) {
         if (isPlaying && controlsVisible) {
@@ -74,17 +73,20 @@ fun VideoCard(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        playerContent?.invoke(this)
-
-        // Cover image
-        if (playerContent == null || durationMs == 0L) {
+        // Cover image for pages that do not own the active PlayerView yet.
+        if (playerContent == null) {
             AsyncImage(
-                model = ImageRequest.Builder(context).data(video.coverUrl).crossfade(true).build(),
+                model = rememberFlowerImageRequest(
+                    data = video.preferredCoverUrl(),
+                    slot = FlowerImageSlot.VideoCover,
+                ),
                 contentDescription = "封面",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
             )
         }
+
+        playerContent?.invoke(this)
 
         // Tap area
         Box(
@@ -118,7 +120,7 @@ fun VideoCard(
                 ),
         )
 
-        if (playerContent != null && isLandscapeVideo) {
+        if (isActive && hasVideoFrame && isLandscapeVideo) {
             FullscreenWatchButton(
                 onClick = onToggleFullscreen,
                 modifier = Modifier
@@ -163,7 +165,7 @@ fun VideoCard(
             shares = video.shares,
             onLikeClick = { isLiked = !isLiked },
             onCollectClick = { isCollected = !isCollected },
-            qualityUrls = video.qualityUrls,
+            availableQualities = availableQualities,
             qualityMode = qualityMode,
             currentQualityName = currentQualityName,
             onSetQuality = onSetQuality,
@@ -181,47 +183,134 @@ fun VideoCard(
                 .padding(start = 18.dp, end = 18.dp, bottom = 92.dp),
         )
 
-        Slider(
-            value = if (isDragging) sliderPos else progress,
-            onValueChange = { sliderPos = it; isDragging = true },
-            onValueChangeFinished = {
-                isDragging = false
-                onSeek((sliderPos * durationMs).toLong())
-            },
+        VideoProgressSlider(
+            playerManager = playerManager,
+            isActive = isActive,
+            onSeek = onSeek,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 72.dp)
                 .fillMaxWidth()
                 .height(14.dp),
-            colors = SliderDefaults.colors(
-                thumbColor = Color.Transparent,
-                activeTrackColor = ArcticColors.PrimaryContainer.copy(alpha = 0.90f),
-                inactiveTrackColor = Color.White.copy(alpha = 0.16f),
-            ),
         )
     }
 
-    // Playback callbacks
-    DisposableEffect(playerManager) {
-        val cb = PlayerCallback { event ->
-            when (event) {
-                is PlayerCallback.PlaybackEvent.Ready -> { durationMs = event.durationMs; isPlaying = true }
-                is PlayerCallback.PlaybackEvent.Progress -> {
-                    if (!isDragging && durationMs > 0) progress = event.positionMs.toFloat() / durationMs
-                }
-                is PlayerCallback.PlaybackEvent.StateChanged -> isPlaying = event.isPlaying
-                is PlayerCallback.PlaybackEvent.Complete -> { isPlaying = false; progress = 1f }
-                is PlayerCallback.PlaybackEvent.VideoSizeChanged -> {
-                    isLandscapeVideo = event.width > event.height && event.height > 0
-                }
-                is PlayerCallback.PlaybackEvent.Error -> {}
-                is PlayerCallback.PlaybackEvent.BufferingStart -> {}
-                is PlayerCallback.PlaybackEvent.BufferingEnd -> {}
-            }
+    LaunchedEffect(isActive, video.id) {
+        isLandscapeVideo = false
+        hasVideoFrame = false
+        if (!isActive) {
+            isPlaying = false
         }
-        playerManager.addCallback(cb)
-        onDispose { playerManager.removeCallback(cb) }
     }
+
+    // Low-frequency playback callbacks. Progress is isolated in VideoProgressSlider.
+    DisposableEffect(playerManager, isActive, video.id) {
+        if (!isActive) {
+            onDispose { }
+        } else {
+            val cb = PlayerCallback { event ->
+                when (event) {
+                    is PlayerCallback.PlaybackEvent.Ready -> {
+                        hasVideoFrame = true
+                        isPlaying = true
+                    }
+                    is PlayerCallback.PlaybackEvent.StateChanged -> isPlaying = event.isPlaying
+                    is PlayerCallback.PlaybackEvent.Complete -> {
+                        isPlaying = false
+                    }
+                    is PlayerCallback.PlaybackEvent.VideoSizeChanged -> {
+                        isLandscapeVideo = event.width > event.height && event.height > 0
+                    }
+                    is PlayerCallback.PlaybackEvent.Progress -> {}
+                    is PlayerCallback.PlaybackEvent.Error -> {}
+                    is PlayerCallback.PlaybackEvent.BufferingStart -> {}
+                    is PlayerCallback.PlaybackEvent.BufferingEnd -> {}
+                }
+            }
+            playerManager.addCallback(cb)
+            onDispose { playerManager.removeCallback(cb) }
+        }
+    }
+}
+
+@Composable
+private fun VideoProgressSlider(
+    playerManager: VideoPlayerManager,
+    isActive: Boolean,
+    onSeek: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var progress by remember { mutableFloatStateOf(0f) }
+    var durationMs by remember { mutableLongStateOf(playerManager.duration.validVideoDuration()) }
+    var isDragging by remember { mutableStateOf(false) }
+    var sliderPos by remember { mutableFloatStateOf(0f) }
+    val sliderValue by remember {
+        derivedStateOf { if (isDragging) sliderPos else progress }
+    }
+
+    LaunchedEffect(isActive) {
+        if (!isActive) {
+            progress = 0f
+            sliderPos = 0f
+            durationMs = 0L
+            isDragging = false
+        }
+    }
+
+    DisposableEffect(playerManager, isActive) {
+        if (!isActive) {
+            onDispose { }
+        } else {
+            val cb = PlayerCallback { event ->
+                when (event) {
+                    is PlayerCallback.PlaybackEvent.Ready -> {
+                        durationMs = event.durationMs.validVideoDuration()
+                    }
+                    is PlayerCallback.PlaybackEvent.Progress -> {
+                        if (!isDragging && durationMs > 0L) {
+                            progress = (event.positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
+                        }
+                    }
+                    is PlayerCallback.PlaybackEvent.Complete -> {
+                        progress = 1f
+                        sliderPos = 1f
+                        isDragging = false
+                    }
+                    else -> Unit
+                }
+            }
+            playerManager.addCallback(cb)
+            onDispose { playerManager.removeCallback(cb) }
+        }
+    }
+
+    Slider(
+        value = sliderValue.coerceIn(0f, 1f),
+        enabled = isActive,
+        onValueChange = {
+            sliderPos = it
+            isDragging = true
+        },
+        onValueChangeFinished = {
+            isDragging = false
+            if (durationMs > 0L) {
+                onSeek((sliderPos.coerceIn(0f, 1f) * durationMs).toLong())
+            }
+        },
+        modifier = modifier,
+        colors = SliderDefaults.colors(
+            thumbColor = Color.Transparent,
+            activeTrackColor = ArcticColors.PrimaryContainer.copy(alpha = 0.90f),
+            inactiveTrackColor = Color.White.copy(alpha = 0.16f),
+            disabledThumbColor = Color.Transparent,
+            disabledActiveTrackColor = ArcticColors.PrimaryContainer.copy(alpha = 0.40f),
+            disabledInactiveTrackColor = Color.White.copy(alpha = 0.10f),
+        ),
+    )
+}
+
+private fun Long.validVideoDuration(): Long {
+    return if (this > 0L && this < Long.MAX_VALUE / 2) this else 0L
 }
 
 @Composable
@@ -291,22 +380,10 @@ private fun FullscreenGlyphIcon(
     tint: Color,
     size: Dp,
 ) {
-    Canvas(modifier = Modifier.size(size)) {
-        val s = this.size.width
-        val strokeWidth = s * 0.08f
-        drawLine(tint, Offset(s * 0.18f, s * 0.36f), Offset(s * 0.18f, s * 0.18f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.18f, s * 0.18f), Offset(s * 0.36f, s * 0.18f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.64f, s * 0.18f), Offset(s * 0.82f, s * 0.18f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.82f, s * 0.18f), Offset(s * 0.82f, s * 0.36f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.82f, s * 0.64f), Offset(s * 0.82f, s * 0.82f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.82f, s * 0.82f), Offset(s * 0.64f, s * 0.82f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.36f, s * 0.82f), Offset(s * 0.18f, s * 0.82f), strokeWidth, StrokeCap.Round)
-        drawLine(tint, Offset(s * 0.18f, s * 0.82f), Offset(s * 0.18f, s * 0.64f), strokeWidth, StrokeCap.Round)
-        drawCircle(
-            color = tint,
-            radius = s * 0.18f,
-            center = Offset(s * 0.50f, s * 0.50f),
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-        )
-    }
+    Icon(
+        imageVector = Icons.Filled.Fullscreen,
+        contentDescription = "全屏",
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
