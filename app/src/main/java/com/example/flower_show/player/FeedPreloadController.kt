@@ -157,9 +157,9 @@ class FeedPreloadController(
 
     private companion object {
         private const val TAG = "FeedPreloadController"
-        private const val NEXT_VIDEO_COUNT = 3
-        private const val SOURCE_ONLY_DISTANCE = 5
-        private const val NEXT_VIDEO_PRELOAD_MS = 3_000L
-        private const val PREVIOUS_VIDEO_PRELOAD_MS = 1_000L
+        private const val NEXT_VIDEO_COUNT = 1
+        private const val SOURCE_ONLY_DISTANCE = 3
+        private const val NEXT_VIDEO_PRELOAD_MS = 2_500L
+        private const val PREVIOUS_VIDEO_PRELOAD_MS = 750L
     }
 }

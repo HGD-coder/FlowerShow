@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
@@ -175,23 +174,6 @@ fun SearchIcon(
         tint = tint,
         size = size,
         contentDescription = "搜索",
-        modifier = modifier,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun CloseIcon(
-    modifier: Modifier = Modifier,
-    tint: Color = Color.White,
-    size: Dp = 18.dp,
-    onClick: (() -> Unit)? = null,
-) {
-    MaterialActionIcon(
-        imageVector = Icons.Filled.Close,
-        tint = tint,
-        size = size,
-        contentDescription = "关闭",
         modifier = modifier,
         onClick = onClick,
     )

@@ -1,5 +1,6 @@
 package com.example.flower_show
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -55,7 +56,7 @@ private fun AppNavigation() {
         route == "video" -> VideoScreen(
             targetVideoId = null,
             onSearchClick = { route = "search" },
-            onRecommendWordClick = { word -> route = "result:$word" },
+            onRecommendWordClick = { word -> route = resultRoute(word) },
         )
 
         route.startsWith("video:") -> {
@@ -63,22 +64,25 @@ private fun AppNavigation() {
             VideoScreen(
                 targetVideoId = videoId,
                 onSearchClick = { route = "search" },
-                onRecommendWordClick = { word -> route = "result:$word" },
+                onRecommendWordClick = { word -> route = resultRoute(word) },
             )
         }
 
         route == "search" -> SearchScreen(
             onBack = { route = "video" },
-            onSearch = { keyword -> route = "result:$keyword" },
+            onSearch = { keyword -> route = resultRoute(keyword) },
         )
 
         route.startsWith("result:") -> {
-            val keyword = route.removePrefix("result:")
+            val keyword = Uri.decode(route.removePrefix("result:")).orEmpty()
             SearchResultScreen(
                 keyword = keyword,
                 onBack = { route = "video" },
+                onSearch = { nextKeyword -> route = resultRoute(nextKeyword) },
                 onResultClick = { videoId -> route = "video:$videoId" },
             )
         }
     }
 }
+
+private fun resultRoute(keyword: String): String = "result:${Uri.encode(keyword.trim())}"

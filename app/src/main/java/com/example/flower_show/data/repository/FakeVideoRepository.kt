@@ -9,12 +9,13 @@ import com.example.flower_show.util.MetricsCollector
 /**
  * FakeVideoRepository - Local data implementation (Singleton + Cache)
  *
- * Data priority: assets/video_data.json → hardcoded FallbackData.
+ * Data source: assets/video_data.json or assets/video_data.jsonl.
  * Implements IVideoRepository for DIP compliance.
  */
 class FakeVideoRepository private constructor(
     private val context: Context?,
-    private val searchMatcher: SearchMatcher = WeightedContainsMatcher(),
+    private val testVideos: List<VideoItem>? = null,
+    private val searchMatcher: SearchMatcher = HybridSearchMatcher(),
 ) : IVideoRepository {
 
     private var cachedVideos: List<VideoItem>? = null
@@ -30,8 +31,15 @@ class FakeVideoRepository private constructor(
         }
 
         @VisibleForTesting
-        fun withMatcher(context: Context?, matcher: SearchMatcher): FakeVideoRepository {
-            return FakeVideoRepository(context?.applicationContext, matcher)
+        fun withVideos(
+            videos: List<VideoItem>,
+            matcher: SearchMatcher = HybridSearchMatcher(),
+        ): FakeVideoRepository {
+            return FakeVideoRepository(
+                context = null,
+                testVideos = videos,
+                searchMatcher = matcher,
+            )
         }
     }
 
@@ -49,7 +57,7 @@ class FakeVideoRepository private constructor(
 
     override fun search(keyword: String): Result<List<CardItem>> {
         return try {
-            val videos = getCachedVideos().ifEmpty { FallbackData.createVideos() }
+            val videos = getCachedVideos()
             val lower = keyword.lowercase().trim()
             if (lower.isEmpty()) return Result.success(emptyList())
 
@@ -61,7 +69,10 @@ class FakeVideoRepository private constructor(
                 val s = searchMatcher.score(v, lower)
                 if (s > 0f) v to s else null
             }
-            val results = scored.sortedByDescending { it.second }.map { it.first }
+            val results = scored
+                .sortedByDescending { it.second }
+                .map { it.first }
+                .distinctBy { it.id }
             val timeMs = System.currentTimeMillis() - startMs
 
             MetricsCollector.record("search_query|strategy=${strategyName.lowercase()}", timeMs)
@@ -72,14 +83,9 @@ class FakeVideoRepository private constructor(
         }
     }
 
-    override fun getRecommendWords(videoId: String): List<String> {
-        val videos = getCachedVideos().ifEmpty { FallbackData.createVideos() }
-        return videos.find { it.id == videoId }?.recommendWords ?: emptyList()
-    }
-
     private fun getCachedVideos(): List<VideoItem> {
         if (cachedVideos == null) {
-            cachedVideos = context?.let { AssetJsonLoader.loadVideos(it) } ?: emptyList()
+            cachedVideos = testVideos ?: context?.let { AssetJsonLoader.loadVideos(it) } ?: emptyList()
         }
         return cachedVideos ?: emptyList()
     }
@@ -88,12 +94,7 @@ class FakeVideoRepository private constructor(
         val cached = cachedFeedItems
         if (cached != null) return cached
 
-        val videos = getCachedVideos().ifEmpty { FallbackData.createVideos() }
-        val feedItems = buildList<CardItem> {
-            addAll(videos)
-            addAll(FallbackData.createImageCards())
-            addAll(FallbackData.createAlbums())
-        }.shuffled()
+        val feedItems = getCachedVideos().shuffled()
 
         cachedFeedItems = feedItems
         return feedItems

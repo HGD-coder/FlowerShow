@@ -3,6 +3,8 @@ package com.example.flower_show.ai
 import com.example.flower_show.model.VideoItem
 
 object SearchSuggestionEngine {
+    private const val MIN_RELATED_SEARCH_LENGTH = 4
+
     private val genericGuesses = listOf(
         "api中转",
         "女武神m80",
@@ -48,8 +50,36 @@ object SearchSuggestionEngine {
     }
 
     fun relatedSearch(video: VideoItem): String {
-        val inferred = inferVideoSearches(video, count = 1).firstOrNull()
+        val inferred = inferRelatedSearches(video, count = 1).firstOrNull()
         return inferred ?: video.title.takeClean(18)
+    }
+
+    fun inferRelatedSearches(video: VideoItem, count: Int = 10): List<String> {
+        val normalizedTitle = video.title.normalizeKeyword()
+        val normalizedTags = (video.tags + video.recommendWords)
+            .map { it.normalizeKeyword() }
+            .filter { it.length >= 2 && it !in stopWords }
+        val exactSources = (listOf(normalizedTitle) + normalizedTags)
+            .filter { it.isNotBlank() }
+
+        val primary = normalizedTags.firstOrNull()
+            ?: extractPrimaryKeyword(normalizedTitle)
+            ?: normalizedTitle.takeClean(8)
+
+        val suggestions = linkedSetOf<String>()
+        suggestions += inferByTopic(normalizedTitle, normalizedTags)
+        suggestions += inferByContext(primary, normalizedTitle, normalizedTags)
+        suggestions += inferSearches(
+            title = video.title,
+            tags = video.tags,
+            count = count * 2,
+        )
+
+        return suggestions
+            .map { it.normalizeKeyword() }
+            .filter { it.isUsefulRelatedSearch(exactSources) }
+            .distinct()
+            .take(count)
     }
 
     fun inferVideoSearches(video: VideoItem, count: Int = 10): List<String> {
@@ -103,6 +133,14 @@ object SearchSuggestionEngine {
                 "大筒木剧情解析",
             )
 
+            content.contains("音乐") || content.contains("歌曲") || content.contains("bgm") ||
+                content.contains("热曲") || content.contains("耳机") -> listOf(
+                "抖音热曲音乐合集",
+                "戴耳机听的歌",
+                "热门BGM推荐",
+                "华语流行音乐",
+            )
+
             content.contains("游戏") || content.contains("王者") || content.contains("电竞") -> listOf(
                 "游戏实况解说",
                 "上分英雄推荐",
@@ -146,6 +184,52 @@ object SearchSuggestionEngine {
             )
 
             else -> emptyList()
+        }
+    }
+
+    private fun inferByContext(
+        primary: String,
+        title: String,
+        tags: List<String>,
+    ): List<String> {
+        val cleanPrimary = primary.takeClean(8)
+        if (cleanPrimary.length < 2) return emptyList()
+
+        val content = (title + " " + tags.joinToString(" ")).lowercase()
+        return when {
+            content.contains("音乐") || content.contains("歌曲") || content.contains("bgm") ||
+                content.contains("热曲") || content.contains("耳机") -> listOf(
+                "${cleanPrimary}歌单",
+                "${cleanPrimary}BGM推荐",
+                "${cleanPrimary}耳机试听",
+            )
+
+            content.contains("游戏") || content.contains("王者") || content.contains("电竞") -> listOf(
+                "${cleanPrimary}高光操作",
+                "${cleanPrimary}上分技巧",
+                "${cleanPrimary}实况解说",
+            )
+
+            content.contains("电影") || content.contains("影视") || content.contains("剧") -> listOf(
+                "${cleanPrimary}剧情解析",
+                "${cleanPrimary}高分片单",
+                "${cleanPrimary}解说",
+            )
+
+            else -> listOf(
+                "${cleanPrimary}看点解析",
+                "${cleanPrimary}同类推荐",
+                "${cleanPrimary}热门内容",
+            )
+        }
+    }
+
+    private fun String.isUsefulRelatedSearch(exactSources: List<String>): Boolean {
+        val value = normalizeKeyword()
+        if (value.length < MIN_RELATED_SEARCH_LENGTH) return false
+        if (value in stopWords) return false
+        return exactSources.none { source ->
+            value == source || value == source.takeClean(18)
         }
     }
 

@@ -23,10 +23,11 @@ class SearchHistoryManager(context: Context) {
     }
 
     fun addHistory(keyword: String) {
-        if (keyword.isBlank()) return
+        val cleaned = keyword.trim()
+        if (cleaned.isBlank()) return
         val history = getHistory().toMutableList()
-        history.remove(keyword)
-        history.add(0, keyword)
+        history.remove(cleaned)
+        history.add(0, cleaned)
         if (history.size > MAX_HISTORY) {
             history.subList(MAX_HISTORY, history.size).clear()
         }
@@ -35,12 +36,12 @@ class SearchHistoryManager(context: Context) {
 
     fun getHistory(): List<String> {
         // Try new JSON format first
-        prefs.getString(KEY_HISTORY_V2, null)?.let { json ->
+        runCatching { prefs.getString(KEY_HISTORY_V2, null) }.getOrNull()?.let { json ->
             return try {
-                val type = object : TypeToken<List<String>>() {}.type
-                val result: List<String> = gson.fromJson(json, type) ?: emptyList()
+                val type = object : TypeToken<List<String?>>() {}.type
+                val result: List<String?> = gson.fromJson(json, type) ?: emptyList()
                 MetricsCollector.recordLabel("search_history_source", "json")
-                result
+                sanitize(result)
             } catch (_: Exception) {
                 emptyList<String>().also {
                     MetricsCollector.recordLabel("search_history_source", "json_error")
@@ -48,9 +49,11 @@ class SearchHistoryManager(context: Context) {
             }
         }
         // Fallback: read old StringSet, migrate to new format
-        val legacySet = prefs.getStringSet(KEY_HISTORY, emptySet()) ?: emptySet()
+        val legacySet = runCatching { prefs.getStringSet(KEY_HISTORY, emptySet()) }
+            .getOrNull()
+            ?: emptySet()
         if (legacySet.isNotEmpty()) {
-            val migrated = legacySet.toList()
+            val migrated = sanitize(legacySet.toList())
             saveHistory(migrated)
             prefs.edit().remove(KEY_HISTORY).apply()
             MetricsCollector.recordLabel("search_history_source", "stringset")
@@ -61,8 +64,9 @@ class SearchHistoryManager(context: Context) {
     }
 
     fun deleteHistory(keyword: String) {
+        val cleaned = keyword.trim()
         val history = getHistory().toMutableList()
-        history.remove(keyword)
+        history.remove(cleaned)
         saveHistory(history)
     }
 
@@ -71,6 +75,14 @@ class SearchHistoryManager(context: Context) {
     }
 
     private fun saveHistory(history: List<String>) {
-        prefs.edit().putString(KEY_HISTORY_V2, gson.toJson(history)).apply()
+        prefs.edit().putString(KEY_HISTORY_V2, gson.toJson(sanitize(history))).apply()
+    }
+
+    private fun sanitize(history: List<String?>): List<String> {
+        return history
+            .mapNotNull { it?.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .take(MAX_HISTORY)
     }
 }

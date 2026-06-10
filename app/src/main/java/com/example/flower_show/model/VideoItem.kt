@@ -11,8 +11,8 @@ import androidx.compose.runtime.Immutable
  * equals(), hashCode(), toString(), copy(), componentN().
  * Java 144 lines → Kotlin ~25 lines.
  *
- * Fields aligned with MediaCrawler Douyin output for backend migration.
- * 字段与 MediaCrawler 爬虫输出对齐，方便后续对接后端。
+ * Fields used by local asset playback and search.
+ * 字段用于本地 assets 播放、搜索和展示。
  */
 @Immutable
 data class VideoItem(
@@ -37,13 +37,6 @@ data class VideoItem(
     // Tags & recommendations / 标签和推荐词
     val tags: List<String> = emptyList(),
     val recommendWords: List<String> = emptyList(),
-
-    // Backend-ready fields / 后端对接字段
-    val userId: String? = null,         // user_id
-    val creatorSecUid: String? = null,  // sec_uid
-    val location: String? = null,       // ip_location
-    val sourceUrl: String? = null,      // aweme_url
-    val publishTime: Long = 0,          // create_time
 
     // Multi-quality / 多清晰度预留
     val qualityUrls: Map<String, String>? = null,

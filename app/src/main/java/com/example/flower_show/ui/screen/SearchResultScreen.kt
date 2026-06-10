@@ -58,6 +58,7 @@ import com.example.flower_show.viewmodel.SearchViewModel
 fun SearchResultScreen(
     keyword: String,
     onBack: () -> Unit,
+    onSearch: (String) -> Unit,
     onResultClick: (String) -> Unit,
     viewModel: SearchViewModel = viewModel(),
 ) {
@@ -69,7 +70,11 @@ fun SearchResultScreen(
     fun submitSearch() {
         val trimmed = input.trim()
         if (trimmed.isNotEmpty()) {
-            viewModel.dispatch(SearchIntent.Search(trimmed))
+            if (trimmed == keyword) {
+                viewModel.dispatch(SearchIntent.Search(trimmed))
+            } else {
+                onSearch(trimmed)
+            }
         }
     }
 
@@ -93,7 +98,9 @@ fun SearchResultScreen(
             state.error != null -> ResultStatusText(state.error.orEmpty(), emphasis = true)
             state.results.isEmpty() -> ResultStatusText("\u6682\u65e0\u641c\u7d22\u7ed3\u679c")
             else -> {
-                val videos = state.results.filterIsInstance<VideoItem>()
+                val videos = state.results
+                    .filterIsInstance<VideoItem>()
+                    .distinctBy { it.id }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(2.dp),

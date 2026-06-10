@@ -11,5 +11,4 @@ interface IVideoRepository {
     fun refreshFeedSession() = Unit
     fun loadFeed(page: Int, pageSize: Int): Result<List<CardItem>>
     fun search(keyword: String): Result<List<CardItem>>
-    fun getRecommendWords(videoId: String): List<String>
 }

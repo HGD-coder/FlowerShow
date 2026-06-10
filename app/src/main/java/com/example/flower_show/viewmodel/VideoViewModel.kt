@@ -64,7 +64,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
 
         private const val COOLDOWN_MS = 30_000L
         private const val PRELOAD_BEHIND_COUNT = 1
-        private const val PRELOAD_AHEAD_COUNT = 5
+        private const val PRELOAD_AHEAD_COUNT = 3
     }
 
     private val qualityCallback = PlayerCallback { event ->
@@ -438,7 +438,6 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                 playerManager.initialize()
                 withContext(Dispatchers.Main) {
                     _state.update { it.copy(isPlayerReady = true) }
-                    refreshPreloadWindow()
                     playerManager.play(playbackUrl, position)
                     playingPosition = position
                     startProgress()
@@ -449,7 +448,6 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        refreshPreloadWindow()
         playerManager.play(playbackUrl, position)
         playingPosition = position
         startProgress()

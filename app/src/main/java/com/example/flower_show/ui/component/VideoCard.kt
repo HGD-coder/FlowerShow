@@ -58,9 +58,6 @@ fun VideoCard(
     var isLiked by remember { mutableStateOf(false) }
     var isCollected by remember { mutableStateOf(false) }
     var isLandscapeVideo by remember(video.id) { mutableStateOf(false) }
-    val subtitle = remember(video.id, video.recommendWords) {
-        video.recommendWords.firstOrNull() ?: "This is a TikTok subtitle."
-    }
     val relatedSearch = remember(video.id, video.title, video.tags, video.recommendWords) {
         SearchSuggestionEngine.relatedSearch(video)
     }
@@ -148,8 +145,8 @@ fun VideoCard(
         TikTokCaptionPanel(
             author = video.author,
             title = video.title,
-            subtitle = subtitle,
-            onSubtitleClick = onRecommendWordClick,
+            subtitle = null,
+            onSubtitleClick = null,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 24.dp, end = 98.dp, bottom = 156.dp),

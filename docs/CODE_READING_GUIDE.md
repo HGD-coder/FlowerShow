@@ -145,7 +145,7 @@ public void navigateTo(Fragment fragment) {
     首次 playPosition() 时在后台线程初始化，避免启动卡顿
   - 进度轮询: 每 200ms 通过 Handler 检查播放进度并通知 UI
   - Repository 依赖注入: 构造器接收 IVideoRepository 接口，
-    不依赖具体实现（以后换后端只改 Factory 一行）
+    让 ViewModel 与本地数据实现解耦
 ```
 
 **关键代码**：
@@ -214,9 +214,8 @@ public void playPosition(int position) {
 #### 7. `FakeVideoRepository.java` — 本地数据仓库
 
 ```
-作用:   提供视频数据。优先读爬虫 JSON，失败用硬编码兜底。
-为什么: 实现了 IVideoRepository 接口。以后换成 RemoteVideoRepository
-       (调后端 API)时，ViewModel 代码完全不用改。
+作用:   提供视频数据。读取 assets 中的爬虫 JSON/JSONL；没有可用数据时返回空列表。
+为什么: 实现了 IVideoRepository 接口，ViewModel 不直接依赖具体本地实现。
        Repository 是 MVVM 中 Model 层的核心。
 设计:
   - 单例模式(双重检查锁): 整个 App 只有一个实例
@@ -225,33 +224,24 @@ public void playPosition(int position) {
   - 搜索: matches() 对比 title/tags/recommendWords
 ```
 
-**依赖**: `AssetJsonLoader`, `FallbackData`, `IVideoRepository`
+**依赖**: `AssetJsonLoader`, `IVideoRepository`
 
 #### 8. `IVideoRepository.java` — 视频仓库接口
 
 ```
 作用:   定义视频数据访问的契约。ViewModel 只依赖这个接口。
 为什么: 这是整个架构改进的核心——依赖倒置原则(DIP)。
-       ViewModel 不需要知道数据来自本地 JSON 还是后端 API。
+       ViewModel 不需要知道本地数据如何加载和缓存。
 ```
 
 #### 9. `RepositoryFactory.java` — 数据源工厂
 
 ```
-作用:   决定用本地数据还是远程数据。
-为什么: 开闭原则(OCP)——对扩展开放(加新的 Repository 实现)，
-       对修改关闭(ViewModel 不变)。
-       改 USE_REMOTE=true 整个 App 就切到后端。
+作用:   创建当前 App 使用的本地 Repository。
+为什么: 集中管理 Repository 创建逻辑，避免 ViewModel 直接持有构造细节。
 ```
 
-#### 10. `FallbackData.java` — 硬编码兜底数据
-
-```
-作用:   当 JSON 文件不存在或解析失败时，用这 9 条视频 + 5 条图片卡兜底。
-为什么: 保证 App 在任何情况下都能运行（即使没有爬虫数据）。
-```
-
-#### 11. `AssetJsonLoader.java` — JSON 解析器
+#### 10. `AssetJsonLoader.java` — JSON 解析器
 
 ```
 作用:   读取 assets/video_data.json(.jsonl) 并解析为 List<VideoItem>。
@@ -262,7 +252,7 @@ public void playPosition(int position) {
 #### 12. `VideoItem.java` — 视频数据模型
 
 ```
-作用:   一条视频的全部信息。18 个字段，与爬虫和后端 API 对齐。
+作用:   一条视频的全部信息，字段用于本地 assets 播放、搜索和展示。
 为什么: 数据模型是 MVVM 的 M 部分。字段设计为 final（不可变），
        通过构造器创建，保证数据一致性和线程安全。
 ```
@@ -355,17 +345,6 @@ public void playPosition(int position) {
 
 ---
 
-### ⚪ 第五优先级：后端预留
-
-#### 25-27. `RemoteVideoRepository.java` / `RemoteSearchRepository.java` / `ApiService.java`
-
-```
-作用:   后端对接的骨架代码。当前返回 Result.error("后端未配置")。
-为什么: 提前把接口定义好，以后接后端只需填充实现代码。
-```
-
----
-
 ## 三、推荐阅读顺序（从零开始）
 
 ```
@@ -380,7 +359,6 @@ public void playPosition(int position) {
   data/repository/FakeVideoRepository.java (157行，本地实现)
   data/repository/RepositoryFactory.java   (38行，切换开关)
   data/local/AssetJsonLoader.java          (260行，JSON解析)
-  data/repository/FallbackData.java        (69行，兜底数据)
 
 第3步: 理解业务逻辑
   viewmodel/VideoViewModel.java   (260行，核心)
@@ -420,12 +398,12 @@ public void playPosition(int position) {
 
 ```
 如果 ViewModel 直接 new FakeVideoRepository():
-  VideoViewModel 就绑死了本地数据源
-  以后接后端 → 必须改 VideoViewModel 代码 → 容易引入 bug
+  VideoViewModel 就绑死了具体构造细节
+  测试或替换本地数据实现时更容易牵动 UI 状态层
 
 现在:
   VideoViewModel 只依赖 IVideoRepository 接口
-  换后端 → 只改 RepositoryFactory.java 一行 → ViewModel 不动
+  RepositoryFactory 统一创建当前本地实现
   这就是"依赖倒置原则(DIP)"
 ```
 
@@ -483,5 +461,4 @@ MVVM 分层:
 | 进度条怎么更新的 | `VideoViewModel.java:200-209` | 轮询 |
 | 推荐词怎么显示的 | `VideoFragment.java:169-213` | updateRecommendWords |
 | 搜索怎么匹配的 | `FakeVideoRepository.java:136-145` | matches() |
-| 怎么切后端 | `RepositoryFactory.java:22` | USE_REMOTE |
 | 数据怎么缓存的 | `FakeVideoRepository.java:37-39` | getCachedVideos |

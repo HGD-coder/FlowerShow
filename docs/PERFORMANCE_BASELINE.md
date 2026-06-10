@@ -37,15 +37,9 @@ Run a single benchmark class:
 
 ## Test Data / 测试数据
 
-Fallback data lives in:
+The repository reads local asset JSON data from `assets/video_data.json` or `assets/video_data.jsonl`. If no asset data is available, the feed/search data set is empty.
 
-兜底数据位于：
-
-`app/src/main/java/com/example/flower_show/data/repository/FallbackData.kt`
-
-The repository first tries to load local asset JSON data. If no asset data is available, it falls back to `FallbackData.createVideos()`, `FallbackData.createImageCards()`, and `FallbackData.createAlbums()`.
-
-Repository 会优先读取 assets 中的本地 JSON 数据；如果没有可用 asset 数据，则回退到 `FallbackData.createVideos()`、`FallbackData.createImageCards()` 和 `FallbackData.createAlbums()`。
+Repository 会读取 `assets/video_data.json` 或 `assets/video_data.jsonl` 中的本地 JSON 数据；如果没有可用 asset 数据，Feed/搜索数据集为空。
 
 ## Buffering A/B / 缓冲 A/B
 
@@ -69,8 +63,8 @@ Use `FastStart` when first-frame latency is above target and rebuffer count is a
 - App 会把 Compose `testTag` 暴露成 resource ID，因此 UIAutomator 可以定位 `video_screen`、`feed_pager`、`player_surface` 和 `quality_button`。
 - The app calls `ReportDrawnWhen` after the first feed page is loaded, so startup reports include a meaningful full-display point.
 - 首屏 Feed 数据加载完成后会调用 `ReportDrawnWhen`，因此启动指标包含更有意义的完整展示时间点。
-- Current fallback data maps multiple quality labels to the same URL, so `qualitySwitchLatency` is measurable but may report a near-zero no-op until real multi-resolution URLs are present.
-- 当前 fallback 数据里的多个清晰度标签仍指向同一个 URL，所以 `qualitySwitchLatency` 可以被测量，但在接入真实多分辨率 URL 前可能是接近 0ms 的 no-op。
+- `qualitySwitchLatency` requires real multi-resolution URLs in asset data; if every quality points to the same URL, the metric may report a near-zero no-op.
+- `qualitySwitchLatency` 需要 asset 数据中存在真实多分辨率 URL；如果多个清晰度都指向同一 URL，指标可能是接近 0ms 的 no-op。
 - Manual and automatic quality switches emit `manual_quality`, `auto_quality`, and `quality_switch_source` labels in the app metrics report.
 - 手动和自动清晰度切换会在 App 指标报告中输出 `manual_quality`、`auto_quality` 和 `quality_switch_source` 标签。
 - Cache hit ratio is reported by `MetricsCollector.summary()` from `cache_bytes|source=cache` and `cache_bytes|source=upstream`.

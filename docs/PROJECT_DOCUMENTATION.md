@@ -4,8 +4,8 @@
 > **当前架构**: Kotlin 2.0.21 + Jetpack Compose + MVI (Model-View-Intent) + Repository Pattern (DIP)
 > **旧版架构**: Java 11 + XML + ViewPager2 + ExoPlayer 2.x — **已归档，见 [附录 A](#附录-a-javaxml-旧版架构-legacy)**
 > **开发语言**: Kotlin 2.0.21
-> **总文件数**: 22 个 Kotlin 源文件 + 9 个 Vector Drawable
-> **AI 辅助标注**: 代码架构设计由 Claude 协助规划；推荐词数据由 Claude 根据标题+标签生成（标注位置: FallbackData.kt）；UI 组件布局方案由 Claude 参照 TikTok-Clone 开源项目设计；搜索加权评分算法由 Claude 协助设计
+> **总文件数**: 以当前源码树为准
+> **AI 辅助标注**: 代码架构设计由 Claude 协助规划；推荐词/相关搜索由 SearchSuggestionEngine 根据标题+标签推断；UI 组件布局方案由 Claude 参照 TikTok-Clone 开源项目设计；搜索加权评分算法由 Claude 协助设计
 
 ---
 
@@ -28,7 +28,7 @@
    - [A.4 旧版数据结构](#a4-旧版数据结构)
    - [A.5 旧版搜索匹配策略](#a5-旧版推荐词与搜索匹配策略)
    - [A.6 旧版性能优化](#a6-旧版性能优化思路)
-   - [A.7 旧版扩展点](#a7-旧版扩展点与后端对接)
+   - [A.7 旧版扩展点](#a7-旧版扩展点)
    - [A.8 旧版 UML 类图](#a8-旧版-uml-类图)
    - [A.9 旧版流程图](#a9-旧版主要流程图)
    - [A.10 旧版工作拆分](#a10-旧版工作拆分与排期)
@@ -57,17 +57,12 @@ app/src/main/java/com/example/flower_show/
 │   ├── local/
 │   │   ├── AssetJsonLoader.kt                    object assets JSON/JSONL 解析器
 │   │   └── SearchHistoryManager.kt               SharedPreferences 搜索历史 CRUD
-│   ├── remote/
-│   │   └── ApiService.kt                         后端 API 契约文档骨架 (Retrofit 预留)
 │   └── repository/
 │       ├── IVideoRepository.kt                   视频仓库接口 (DIP 核心)
 │       ├── ISearchRepository.kt                  搜索仓库接口 (DIP 核心)
-│       ├── FakeVideoRepository.kt                本地视频仓库 (Singleton + JSON 缓存 + 加权搜索)
-│       ├── FallbackData.kt                       硬编码兜底数据 (9视频+5图片+3轮播)
+│       ├── FakeVideoRepository.kt                本地视频仓库 (Singleton + assets JSON 缓存 + 加权搜索)
 │       ├── LocalSearchRepository.kt              本地搜索实现
-│       ├── RemoteVideoRepository.kt              后端视频仓库骨架
-│       ├── RemoteSearchRepository.kt             后端搜索仓库骨架
-│       └── RepositoryFactory.kt                  object DI 工厂 (USE_REMOTE 切换)
+│       └── RepositoryFactory.kt                  object 本地 Repository 工厂
 │
 ├── viewmodel/                                     ViewModel 层 — MVI
 │   ├── VideoIntent.kt                            sealed interface 视频流所有 Intent
@@ -86,8 +81,6 @@ app/src/main/java/com/example/flower_show/
 │   │   ├── VideoCard.kt                          @Composable 视频卡片 (PlayerView + 互动 + 进度)
 │   │   ├── ImageCard.kt                          @Composable 图片卡片
 │   │   ├── AlbumCard.kt                          @Composable 轮播图卡片
-│   │   ├── SearchBar.kt                          @Composable 搜索框浮层
-│   │   ├── RecommendWordsBar.kt                  @Composable 推荐词水平滚动栏
 │   │   ├── SlideProgressBar.kt                   @Composable 轮播滑动进度条
 │   │   ├── FlowerIcons.kt                        @Composable 9 个自定义图标
 │   │   └── UiUtils.kt                            工具 Composable (formatCount 等)
@@ -98,8 +91,7 @@ app/src/main/java/com/example/flower_show/
 │   ├── VideoPlayerManager.kt                     ExoPlayer 封装 (初始化/播控/进度/清晰度)
 │   └── PlayerCallback.kt                         fun interface 播放器事件回调
 │
-└── util/
-    └── CoroutineDispatchers.kt                   协程调度器
+└── util/                                         性能追踪与指标采集工具
 ```
 
 ### 1.2 技术栈迁移对照
@@ -185,7 +177,7 @@ app/src/main/java/com/example/flower_show/
 - 阈值 0.3 过滤 + 降序排列
 
 **P2-2: AI 生成推荐词 [AI-assisted]**
-- Claude 根据标题+标签+类别生成 8-10 个搜索意图词 (标注位置: FallbackData.kt)
+- SearchSuggestionEngine 根据标题+标签+类别推断搜索意图词和相关搜索短词
 
 ### 1.4 数据结构设计
 
@@ -207,11 +199,6 @@ data class VideoItem(
     val shares: Int = 0,            // share_count
     val tags: List<String> = emptyList(),
     val recommendWords: List<String> = emptyList(),
-    val userId: String? = null,         // user_id
-    val creatorSecUid: String? = null,  // sec_uid
-    val location: String? = null,       // ip_location
-    val sourceUrl: String? = null,      // aweme_url
-    val publishTime: Long = 0,          // create_time
     val qualityUrls: Map<String, String>? = null,  // 多清晰度预留
 ) : CardItem
 ```
@@ -304,7 +291,7 @@ sealed interface VideoIntent {
 
 | 位置 | 内容 | AI 工具 |
 |------|------|---------|
-| FallbackData.kt | 推荐词生成 (每视频 8-10 词) | Claude |
+| SearchSuggestionEngine.kt | 推荐词/相关搜索推断 | Claude |
 | PROJECT_DOCUMENTATION.md | 技术文档草稿 | Claude |
 | VideoCard.kt | UI 布局设计方案 | Claude (参照 TikTok-Clone) |
 | FakeVideoRepository.kt | 搜索加权评分算法 | Claude |
@@ -341,7 +328,7 @@ app/src/main/java/com/example/flower_show/
 │
 ├── model/                                         Model 层 — 数据模型
 │   ├── CardItem.java                              [24 lines]  卡片基接口 (TYPE_VIDEO / TYPE_IMAGE)
-│   ├── VideoItem.java                             [144 lines] 视频数据模型 (18 字段,爬虫/后端对齐)
+│   ├── VideoItem.java                             [144 lines] 视频数据模型 (本地播放/搜索字段)
 │   ├── ImageCardItem.java                         [71 lines]  图片卡数据模型
 │   └── Result.java                                [84 lines]  泛型异步结果包装 (Success/Error/Loading)
 │
@@ -349,17 +336,12 @@ app/src/main/java/com/example/flower_show/
 │   ├── local/
 │   │   ├── AssetJsonLoader.java                   [260 lines] assets JSON/JSONL 解析器 (自动识别爬虫格式)
 │   │   └── SearchHistoryManager.java              [83 lines]  SharedPreferences 搜索历史 CRUD
-│   ├── remote/
-│   │   └── ApiService.java                        [30 lines]  后端 API 契约文档骨架
 │   └── repository/
 │       ├── IVideoRepository.java                  [52 lines]  视频仓库接口 (DIP 核心)
 │       ├── ISearchRepository.java                 [49 lines]  搜索仓库接口 (DIP 核心)
-│       ├── FakeVideoRepository.java               [157 lines] 本地视频仓库实现 (JSON→硬编码兜底,单例+缓存)
-│       ├── FallbackData.java                      [69 lines]  硬编码兜底数据 (9视频+5图片)
+│       ├── FakeVideoRepository.java               [157 lines] 本地视频仓库实现 (assets JSON,单例+缓存)
 │       ├── LocalSearchRepository.java             [59 lines]  本地搜索实现 (SearchHistoryManager封装)
-│       ├── RemoteVideoRepository.java             [46 lines]  后端视频仓库骨架
-│       ├── RemoteSearchRepository.java            [36 lines]  后端搜索仓库骨架
-│       └── RepositoryFactory.java                 [38 lines]  依赖注入工厂 (改 USE_REMOTE=true 切后端)
+│       └── RepositoryFactory.java                 [38 lines]  本地 Repository 工厂
 │
 ├── viewmodel/                                     ViewModel 层 — 业务逻辑
 │   ├── VideoViewModel.java                        [260 lines] 视频流状态+播放器管理(单ExoPlayer+DI)
@@ -526,11 +508,11 @@ app/src/main/java/com/example/flower_show/
 │                        ▼                                         │
 │                   REPOSITORY LAYER                                │
 │  <<interface>> IVideoRepository    <<interface>> ISearchRepository│
-│        ▲              ▲                  ▲              ▲        │
-│  FakeVideoRepo  RemoteVideoRepo  LocalSearchRepo  RemoteSearchRepo│
+│        ▲                                ▲                         │
+│  FakeVideoRepo                    LocalSearchRepo                 │
 ├──────────────────────────────────────────────────────────────────┤
 │                        DATA LAYER                                 │
-│  AssetJsonLoader    SearchHistoryManager    ApiService(Retrofit)  │
+│  AssetJsonLoader                 SearchHistoryManager             │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -568,12 +550,7 @@ public class VideoItem implements CardItem {
     int shares;           // share_count
     List<String> tags;           // 标签
     List<String> recommendWords; // 推荐搜索词
-    String userId;        // user_id
-    String creatorSecUid; // sec_uid
-    String location;      // ip_location
-    String sourceUrl;     // aweme_url
     String musicUrl;      // music_download_url
-    long   publishTime;   // create_time
     Map<String, String> qualityUrls; // 预留
 }
 ```
@@ -581,7 +558,7 @@ public class VideoItem implements CardItem {
 
 ### A.5 旧版推荐词与搜索匹配策略
 
-**旧版推荐词生成**: AI 辅助根据 title + tags 生成，存储在 FallbackData.java，运行时 getRecommendWords(videoId) 返回。
+**旧版推荐词生成**: AI 辅助根据 title + tags 生成，存储在硬编码本地数据中；当前版本已移除硬编码兜底数据。
 
 **旧版搜索匹配算法**: `title/tags/recommendWords.toLowerCase().contains(keyword)`，遍历全部视频。
 
@@ -612,19 +589,7 @@ public class VideoItem implements CardItem {
 
 </details>
 
-### A.7 旧版扩展点与后端对接
-
-**后端切换**: `RepositoryFactory.java:22-23` — `USE_REMOTE` flag
-
-**后端 API 契约**:
-```
-GET  /api/v1/videos?page=1&pageSize=10    → List<VideoItem>
-GET  /api/v1/search?keyword=xxx&page=1    → List<VideoItem>
-GET  /api/v1/recommendations?videoId=xxx  → List<String>
-POST /api/v1/history                      → save search
-GET  /api/v1/history                      → get history
-DELETE /api/v1/history                    → clear history
-```
+### A.7 旧版扩展点
 
 **预留扩展**: 清晰度切换 (`VideoItem.java:41` qualityUrls)、直播模块 (`extension/`)、容错搜索 (`data/match/`)、横屏播放。
 
@@ -653,15 +618,14 @@ DELETE /api/v1/history                    → clear history
 │               IVideoRepository                               │
 │ + loadFeed(page,size): Result<List<CardItem>>               │
 │ + search(keyword): Result<List<CardItem>>                   │
-│ + getRecommendWords(videoId): List<String>                  │
 └──────────────┬──────────────────────────────────────────────┘
                │
     ┌──────────┴──────────┐
-    ▼                     ▼
-┌───────────────┐  ┌────────────────────┐
-│FakeVideoRepo  │  │RemoteVideoRepo     │
-│(Singleton)    │  │(Skeleton/Stub)     │
-└───────────────┘  └────────────────────┘
+    ▼
+┌───────────────┐
+│FakeVideoRepo  │
+│(Singleton)    │
+└───────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
 │                   <<AndroidViewModel>>                       │
@@ -696,7 +660,7 @@ MainActivity.onCreate()
       → viewModel.loadFirstPage()
         → FakeVideoRepository.loadFeed(1, 10)
           → AssetJsonLoader.loadVideos(ctx)
-          → 或 FallbackData.createVideos()
+          → 无可用 assets 数据时返回空列表
         → videoList.postValue(result)
           → adapter.setItems(data)
           → viewPager.post(playPosition(0))

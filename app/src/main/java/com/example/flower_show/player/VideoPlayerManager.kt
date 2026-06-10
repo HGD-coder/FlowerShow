@@ -48,6 +48,7 @@ class VideoPlayerManager(context: Context) {
         val cacheFactory = CacheManager.createCacheDataSourceFactory(appContext)
         val mediaSourceFactory = ProgressiveMediaSource.Factory(cacheFactory)
         val renderersFactory = DefaultRenderersFactory(appContext)
+            .setEnableDecoderFallback(true)
         val trackSelector = DefaultTrackSelector(appContext)
         val bandwidthMeter = DefaultBandwidthMeter.Builder(appContext).build()
         this.bandwidthMeter = bandwidthMeter

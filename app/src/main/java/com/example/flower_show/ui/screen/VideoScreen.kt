@@ -126,7 +126,8 @@ fun VideoScreen(
             .testTag("video_screen"),
     ) {
         if (state.items.isEmpty()) {
-            Text("加载中...", color = Color.White, fontSize = 18.sp,
+            val emptyText = if (state.isLoading) "加载中..." else "暂无视频数据"
+            Text(emptyText, color = Color.White, fontSize = 18.sp,
                 modifier = Modifier.align(Alignment.Center))
         } else {
             if (isLandscape && state.isPlayerReady) {

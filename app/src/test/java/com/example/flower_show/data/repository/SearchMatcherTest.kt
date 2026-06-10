@@ -8,6 +8,8 @@ class SearchMatcherTest {
 
     private val weighted = WeightedContainsMatcher()
     private val fuzzy = LevenshteinDistanceMatcher()
+    private val semantic = SemanticKeywordMatcher()
+    private val hybrid = HybridSearchMatcher()
 
     private val video = VideoItem(
         id = "v001",
@@ -61,6 +63,38 @@ class SearchMatcherTest {
     fun weighted_emptyQuery_returnsZero() {
         assertEquals(0f, weighted.score(video, ""))
         assertEquals(0f, weighted.score(video, "  "))
+    }
+
+    @Test
+    fun semantic_singleCharacterShrimpQuery_matchesShrimpTitle() {
+        val shrimpVideo = VideoItem(
+            id = "shrimp",
+            title = "剪刀剪一剪，青椒变酿虾。#家常菜",
+            author = "日食记",
+            avatarUrl = "",
+            videoUrl = "",
+            tags = listOf("美食教程"),
+        )
+
+        val score = semantic.score(shrimpVideo, "虾")
+
+        assertTrue("Shrimp query should match shrimp title, got $score", score > 0f)
+    }
+
+    @Test
+    fun hybrid_compoundCrispyShrimpQuery_matchesRelatedShrimpVideo() {
+        val shrimpVideo = VideoItem(
+            id = "shrimp",
+            title = "神仙吃法 土豆虾滑卷 焦香的土豆裹着Q弹的虾滑",
+            author = "土豆超爱吃",
+            avatarUrl = "",
+            videoUrl = "",
+            tags = listOf("美食教程", "虾滑的做法"),
+        )
+
+        val score = hybrid.score(shrimpVideo, "脆皮虾")
+
+        assertTrue("Compound food query should reach related shrimp content, got $score", score > 0f)
     }
 
     // ── LevenshteinDistanceMatcher tests ──

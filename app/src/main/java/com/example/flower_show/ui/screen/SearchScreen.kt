@@ -67,7 +67,6 @@ fun SearchScreen(
     fun submit(keyword: String) {
         val trimmed = keyword.trim()
         if (trimmed.isNotEmpty()) {
-            viewModel.dispatch(SearchIntent.Search(trimmed))
             onSearch(trimmed)
         }
     }
