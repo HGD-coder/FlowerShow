@@ -9,6 +9,7 @@ sealed interface VideoIntent {
     data object ResumePlayer : VideoIntent
     data object TogglePlayPause : VideoIntent
     data class SeekTo(val positionMs: Long) : VideoIntent
+    data class SetPlaybackSpeed(val speed: Float) : VideoIntent
     data object DismissError : VideoIntent
     data class JumpToVideo(val videoId: String) : VideoIntent
 

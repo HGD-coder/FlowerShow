@@ -38,11 +38,16 @@ object SearchSuggestionEngine {
         "这个",
     )
 
-    fun guessSearches(history: List<String>, page: Int, count: Int): List<String> {
+    fun guessSearches(
+        history: List<String>,
+        page: Int,
+        count: Int,
+        contentCandidates: List<String> = emptyList(),
+    ): List<String> {
         val inferredFromHistory = history.flatMap { keyword ->
             inferSearches(title = keyword, tags = emptyList(), count = 4)
         }
-        val candidates = (inferredFromHistory + genericGuesses).distinct()
+        val candidates = (inferredFromHistory + contentCandidates + genericGuesses).distinct()
         if (candidates.isEmpty()) return emptyList()
 
         val start = (page.coerceAtLeast(0) * count) % candidates.size
@@ -50,13 +55,14 @@ object SearchSuggestionEngine {
     }
 
     fun relatedSearch(video: VideoItem): String {
+        video.contentSearches.firstOrNull { it.length >= MIN_RELATED_SEARCH_LENGTH }?.let { return it }
         val inferred = inferRelatedSearches(video, count = 1).firstOrNull()
         return inferred ?: video.title.takeClean(18)
     }
 
     fun inferRelatedSearches(video: VideoItem, count: Int = 10): List<String> {
         val normalizedTitle = video.title.normalizeKeyword()
-        val normalizedTags = (video.tags + video.recommendWords)
+        val normalizedTags = (video.tags + video.recommendWords + video.contentSearches)
             .map { it.normalizeKeyword() }
             .filter { it.length >= 2 && it !in stopWords }
         val exactSources = (listOf(normalizedTitle) + normalizedTags)
@@ -85,7 +91,7 @@ object SearchSuggestionEngine {
     fun inferVideoSearches(video: VideoItem, count: Int = 10): List<String> {
         return inferSearches(
             title = video.title,
-            tags = video.tags + video.recommendWords,
+            tags = video.tags + video.recommendWords + video.contentSearches,
             count = count,
         )
     }

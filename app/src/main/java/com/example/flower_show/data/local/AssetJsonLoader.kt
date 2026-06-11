@@ -4,6 +4,10 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import com.example.flower_show.ai.SearchSuggestionEngine
+import com.example.flower_show.model.AlbumCardItem
+import com.example.flower_show.model.AlbumSlide
+import com.example.flower_show.model.CardItem
+import com.example.flower_show.model.ImageCardItem
 import com.example.flower_show.model.VideoItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -36,6 +40,7 @@ object AssetJsonLoader {
 
     private const val TAG = "AssetJsonLoader"
     private const val JSON_FILENAME = "video_data.json"
+    private const val IMAGE_JSON_FILENAME = "image_data.json"
     private val gson = Gson()
 
     /** Auto-detect emulator vs real device and pick the right host address. */
@@ -66,10 +71,11 @@ object AssetJsonLoader {
                 ?: readAssetFile(context, "video_data.jsonl")
                 ?: return emptyList()
 
+            val contentSearches = AssetSearchSuggestionLoader.loadVideoContentSearches(context)
             val trimmed = content.trim()
             val videos = when {
-                trimmed.startsWith("{") -> parseJsonl(trimmed)
-                trimmed.startsWith("[") -> parseJsonArray(trimmed)
+                trimmed.startsWith("{") -> parseJsonl(trimmed, contentSearches)
+                trimmed.startsWith("[") -> parseJsonArray(trimmed, contentSearches)
                 else -> emptyList()
             }
             videos
@@ -78,9 +84,29 @@ object AssetJsonLoader {
         }
     }
 
+    fun loadImageCards(context: Context): List<CardItem> {
+        return try {
+            val content = readAssetFile(context, IMAGE_JSON_FILENAME)
+                ?: readAssetFile(context, "image_data.jsonl")
+                ?: return emptyList()
+
+            val trimmed = content.trim()
+            when {
+                trimmed.startsWith("[") -> parseImageJsonArray(trimmed)
+                trimmed.startsWith("{") -> parseImageJsonl(trimmed)
+                else -> emptyList()
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     // ===== JSONL parser / JSONL 解析 =====
 
-    private fun parseJsonl(content: String): List<VideoItem> {
+    private fun parseJsonl(
+        content: String,
+        contentSearches: Map<String, List<String>>,
+    ): List<VideoItem> {
         val videos = mutableListOf<VideoItem>()
         for (line in content.lines()) {
             val trimmed = line.trim()
@@ -88,26 +114,53 @@ object AssetJsonLoader {
             try {
                 @Suppress("UNCHECKED_CAST")
                 val raw = gson.fromJson(trimmed, Map::class.java) as Map<String, Any>
-                parseMediaCrawlerItem(raw)?.let { videos.add(it) }
+                parseMediaCrawlerItem(raw, contentSearches)?.let { videos.add(it) }
             } catch (_: Exception) { }
         }
         return videos
     }
 
-    private fun parseJsonArray(content: String): List<VideoItem> {
+    private fun parseJsonArray(
+        content: String,
+        contentSearches: Map<String, List<String>>,
+    ): List<VideoItem> {
         @Suppress("UNCHECKED_CAST")
         val type = object : TypeToken<List<Map<String, Any>>>() {}.type
         val rawList: List<Map<String, Any>> = gson.fromJson(content, type)
         return rawList.mapNotNull { raw ->
-            if (raw.containsKey("aweme_id")) parseMediaCrawlerItem(raw)
-            else parseAppFormatItem(raw)
+            if (raw.containsKey("aweme_id")) parseMediaCrawlerItem(raw, contentSearches)
+            else parseAppFormatItem(raw, contentSearches)
         }
+    }
+
+    private fun parseImageJsonl(content: String): List<CardItem> {
+        val cards = mutableListOf<CardItem>()
+        for (line in content.lines()) {
+            val trimmed = line.trim()
+            if (trimmed.isEmpty()) continue
+            try {
+                @Suppress("UNCHECKED_CAST")
+                val raw = gson.fromJson(trimmed, Map::class.java) as Map<String, Any>
+                parseImageCardItem(raw)?.let { cards.add(it) }
+            } catch (_: Exception) { }
+        }
+        return cards
+    }
+
+    private fun parseImageJsonArray(content: String): List<CardItem> {
+        @Suppress("UNCHECKED_CAST")
+        val type = object : TypeToken<List<Map<String, Any>>>() {}.type
+        val rawList: List<Map<String, Any>> = gson.fromJson(content, type)
+        return rawList.mapNotNull(::parseImageCardItem)
     }
 
     // ===== MediaCrawler native format / 爬虫原生格式 =====
 
     @Suppress("UNCHECKED_CAST")
-    private fun parseMediaCrawlerItem(raw: Map<String, Any>): VideoItem? {
+    private fun parseMediaCrawlerItem(
+        raw: Map<String, Any>,
+        contentSearchesById: Map<String, List<String>>,
+    ): VideoItem? {
         val id = raw.str("aweme_id") ?: return null
         val title = raw.str("title") ?: raw.str("desc") ?: return null
         val author = raw.str("nickname") ?: "未知作者"
@@ -125,6 +178,8 @@ object AssetJsonLoader {
             tags = tags,
             count = 10,
         )
+        val contentSearches = parseSearchStrings(raw["content_searches"] ?: raw["contentSearches"])
+            .ifEmpty { contentSearchesById[id].orEmpty() }
 
         // Build video URL from local HTTP server (host auto-detected)
         val videoUrl = videoUrlFor(id)
@@ -135,14 +190,76 @@ object AssetJsonLoader {
             id = id, title = title, author = author, avatarUrl = avatarUrl,
             videoUrl = videoUrl, coverUrl = coverUrl, coverThumbnailUrl = coverThumbnailUrl,
             likes = likes, comments = comments, collections = collections, shares = shares,
-            tags = tags, recommendWords = recommendWords,
+            tags = tags, recommendWords = recommendWords, contentSearches = contentSearches,
             qualityUrls = qualityUrls,
         )
     }
 
+    private fun parseImageCardItem(raw: Map<String, Any>): CardItem? {
+        val id = raw.str("id") ?: raw.str("aweme_id") ?: return null
+        val title = raw.str("title") ?: raw.str("desc") ?: return null
+        val author = raw.str("author") ?: raw.str("nickname") ?: ""
+        val avatarUrl = parseLocalOrRemoteUrl(
+            raw.str("avatar_url") ?: raw.str("avatarUrl") ?: raw.str("avatar"),
+        )
+        val imageUrls = parseUrlList(
+            raw["image_urls"] ?: raw["imageUrls"] ?: raw["note_download_url"],
+        ).map(::parseLocalOrRemoteUrl)
+            .filter { it.isNotBlank() }
+            .distinct()
+        if (imageUrls.isEmpty()) return null
+
+        val likes = raw.int("liked_count").takeIf { it > 0 } ?: raw.int("likes")
+        val comments = raw.int("comment_count").takeIf { it > 0 } ?: raw.int("comments")
+        val shares = raw.int("share_count").takeIf { it > 0 } ?: raw.int("shares")
+        val bgMusicUrl = parseLocalOrRemoteUrl(
+            raw.str("bg_music_url") ?: raw.str("bgMusicUrl") ?: raw.str("music_download_url"),
+        )
+        val tags = parseTags(raw)
+        val recommendWords = parseSearchStrings(raw["recommend_words"] ?: raw["recommendWords"])
+            .ifEmpty {
+                SearchSuggestionEngine.inferSearches(
+                    title = title,
+                    tags = tags,
+                    count = 10,
+                )
+            }
+
+        return if (imageUrls.size == 1) {
+            ImageCardItem(
+                id = id,
+                title = title,
+                author = author,
+                imageUrl = imageUrls.first(),
+                likes = likes,
+                comments = comments,
+                bgMusicUrl = bgMusicUrl,
+            )
+        } else {
+            AlbumCardItem(
+                id = id,
+                title = title,
+                author = author,
+                avatarUrl = avatarUrl,
+                slides = imageUrls.map { url ->
+                    AlbumSlide(type = AlbumSlide.TYPE_IMAGE, mediaUrl = url)
+                },
+                bgMusicUrl = bgMusicUrl,
+                likes = likes,
+                comments = comments,
+                shares = shares,
+                tags = tags,
+                recommendWords = recommendWords,
+            )
+        }
+    }
+
     // ===== App simplified format (fallback) / 简化格式兜底 =====
 
-    private fun parseAppFormatItem(raw: Map<String, Any>): VideoItem? {
+    private fun parseAppFormatItem(
+        raw: Map<String, Any>,
+        contentSearchesById: Map<String, List<String>>,
+    ): VideoItem? {
         val id = raw.str("id") ?: return null
         val title = raw.str("title") ?: return null
         val author = raw.str("author") ?: ""
@@ -157,11 +274,13 @@ object AssetJsonLoader {
             tags = emptyList(),
             count = 10,
         )
+        val contentSearches = parseSearchStrings(raw["content_searches"] ?: raw["contentSearches"])
+            .ifEmpty { contentSearchesById[id].orEmpty() }
         return VideoItem(id, title, author, avatarUrl, videoUrl, coverUrl,
             coverThumbnailUrl = coverThumbnailUrl,
             likes = raw.int("likes"), comments = raw.int("comments"),
             collections = raw.int("collections"), shares = raw.int("shares"),
-            tags = emptyList(), recommendWords = recommendWords,
+            tags = emptyList(), recommendWords = recommendWords, contentSearches = contentSearches,
             qualityUrls = parseQualityUrls(raw),
         )
     }
@@ -195,6 +314,31 @@ object AssetJsonLoader {
             if (name.isBlank() || path.isBlank()) return@mapNotNull null
             name to parseLocalOrRemoteUrl(path)
         }.toMap().takeIf { it.isNotEmpty() }
+    }
+
+    private fun parseSearchStrings(source: Any?): List<String> {
+        val values = source as? List<*> ?: return emptyList()
+        return values.mapNotNull { value ->
+            when (value) {
+                is String -> value
+                is Map<*, *> -> value["keyword"] as? String
+                else -> null
+            }?.trim()?.takeIf { it.length >= 2 }
+        }.distinct()
+    }
+
+    private fun parseTags(raw: Map<String, Any>): List<String> {
+        val explicit = parseSearchStrings(raw["tags"])
+        val keyword = raw.str("source_keyword")
+        return (explicit + listOfNotNull(keyword)).distinct()
+    }
+
+    private fun parseUrlList(source: Any?): List<String> {
+        return when (source) {
+            is List<*> -> source.mapNotNull { it as? String }
+            is String -> source.split(",")
+            else -> emptyList()
+        }.map { it.trim() }.filter { it.isNotEmpty() }
     }
 
     private fun parseLocalOrRemoteUrl(path: String?): String {

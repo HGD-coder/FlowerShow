@@ -77,3 +77,51 @@ Use `FastStart` when first-frame latency is above target and rebuffer count is a
 - 图片请求已通过 `FlowerImageRequests` 按 UI 场景限制尺寸；接入真实封面缩略图后，需要在目标设备上观察内存和掉帧情况。
 - Macrobenchmark results still need to be collected on target devices; local JVM tests cannot measure these device-only metrics.
 - Macrobenchmark 结果仍需要在目标设备上采集；本地 JVM 测试无法测量这些设备端指标。
+
+## In-App Diagnostics / App 内部诊断
+
+Some OEM user builds, including the tested vivo device, can crash or block Macrobenchmark/Perfetto. On those devices, use the built-in diagnostics first.
+
+部分 OEM 的 user build（包括当前测试过的 vivo 设备）可能无法稳定运行 Macrobenchmark/Perfetto。遇到这种情况时，先使用 App 内部诊断。
+
+Logcat filter:
+
+Logcat 过滤方式：
+
+```bash
+adb logcat -v time FlowerPerf:D FlowerMetrics:D VideoPlayerManager:D *:S
+```
+
+The App emits these runtime metrics through the `FlowerPerf` tag:
+
+App 会通过 `FlowerPerf` 标签输出以下运行时指标：
+
+| Metric / 指标 | Log event / 日志事件 | Notes / 说明 |
+| --- | --- | --- |
+| Startup activity time / Activity 启动时间 | `startup_activity_on_create` | From process start to `MainActivity.onCreate` / 从进程启动到 `MainActivity.onCreate` |
+| Startup first draw / 首次绘制 | `startup_first_draw` | First decor-view draw / 首次 decor view 绘制 |
+| Feed ready time / Feed 可用时间 | `startup_video_feed_ready` | First feed page loaded / 第一页 Feed 数据可用 |
+| Feed frame jank / Feed 帧卡顿 | `feed_frame_window`, `feed_frame_jank_percent`, `feed_frame_max_ms` | Choreographer-based approximation / 基于 Choreographer 的近似值 |
+| Video first frame / 视频首帧 | `video_first_frame` | Includes `videoId`, `feedIndex`, `quality`, `source` / 包含视频、位置、清晰度和来源 |
+| Video ready / 视频 READY | `video_ready` | Playback ready latency / 播放器 READY 延迟 |
+| Buffering / 缓冲 | `video_buffering_start`, `video_buffering` | Count and duration / 次数和耗时 |
+| Quality switch / 清晰度切换 | `quality_switch_start`, `quality_switch` | Includes from/to quality, trigger, source, position delta / 包含切换前后清晰度、触发来源、进度偏移 |
+| Cache hit ratio / 缓存命中率 | `cache_snapshot` | Cached/upstream byte ratio / 缓存与网络字节比例 |
+| Preload window / 预加载窗口 | `preload_window` | Desired/tracked/added/removed counts / 目标、追踪、新增、移除数量 |
+| Load control / 缓冲策略 | `load_control_profile` | Current short-video buffering profile / 当前短视频缓冲档位 |
+
+On app exit, a report is also written to:
+
+App 退出时也会写入报告文件：
+
+```text
+/data/data/com.example.flower_show/cache/flower_performance_diagnostics.txt
+```
+
+For a debug build, pull it with:
+
+Debug 包可以这样读取：
+
+```bash
+adb shell run-as com.example.flower_show cat cache/flower_performance_diagnostics.txt
+```

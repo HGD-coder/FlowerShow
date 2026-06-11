@@ -2,6 +2,7 @@ package com.example.flower_show.ui.screen
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +36,7 @@ import com.example.flower_show.R
 import com.example.flower_show.model.*
 import com.example.flower_show.ui.component.*
 import com.example.flower_show.ui.theme.ArcticColors
+import com.example.flower_show.util.PerformanceDiagnostics
 import com.example.flower_show.viewmodel.VideoIntent
 import com.example.flower_show.viewmodel.VideoViewModel
 
@@ -48,20 +51,46 @@ fun VideoScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     ReportDrawnWhen { state.items.isNotEmpty() && !state.isLoading }
 
-    @Suppress("UNUSED_EXPRESSION")
-    state.isPlayerReady
     val pagerState = rememberPagerState(pageCount = { state.items.size.coerceAtLeast(1) })
     var pendingTargetVideoId by remember { mutableStateOf<String?>(targetVideoId) }
+    var feedReadyReported by remember { mutableStateOf(false) }
+    var likedVideoIds by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var collectedVideoIds by rememberSaveable { mutableStateOf(emptyList<String>()) }
+
+    fun toggleLiked(videoId: String) {
+        likedVideoIds = likedVideoIds.toggle(videoId)
+    }
+
+    fun toggleCollected(videoId: String) {
+        collectedVideoIds = collectedVideoIds.toggle(videoId)
+    }
 
     // P1-3: Landscape detection / 横竖屏检测
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val activeFeedIndex = if (isLandscape) state.currentPosition else pagerState.currentPage
+    val activeFeedItem = state.items.getOrNull(activeFeedIndex)
+    val isLandscapePlayback = isLandscape && activeFeedItem is VideoItem
 
     // System UI immersive control / 沉浸式系统 UI 控制
     val view = LocalView.current
+
+    // System back in landscape → return to portrait
+    BackHandler(enabled = isLandscapePlayback) {
+        val activity = view.context as? android.app.Activity ?: return@BackHandler
+        activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+
+    LaunchedEffect(isLandscape, activeFeedIndex, activeFeedItem?.itemType) {
+        if (isLandscape && activeFeedItem != null && activeFeedItem !is VideoItem) {
+            val activity = view.context as? android.app.Activity ?: return@LaunchedEffect
+            activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+    }
+
     val window = remember { (view.context as? android.app.Activity)?.window }
-    DisposableEffect(isLandscape) {
-        if (isLandscape) {
+    DisposableEffect(isLandscapePlayback) {
+        if (isLandscapePlayback) {
             window?.let { w ->
                 val controller = WindowInsetsControllerCompat(w, view)
                 controller.hide(WindowInsetsCompat.Type.systemBars())
@@ -88,33 +117,57 @@ fun VideoScreen(
         viewModel.dispatch(VideoIntent.JumpToVideo(targetId))
     }
 
-    LaunchedEffect(state.currentPosition, state.items.size, isLandscape) {
-        if (isLandscape || state.items.isEmpty()) return@LaunchedEffect
+    LaunchedEffect(state.currentPosition, state.items.size, isLandscapePlayback) {
+        if (isLandscapePlayback || state.items.isEmpty()) return@LaunchedEffect
         val targetPage = state.currentPosition.coerceIn(0, state.items.lastIndex)
         if (pagerState.currentPage != targetPage) {
             pagerState.scrollToPage(targetPage)
         }
         val pendingId = pendingTargetVideoId
-        val currentVideoId = (state.items.getOrNull(targetPage) as? VideoItem)?.id
-        if (pendingId != null && pendingId == currentVideoId) {
+        val currentItem = state.items.getOrNull(targetPage)
+        if (pendingId != null && currentItem?.matchesTarget(pendingId) == true) {
             pendingTargetVideoId = null
         }
     }
 
-    // Play when page changes. During a search jump, ignore stale page 0 until the pager reaches the target.
-    LaunchedEffect(pagerState.settledPage, state.items.size, pendingTargetVideoId) {
+    LaunchedEffect(state.items.isNotEmpty(), state.isLoading) {
+        if (!feedReadyReported && state.items.isNotEmpty() && !state.isLoading) {
+            feedReadyReported = true
+            PerformanceDiagnostics.recordSinceProcessStart(
+                "startup_video_feed_ready",
+                mapOf("itemCount" to state.items.size),
+            )
+        }
+    }
+
+    // Play as soon as the pager's current page changes instead of waiting for settle.
+    // This reduces visible black/placeholder time while swiping between short videos.
+    LaunchedEffect(pagerState.currentPage, state.items.size, pendingTargetVideoId) {
         if (state.items.isEmpty()) return@LaunchedEffect
         val pendingId = pendingTargetVideoId
         if (pendingId != null) {
-            val settledVideoId = (state.items.getOrNull(pagerState.settledPage) as? VideoItem)?.id
-            if (settledVideoId != pendingId) return@LaunchedEffect
+            val currentItem = state.items.getOrNull(pagerState.currentPage)
+            if (currentItem?.matchesTarget(pendingId) != true) return@LaunchedEffect
         }
-        viewModel.dispatch(VideoIntent.PlayPosition(pagerState.settledPage))
+        viewModel.dispatch(VideoIntent.PlayPosition(pagerState.currentPage))
+    }
+
+    LaunchedEffect(pagerState.currentPage, state.items.size) {
+        val item = state.items.getOrNull(pagerState.currentPage)
+        PerformanceDiagnostics.event(
+            "feed_page_selected",
+            mapOf(
+                "page" to pagerState.currentPage,
+                "itemType" to item?.javaClass?.simpleName,
+                "videoId" to (item as? VideoItem)?.id,
+                "itemCount" to state.items.size,
+            ),
+        )
     }
 
     // Load more when near end
     LaunchedEffect(pagerState.currentPage, state.items.size) {
-        if (pagerState.settledPage >= state.items.size - 2 && !state.isLoading)
+        if (pagerState.currentPage >= state.items.size - 2 && !state.isLoading)
             viewModel.dispatch(VideoIntent.LoadNextPage)
     }
 
@@ -130,7 +183,7 @@ fun VideoScreen(
             Text(emptyText, color = Color.White, fontSize = 18.sp,
                 modifier = Modifier.align(Alignment.Center))
         } else {
-            if (isLandscape && state.isPlayerReady) {
+            if (isLandscapePlayback) {
                 PlayerSurface(
                     playerViewModel = viewModel,
                     modifier = Modifier
@@ -139,7 +192,7 @@ fun VideoScreen(
                 )
             }
 
-            if (isLandscape) {
+            if (isLandscapePlayback) {
                 // ── Landscape: full-screen player, tap to toggle system UI + controls ──
                 var showLandscapeControls by remember { mutableStateOf(true) }
                 val currentVideo = state.items.getOrNull(state.currentPosition) as? VideoItem
@@ -149,12 +202,22 @@ fun VideoScreen(
                     video = currentVideo,
                     playerManager = viewModel.playerManager,
                     visible = showLandscapeControls,
+                    isLiked = currentVideo?.id in likedVideoIds,
+                    isCollected = currentVideo?.id in collectedVideoIds,
+                    onLikeClick = {
+                        currentVideo?.id?.let(::toggleLiked)
+                    },
+                    onCollectClick = {
+                        currentVideo?.id?.let(::toggleCollected)
+                    },
                     onToggleVisible = { showLandscapeControls = !showLandscapeControls },
                     onBack = {
                         val activity = ctx as? android.app.Activity ?: return@LandscapeVideoControls
                         activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                     },
                     onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
+                    playbackSpeed = state.playbackSpeed,
+                    onPlaybackSpeedChange = { speed -> viewModel.dispatch(VideoIntent.SetPlaybackSpeed(speed)) },
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
@@ -173,12 +236,12 @@ fun VideoScreen(
                     when (item) {
                         is VideoItem -> {
                             val ctx = LocalContext.current
-                            val isActivePage = page == pagerState.settledPage
+                            val isActivePage = page == pagerState.currentPage
                             val isCurrentPlaybackPage = page == state.currentPosition
                             VideoCard(
                                 video = item,
                                 playerManager = viewModel.playerManager,
-                                playerContent = if (state.isPlayerReady && isActivePage) {
+                                playerContent = if (isActivePage) {
                                     {
                                         PlayerSurface(
                                             playerViewModel = viewModel,
@@ -193,10 +256,16 @@ fun VideoScreen(
                                 isActive = isActivePage,
                                 onSeek = { ms -> viewModel.dispatch(VideoIntent.SeekTo(ms)) },
                                 onRecommendWordClick = onRecommendWordClick,
+                                isLiked = item.id in likedVideoIds,
+                                isCollected = item.id in collectedVideoIds,
+                                onLikeClick = { toggleLiked(item.id) },
+                                onCollectClick = { toggleCollected(item.id) },
                                 onSetQuality = { name, url -> viewModel.dispatch(VideoIntent.SelectManualQuality(name, url)) },
                                 onEnableAutoQuality = { viewModel.dispatch(VideoIntent.EnableAutoQuality) },
                                 qualityMode = if (isCurrentPlaybackPage) state.qualityMode.name else "Auto",
                                 currentQualityName = if (isCurrentPlaybackPage) state.currentQualityName else null,
+                                playbackSpeed = state.playbackSpeed,
+                                onPlaybackSpeedChange = { speed -> viewModel.dispatch(VideoIntent.SetPlaybackSpeed(speed)) },
                                 availableQualities = if (isCurrentPlaybackPage) {
                                     state.availableQualities
                                 } else {
@@ -204,7 +273,7 @@ fun VideoScreen(
                                 },
                                 onToggleFullscreen = {
                                     val activity = ctx as? android.app.Activity ?: return@VideoCard
-                                    if (isLandscape) {
+                                    if (isLandscapePlayback) {
                                         activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                                     } else {
                                         activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
@@ -220,14 +289,14 @@ fun VideoScreen(
             }
         }
 
-        if (!isLandscape) {
-            TikTokTopNavigation(
+        if (!isLandscapePlayback) {
+            VideoFeedTopBar(
                 onSearchClick = onSearchClick,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .zIndex(2f),
             )
-            TikTokBottomNavigationBar(
+            VideoFeedBottomBar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .zIndex(2f),
@@ -265,6 +334,17 @@ private fun CardItem.feedStableKey(index: Int): String = when (this) {
     CardItem.TypeVideo -> "type_video:$index"
     CardItem.TypeImage -> "type_image:$index"
     CardItem.TypeAlbum -> "type_album:$index"
+}
+
+private fun CardItem.matchesTarget(target: String): Boolean = when (this) {
+    is VideoItem -> target == id || target == "video:$id"
+    is ImageCardItem -> target == id || target == "image:$id"
+    is AlbumCardItem -> target == id || target == "album:$id"
+    else -> false
+}
+
+private fun List<String>.toggle(value: String): List<String> {
+    return if (value in this) this - value else this + value
 }
 
 @Composable

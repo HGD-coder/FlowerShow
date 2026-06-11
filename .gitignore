@@ -21,5 +21,8 @@ local.properties
 __pycache__/
 tools/logs/
 **/video_data.json*
+performance-runs/
+tmp/
+skills-lock.json
 /.agents
 /.codex

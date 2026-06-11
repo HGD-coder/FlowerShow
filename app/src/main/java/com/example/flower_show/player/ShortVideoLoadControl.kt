@@ -4,6 +4,7 @@ import androidx.media3.common.C
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import com.example.flower_show.util.MetricsCollector
+import com.example.flower_show.util.PerformanceDiagnostics
 
 /**
  * Short-video oriented buffering profiles.
@@ -101,5 +102,17 @@ object ShortVideoLoadControl {
             settings.bufferForPlaybackAfterRebufferMs.toLong(),
         )
         MetricsCollector.record("load_control_back_buffer_ms", settings.backBufferMs.toLong())
+        PerformanceDiagnostics.event(
+            "load_control_profile",
+            mapOf(
+                "profile" to settings.profile.id,
+                "minBufferMs" to settings.minBufferMs,
+                "maxBufferMs" to settings.maxBufferMs,
+                "startPlaybackMs" to settings.bufferForPlaybackMs,
+                "afterRebufferMs" to settings.bufferForPlaybackAfterRebufferMs,
+                "backBufferMs" to settings.backBufferMs,
+                "prioritizeTime" to settings.prioritizeTimeOverSizeThresholds,
+            ),
+        )
     }
 }

@@ -34,6 +34,7 @@ class WeightedContainsMatcher(private val threshold: Float = 0.3f) : SearchMatch
         else if (titleLower.contains(lower)) score += 0.7f
         score += video.tags.count { it.lowercase().contains(lower) } * 0.5f
         score += video.recommendWords.count { it.lowercase().contains(lower) } * 0.3f
+        score += video.contentSearches.count { it.lowercase().contains(lower) } * 0.45f
 
         return if (score >= threshold) score else 0f
     }
@@ -79,6 +80,7 @@ class SemanticKeywordMatcher(
         val title = video.title.normalizeSearchText()
         val tags = video.tags.joinToString(" ").normalizeSearchText()
         val recommendations = video.recommendWords.joinToString(" ").normalizeSearchText()
+        val contentSearches = video.contentSearches.joinToString(" ").normalizeSearchText()
 
         var score = 0f
         if (title == cleanQuery) score += 1.0f
@@ -88,6 +90,7 @@ class SemanticKeywordMatcher(
         score += terms.sumMatchedBy(title, fieldWeight = 0.32f)
         score += terms.sumMatchedBy(tags, fieldWeight = 0.22f)
         score += terms.sumMatchedBy(recommendations, fieldWeight = 0.16f)
+        score += terms.sumMatchedBy(contentSearches, fieldWeight = 0.26f)
 
         val capped = score.coerceAtMost(0.95f)
         return if (capped >= threshold) capped else 0f
@@ -155,8 +158,8 @@ class SemanticKeywordMatcher(
                 expansions = listOf("酥脆", "香酥", "焦香", "炸"),
             ),
             ExpansionGroup(
-                triggers = listOf("美食", "做法", "教程", "家常菜"),
-                expansions = listOf("家常菜", "下饭菜", "快手菜", "做法"),
+                triggers = listOf("美食", "做法", "教程", "家常菜", "做饭", "做菜", "炒菜", "下厨", "料理", "菜谱", "吃饭"),
+                expansions = listOf("美食", "美食教程", "家常菜", "下饭菜", "快手菜", "做法", "菜谱", "家常小炒"),
             ),
         )
     }
@@ -195,6 +198,10 @@ class LevenshteinDistanceMatcher(
             val wordLower = word.lowercase()
             wordLower.contains(lower) || levenshteinSimilarity(wordLower, lower) >= 0.7f
         } * 0.3f
+        score += video.contentSearches.count { word ->
+            val wordLower = word.lowercase()
+            wordLower.contains(lower) || levenshteinSimilarity(wordLower, lower) >= 0.7f
+        } * 0.45f
 
         return if (score >= threshold) score else 0f
     }

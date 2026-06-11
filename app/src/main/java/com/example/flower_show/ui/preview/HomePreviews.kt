@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flower_show.model.VideoItem
 import com.example.flower_show.player.VideoPlayerManager
-import com.example.flower_show.ui.component.TikTokBottomNavigationBar
-import com.example.flower_show.ui.component.TikTokTopNavigation
+import com.example.flower_show.ui.component.VideoFeedBottomBar
+import com.example.flower_show.ui.component.VideoFeedTopBar
 import com.example.flower_show.ui.component.VideoCard
 import com.example.flower_show.ui.theme.ArcticColors
 import com.example.flower_show.ui.theme.FlowerShowTheme
@@ -96,12 +96,12 @@ private fun HomePreviewContent() {
             modifier = Modifier.fillMaxSize(),
         )
 
-        TikTokTopNavigation(
+        VideoFeedTopBar(
             onSearchClick = {},
             modifier = Modifier.align(Alignment.TopCenter),
         )
 
-        TikTokBottomNavigationBar(
+        VideoFeedBottomBar(
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }

@@ -1,6 +1,7 @@
 package com.example.flower_show.data.repository
 
 import android.content.Context
+import com.example.flower_show.data.local.AssetSearchSuggestionLoader
 import com.example.flower_show.data.local.SearchHistoryManager
 import com.example.flower_show.model.CardItem
 import com.example.flower_show.model.Result
@@ -10,12 +11,14 @@ import com.example.flower_show.model.Result
  */
 class LocalSearchRepository(context: Context) : ISearchRepository {
 
+    private val appContext = context.applicationContext
     private val historyManager = SearchHistoryManager(context)
     private val videoRepo = FakeVideoRepository.getInstance(context)
 
     override fun search(keyword: String): Result<List<CardItem>> = videoRepo.search(keyword)
 
     override fun getHistory(): List<String> = historyManager.getHistory()
+    override fun getGuessCandidates(): List<String> = AssetSearchSuggestionLoader.loadGlobalGuessSearches(appContext)
     override fun addHistory(keyword: String) = historyManager.addHistory(keyword)
     override fun deleteHistory(keyword: String) = historyManager.deleteHistory(keyword)
     override fun clearHistory() = historyManager.clearAll()

@@ -1,9 +1,11 @@
 package com.example.flower_show
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
@@ -11,6 +13,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.flower_show.ui.screen.*
 import com.example.flower_show.ui.theme.FlowerShowTheme
+import com.example.flower_show.util.MetricsCollector
+import com.example.flower_show.util.PerformanceDiagnostics
+import com.example.flower_show.util.PerformanceExperimentConfig
 import com.example.flower_show.util.PerformanceTrace
 
 /**
@@ -26,6 +31,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PerformanceDiagnostics.markActivityOnCreate(this)
+        PerformanceExperimentConfig.configureFromIntent(intent)
         PerformanceTrace.enableAppTracing()
         enableEdgeToEdge()
 
@@ -46,11 +53,37 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        PerformanceDiagnostics.startFrameMonitoring()
+    }
+
+    override fun onPause() {
+        PerformanceDiagnostics.stopFrameMonitoring()
+        PerformanceDiagnostics.flushToDisk(this, MetricsCollector.summary())
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        PerformanceDiagnostics.flushToDisk(this, MetricsCollector.summary())
+        super.onDestroy()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        PerformanceExperimentConfig.configureFromIntent(intent)
+    }
 }
 
 @Composable
 private fun AppNavigation() {
     var route by remember { mutableStateOf("video") }
+
+    BackHandler(enabled = route != "video") {
+        route = "video"
+    }
 
     when {
         route == "video" -> VideoScreen(

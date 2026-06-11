@@ -1,0 +1,4965 @@
+{
+  "version": 1,
+  "model": "Xenova/chinese-clip-vit-base-patch16",
+  "candidateCount": 81,
+  "items": [
+    {
+      "id": "7565792429132107008",
+      "source": "videos\\7565792429132107008\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "青椒变酿虾",
+          "score": 0.512718
+        },
+        {
+          "keyword": "懒人快手菜",
+          "score": 0.501859
+        },
+        {
+          "keyword": "家常菜",
+          "score": 0.501574
+        },
+        {
+          "keyword": "好好吃饭大赛",
+          "score": 0.492211
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.486905
+        },
+        {
+          "keyword": "你的秋日美食正在派送中",
+          "score": 0.476673
+        },
+        {
+          "keyword": "剪刀剪一剪",
+          "score": 0.47629
+        }
+      ]
+    },
+    {
+      "id": "7597309249148046602",
+      "source": "videos\\7597309249148046602\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "美食",
+          "score": 0.53432
+        },
+        {
+          "keyword": "懒人快手菜",
+          "score": 0.534225
+        },
+        {
+          "keyword": "现在买菜",
+          "score": 0.532589
+        },
+        {
+          "keyword": "肥牛虾滑粉丝煲",
+          "score": 0.527114
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.511226
+        },
+        {
+          "keyword": "宵夜",
+          "score": 0.507632
+        },
+        {
+          "keyword": "懒人一锅端",
+          "score": 0.498556
+        },
+        {
+          "keyword": "回家10分钟就能吃上",
+          "score": 0.484244
+        }
+      ]
+    },
+    {
+      "id": "7563156848669478184",
+      "source": "videos\\7563156848669478184\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "豆腐抱蛋",
+          "score": 0.522682
+        },
+        {
+          "keyword": "就能解锁一锅下饭硬菜",
+          "score": 0.514045
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.484224
+        },
+        {
+          "keyword": "一口鲜滑入魂",
+          "score": 0.469795
+        },
+        {
+          "keyword": "只用3种食材",
+          "score": 0.468398
+        },
+        {
+          "keyword": "你的秋日美食正在派送中",
+          "score": 0.459174
+        }
+      ]
+    },
+    {
+      "id": "7635540051320900891",
+      "source": "videos\\7635540051320900891\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "肉嫩爆汁太下饭了",
+          "score": 0.514708
+        },
+        {
+          "keyword": "下饭菜",
+          "score": 0.51093
+        },
+        {
+          "keyword": "炸鸡",
+          "score": 0.509425
+        },
+        {
+          "keyword": "家常菜",
+          "score": 0.509404
+        },
+        {
+          "keyword": "蜂蜜黄油脆皮鸡超详细保姆级教程",
+          "score": 0.491669
+        },
+        {
+          "keyword": "鸡腿的神仙做法",
+          "score": 0.484583
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.481977
+        },
+        {
+          "keyword": "做法超简单",
+          "score": 0.475358
+        }
+      ]
+    },
+    {
+      "id": "7485299073067552059",
+      "source": "videos\\7485299073067552059\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "神仙吃法🔥土豆虾滑卷‼️焦香的土",
+          "score": 0.519882
+        },
+        {
+          "keyword": "虾滑的做法",
+          "score": 0.496194
+        },
+        {
+          "keyword": "土豆虾滑卷",
+          "score": 0.488048
+        },
+        {
+          "keyword": "烤箱美食",
+          "score": 0.470798
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.455847
+        },
+        {
+          "keyword": "好吃哭",
+          "score": 0.438586
+        }
+      ]
+    },
+    {
+      "id": "7615839023780950635",
+      "source": "videos\\7615839023780950635\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "终于复刻了超火🔥的脆烤土豆🥔沙拉",
+          "score": 0.527755
+        },
+        {
+          "keyword": "脆烤土豆沙拉",
+          "score": 0.513444
+        },
+        {
+          "keyword": "土豆沙拉",
+          "score": 0.503308
+        },
+        {
+          "keyword": "节后甩肉大作战",
+          "score": 0.499013
+        },
+        {
+          "keyword": "土豆沙拉做法",
+          "score": 0.496651
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.491313
+        },
+        {
+          "keyword": "早午餐",
+          "score": 0.460725
+        }
+      ]
+    },
+    {
+      "id": "7618893210391827685",
+      "source": "videos\\7618893210391827685\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "一个字来形容这道菜“绝了”",
+          "score": 0.540953
+        },
+        {
+          "keyword": "炒牛肉",
+          "score": 0.530477
+        },
+        {
+          "keyword": "下饭神器",
+          "score": 0.528419
+        },
+        {
+          "keyword": "家常菜",
+          "score": 0.526313
+        },
+        {
+          "keyword": "下饭菜",
+          "score": 0.52418
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.518028
+        },
+        {
+          "keyword": "家常小炒",
+          "score": 0.498242
+        }
+      ]
+    },
+    {
+      "id": "7583913948572110120",
+      "source": "videos\\7583913948572110120\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "滑蛋鸡腿饭",
+          "score": 0.511006
+        },
+        {
+          "keyword": "滑滑嫩嫩巨下饭",
+          "score": 0.510546
+        },
+        {
+          "keyword": "家常菜",
+          "score": 0.504611
+        },
+        {
+          "keyword": "下饭菜",
+          "score": 0.503845
+        },
+        {
+          "keyword": "美食",
+          "score": 0.501706
+        },
+        {
+          "keyword": "滑蛋饭",
+          "score": 0.49859
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.474347
+        }
+      ]
+    },
+    {
+      "id": "7593298314943302948",
+      "source": "videos\\7593298314943302948\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "好好吃饭",
+          "score": 0.512981
+        },
+        {
+          "keyword": "但是很硬的下饭菜",
+          "score": 0.511049
+        },
+        {
+          "keyword": "抖音美食推荐官",
+          "score": 0.49631
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.49113
+        },
+        {
+          "keyword": "吃着软",
+          "score": 0.470204
+        }
+      ]
+    },
+    {
+      "id": "7613353100171096255",
+      "source": "videos\\7613353100171096255\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "炸虾",
+          "score": 0.502991
+        },
+        {
+          "keyword": "晒出你们觉得很香的美食",
+          "score": 0.490688
+        },
+        {
+          "keyword": "蜂蜜柠檬脆皮虾",
+          "score": 0.486685
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.466302
+        },
+        {
+          "keyword": "香甜酥脆巨好吃",
+          "score": 0.430721
+        }
+      ]
+    },
+    {
+      "id": "7641521574747072625",
+      "source": "videos\\7641521574747072625\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "鸡腿的神仙做法",
+          "score": 0.518682
+        },
+        {
+          "keyword": "又又又解锁一个鸡腿的新吃法",
+          "score": 0.517233
+        },
+        {
+          "keyword": "不可抵抗的美食",
+          "score": 0.510269
+        },
+        {
+          "keyword": "蒜香黄油脆皮鸡",
+          "score": 0.500604
+        },
+        {
+          "keyword": "外酥里嫩",
+          "score": 0.484585
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.482181
+        },
+        {
+          "keyword": "焦香酥脆",
+          "score": 0.47315
+        },
+        {
+          "keyword": "满口留香",
+          "score": 0.462381
+        }
+      ]
+    },
+    {
+      "id": "7601121444541615386",
+      "source": "videos\\7601121444541615386\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "这一碗虾滑豆腐煲满口留香",
+          "score": 0.50374
+        },
+        {
+          "keyword": "下饭菜",
+          "score": 0.501582
+        },
+        {
+          "keyword": "超简单的虾滑豆腐",
+          "score": 0.490228
+        },
+        {
+          "keyword": "鲜香下饭",
+          "score": 0.485651
+        },
+        {
+          "keyword": "美食教程",
+          "score": 0.475567
+        },
+        {
+          "keyword": "又软又暖",
+          "score": 0.466547
+        },
+        {
+          "keyword": "抖音年味争霸赛",
+          "score": 0.443781
+        }
+      ]
+    },
+    {
+      "id": "7532755157042400564",
+      "source": "videos\\7532755157042400564\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "环球旅行1995",
+          "score": 0.554943
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.549322
+        },
+        {
+          "keyword": "用一场旅行找回初心",
+          "score": 0.541864
+        },
+        {
+          "keyword": "ahua",
+          "score": 0.516881
+        },
+        {
+          "keyword": "“这是我的乌孙古道",
+          "score": 0.498793
+        },
+        {
+          "keyword": "交换世界计划",
+          "score": 0.493479
+        },
+        {
+          "keyword": "火锅做法",
+          "score": 0.48715
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.481361
+        }
+      ]
+    },
+    {
+      "id": "7511344677640588602",
+      "source": "videos\\7511344677640588602\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "把生活拍成电影",
+          "score": 0.528124
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.514482
+        },
+        {
+          "keyword": "毕业生的精选",
+          "score": 0.471585
+        },
+        {
+          "keyword": "已经开始期待这个烫腚的夏天了",
+          "score": 0.470682
+        },
+        {
+          "keyword": "每个镜头都有它的故事",
+          "score": 0.463805
+        },
+        {
+          "keyword": "女生穿搭",
+          "score": 0.487377
+        },
+        {
+          "keyword": "通勤穿搭",
+          "score": 0.48636
+        },
+        {
+          "keyword": "ootd穿搭",
+          "score": 0.482709
+        }
+      ]
+    },
+    {
+      "id": "7499045454488898835",
+      "source": "videos\\7499045454488898835\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "旅游",
+          "score": 0.523277
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.517137
+        },
+        {
+          "keyword": "新西兰旅游",
+          "score": 0.507119
+        },
+        {
+          "keyword": "好玩好玩开心啊啊啊啊啊啊啊啊啊",
+          "score": 0.499062
+        },
+        {
+          "keyword": "下次还来～",
+          "score": 0.495318
+        },
+        {
+          "keyword": "06",
+          "score": 0.482388
+        },
+        {
+          "keyword": "vlog",
+          "score": 0.470787
+        },
+        {
+          "keyword": "皇后镇",
+          "score": 0.468492
+        }
+      ]
+    },
+    {
+      "id": "7624334720121195839",
+      "source": "videos\\7624334720121195839\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "那就去旅行",
+          "score": 0.513635
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.498961
+        },
+        {
+          "keyword": "2026高考",
+          "score": 0.491658
+        },
+        {
+          "keyword": "双语",
+          "score": 0.474186
+        },
+        {
+          "keyword": "我被开除了",
+          "score": 0.467109
+        },
+        {
+          "keyword": "vlog",
+          "score": 0.463236
+        },
+        {
+          "keyword": "日常vlog",
+          "score": 0.462947
+        },
+        {
+          "keyword": "交换世界计划",
+          "score": 0.461225
+        }
+      ]
+    },
+    {
+      "id": "7582424754319346987",
+      "source": "videos\\7582424754319346987\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "2025旅行高光时刻回顾",
+          "score": 0.505513
+        },
+        {
+          "keyword": "BGM：Lil",
+          "score": 0.482068
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.481021
+        },
+        {
+          "keyword": "这个机位别有洞天",
+          "score": 0.478368
+        },
+        {
+          "keyword": "u》",
+          "score": 0.46644
+        },
+        {
+          "keyword": "我们的可颂时刻",
+          "score": 0.465765
+        },
+        {
+          "keyword": "《喀纳斯vlog02》",
+          "score": 0.457299
+        },
+        {
+          "keyword": "抖音热点激励2025",
+          "score": 0.453286
+        }
+      ]
+    },
+    {
+      "id": "7605823561709688945",
+      "source": "videos\\7605823561709688945\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "旅行vlog",
+          "score": 0.558644
+        },
+        {
+          "keyword": "旅行",
+          "score": 0.550785
+        },
+        {
+          "keyword": "AKA北方明珠-大连",
+          "score": 0.529379
+        },
+        {
+          "keyword": "浪漫之都",
+          "score": 0.517721
+        },
+        {
+          "keyword": "vlog",
+          "score": 0.51499
+        },
+        {
+          "keyword": "摄影",
+          "score": 0.511974
+        },
+        {
+          "keyword": "大连",
+          "score": 0.48938
+        },
+        {
+          "keyword": "时尚大连",
+          "score": 0.477234
+        }
+      ]
+    },
+    {
+      "id": "7618350202915351034",
+      "source": "videos\\7618350202915351034\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "旅行转场",
+          "score": 0.518436
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.494762
+        },
+        {
+          "keyword": "用山系机能风踏遍山野",
+          "score": 0.486824
+        },
+        {
+          "keyword": "潮流运动场",
+          "score": 0.47106
+        },
+        {
+          "keyword": "城野两栖",
+          "score": 0.468721
+        },
+        {
+          "keyword": "漂亮的年纪要让自己开心～",
+          "score": 0.462348
+        }
+      ]
+    },
+    {
+      "id": "7631753509193154687",
+      "source": "videos\\7631753509193154687\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "旅行",
+          "score": 0.532703
+        },
+        {
+          "keyword": "“原来真的有人在过着这样的生活啊",
+          "score": 0.508003
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.506495
+        },
+        {
+          "keyword": "在拍一种很新的vlog",
+          "score": 0.49805
+        },
+        {
+          "keyword": "🇳🇿皇后镇vlog",
+          "score": 0.492716
+        },
+        {
+          "keyword": "vlog",
+          "score": 0.474616
+        },
+        {
+          "keyword": "交换世界计划",
+          "score": 0.468466
+        },
+        {
+          "keyword": "新西兰",
+          "score": 0.46735
+        }
+      ]
+    },
+    {
+      "id": "7612096505020763407",
+      "source": "videos\\7612096505020763407\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "旅行vlog",
+          "score": 0.514055
+        },
+        {
+          "keyword": "这个发完就发冰岛",
+          "score": 0.496183
+        },
+        {
+          "keyword": "《云南之旅》-想去哪就去哪",
+          "score": 0.491301
+        },
+        {
+          "keyword": "哭的很惨哈哈哈哈",
+          "score": 0.490506
+        },
+        {
+          "keyword": "好朋友见面方式",
+          "score": 0.487752
+        },
+        {
+          "keyword": "EP1",
+          "score": 0.472713
+        },
+        {
+          "keyword": "看到了一直想看的日照金山",
+          "score": 0.472173
+        },
+        {
+          "keyword": "见了5年没见的好朋友",
+          "score": 0.470107
+        }
+      ]
+    },
+    {
+      "id": "7614826393997790491",
+      "source": "videos\\7614826393997790491\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "一个人的旅行",
+          "score": 0.55265
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.534514
+        },
+        {
+          "keyword": "法国一个人旅行VLOG",
+          "score": 0.529827
+        },
+        {
+          "keyword": "圣米歇尔山",
+          "score": 0.502702
+        },
+        {
+          "keyword": "《最伟大的作品》封面取景地",
+          "score": 0.485504
+        },
+        {
+          "keyword": "青年创作者成长计划",
+          "score": 0.47128
+        },
+        {
+          "keyword": "法国",
+          "score": 0.469255
+        },
+        {
+          "keyword": "火锅做法",
+          "score": 0.483875
+        }
+      ]
+    },
+    {
+      "id": "7522415350848294182",
+      "source": "videos\\7522415350848294182\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "环球旅行1995",
+          "score": 0.5467
+        },
+        {
+          "keyword": "拍出电影感",
+          "score": 0.541522
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.534159
+        },
+        {
+          "keyword": "治愈系风景",
+          "score": 0.500592
+        },
+        {
+          "keyword": "天都塌了…",
+          "score": 0.499557
+        },
+        {
+          "keyword": "出山洞那一刻",
+          "score": 0.497592
+        },
+        {
+          "keyword": "只为寻得一张传说中的——《孤独星",
+          "score": 0.494956
+        },
+        {
+          "keyword": "穿越八级风暴",
+          "score": 0.482623
+        }
+      ]
+    },
+    {
+      "id": "7614755486348463400",
+      "source": "videos\\7614755486348463400\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "旅行",
+          "score": 0.527621
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.503119
+        },
+        {
+          "keyword": "我的西双版纳历险记vlog来袭",
+          "score": 0.489186
+        },
+        {
+          "keyword": "vlog",
+          "score": 0.471138
+        }
+      ]
+    },
+    {
+      "id": "7614840010294070563",
+      "source": "videos\\7614840010294070563\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "旅行",
+          "score": 0.532881
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.516076
+        },
+        {
+          "keyword": "我的阿勒泰",
+          "score": 0.493537
+        },
+        {
+          "keyword": "属于摄影师的人生时刻",
+          "score": 0.48845
+        },
+        {
+          "keyword": "航拍",
+          "score": 0.481738
+        },
+        {
+          "keyword": "新疆行结算画面",
+          "score": 0.467535
+        },
+        {
+          "keyword": "新疆",
+          "score": 0.453675
+        },
+        {
+          "keyword": "青年创作者成长计划",
+          "score": 0.442219
+        }
+      ]
+    },
+    {
+      "id": "7612946519398336377",
+      "source": "videos\\7612946519398336377\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "旅行剪辑",
+          "score": 0.544862
+        },
+        {
+          "keyword": "当你用promise打开悉尼行",
+          "score": 0.539792
+        },
+        {
+          "keyword": "旅行vlog",
+          "score": 0.534059
+        },
+        {
+          "keyword": "promise",
+          "score": 0.519902
+        },
+        {
+          "keyword": "马思唯",
+          "score": 0.495989
+        },
+        {
+          "keyword": "vlog",
+          "score": 0.481511
+        },
+        {
+          "keyword": "澳洲",
+          "score": 0.47255
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.484657
+        }
+      ]
+    },
+    {
+      "id": "7539905160735149339",
+      "source": "videos\\7539905160735149339\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "音乐推荐",
+          "score": 0.530175
+        },
+        {
+          "keyword": "热门音乐",
+          "score": 0.52353
+        },
+        {
+          "keyword": "音乐分享",
+          "score": 0.515658
+        },
+        {
+          "keyword": "50分钟抖音热曲合集",
+          "score": 0.506808
+        },
+        {
+          "keyword": "戴上耳机",
+          "score": 0.464937
+        }
+      ]
+    },
+    {
+      "id": "7547374117817683258",
+      "source": "videos\\7547374117817683258\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "热门音乐",
+          "score": 0.4868
+        },
+        {
+          "keyword": "无声卡翻唱",
+          "score": 0.460326
+        },
+        {
+          "keyword": "抖音演唱大赛",
+          "score": 0.441417
+        },
+        {
+          "keyword": "我看过",
+          "score": 0.429471
+        },
+        {
+          "keyword": "我来开唱",
+          "score": 0.414006
+        }
+      ]
+    },
+    {
+      "id": "7634902251848437001",
+      "source": "videos\\7634902251848437001\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "热门音乐",
+          "score": 0.520766
+        },
+        {
+          "keyword": "音乐分享",
+          "score": 0.510008
+        },
+        {
+          "keyword": "音乐",
+          "score": 0.501986
+        },
+        {
+          "keyword": "故事的结局",
+          "score": 0.491639
+        },
+        {
+          "keyword": "猎犬",
+          "score": 0.490268
+        },
+        {
+          "keyword": "盘点抖音近期热门BGM",
+          "score": 0.485267
+        },
+        {
+          "keyword": "m3",
+          "score": 0.48005
+        },
+        {
+          "keyword": "无限",
+          "score": 0.460742
+        }
+      ]
+    },
+    {
+      "id": "7629737261261644922",
+      "source": "videos\\7629737261261644922\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "音乐",
+          "score": 0.536292
+        },
+        {
+          "keyword": "音乐推荐",
+          "score": 0.53163
+        },
+        {
+          "keyword": "热门音乐",
+          "score": 0.51669
+        },
+        {
+          "keyword": "音乐分享",
+          "score": 0.511166
+        },
+        {
+          "keyword": "如果忧郁是一种天赋",
+          "score": 0.510585
+        },
+        {
+          "keyword": "热歌热门分享",
+          "score": 0.50935
+        },
+        {
+          "keyword": "忧郁",
+          "score": 0.504341
+        },
+        {
+          "keyword": "45分钟忧郁感🎵合集",
+          "score": 0.50192
+        }
+      ]
+    },
+    {
+      "id": "7624893720424385819",
+      "source": "videos\\7624893720424385819\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "热门音乐",
+          "score": 0.577765
+        },
+        {
+          "keyword": "音乐分享",
+          "score": 0.565801
+        },
+        {
+          "keyword": "音乐推荐",
+          "score": 0.56049
+        },
+        {
+          "keyword": "60分钟三月爆火歌曲合集｜散步🚶",
+          "score": 0.53832
+        },
+        {
+          "keyword": "热门歌曲",
+          "score": 0.525647
+        },
+        {
+          "keyword": "戴上耳机",
+          "score": 0.515425
+        },
+        {
+          "keyword": "听歌",
+          "score": 0.486304
+        },
+        {
+          "keyword": "火锅做法",
+          "score": 0.51226
+        }
+      ]
+    },
+    {
+      "id": "7623383895626506202",
+      "source": "videos\\7623383895626506202\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "热门音乐",
+          "score": 0.491476
+        },
+        {
+          "keyword": "comebacktome",
+          "score": 0.487062
+        },
+        {
+          "keyword": "人类无法飞翔或许是因为心太重",
+          "score": 0.464321
+        },
+        {
+          "keyword": "混音",
+          "score": 0.43492
+        }
+      ]
+    },
+    {
+      "id": "7634829341445291642",
+      "source": "videos\\7634829341445291642\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "51分钟抖音热曲音乐合集🎧戴上耳",
+          "score": 0.543176
+        },
+        {
+          "keyword": "热门音乐",
+          "score": 0.534764
+        },
+        {
+          "keyword": "音乐推荐",
+          "score": 0.526404
+        },
+        {
+          "keyword": "音乐分享",
+          "score": 0.52608
+        },
+        {
+          "keyword": "音乐",
+          "score": 0.525486
+        },
+        {
+          "keyword": "戴上耳机",
+          "score": 0.484536
+        },
+        {
+          "keyword": "效果更佳🎧",
+          "score": 0.46666
+        },
+        {
+          "keyword": "腹肌训练",
+          "score": 0.481074
+        }
+      ]
+    },
+    {
+      "id": "7641957508277659048",
+      "source": "videos\\7641957508277659048\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "热门音乐",
+          "score": 0.490806
+        },
+        {
+          "keyword": "推荐音乐",
+          "score": 0.487215
+        },
+        {
+          "keyword": "-盘点6g网一定听过的BGM-",
+          "score": 0.462885
+        },
+        {
+          "keyword": "术力口",
+          "score": 0.461202
+        },
+        {
+          "keyword": "BGM",
+          "score": 0.454162
+        },
+        {
+          "keyword": "网速",
+          "score": 0.443531
+        }
+      ]
+    },
+    {
+      "id": "7638540495367696881",
+      "source": "videos\\7638540495367696881\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "热门音乐",
+          "score": 0.54229
+        },
+        {
+          "keyword": "作业音乐合集🎧戴上耳机",
+          "score": 0.535406
+        },
+        {
+          "keyword": "音乐",
+          "score": 0.526356
+        },
+        {
+          "keyword": "音乐推荐",
+          "score": 0.526244
+        },
+        {
+          "keyword": "音乐分享",
+          "score": 0.520477
+        },
+        {
+          "keyword": "49分钟跑步",
+          "score": 0.50659
+        },
+        {
+          "keyword": "戴上耳机",
+          "score": 0.466052
+        },
+        {
+          "keyword": "效果更佳🎧",
+          "score": 0.44904
+        }
+      ]
+    },
+    {
+      "id": "7636792622602324965",
+      "source": "videos\\7636792622602324965\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "音乐",
+          "score": 0.532761
+        },
+        {
+          "keyword": "热门音乐",
+          "score": 0.530888
+        },
+        {
+          "keyword": "音乐推荐",
+          "score": 0.512598
+        },
+        {
+          "keyword": "45分钟近期热歌🎵合集",
+          "score": 0.499577
+        },
+        {
+          "keyword": "热歌热门分享",
+          "score": 0.495022
+        },
+        {
+          "keyword": "爆火",
+          "score": 0.494748
+        },
+        {
+          "keyword": "爆火必听",
+          "score": 0.493784
+        },
+        {
+          "keyword": "热歌",
+          "score": 0.462576
+        }
+      ]
+    },
+    {
+      "id": "7637413913823866218",
+      "source": "videos\\7637413913823866218\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.500633
+        },
+        {
+          "keyword": "进入近乎无限火力的状态",
+          "score": 0.47583
+        },
+        {
+          "keyword": "但也不短",
+          "score": 0.443805
+        },
+        {
+          "keyword": "王者荣耀",
+          "score": 0.420728
+        },
+        {
+          "keyword": "汇流刷cd后的真空期不长",
+          "score": 0.418519
+        },
+        {
+          "keyword": "元歌",
+          "score": 0.404632
+        },
+        {
+          "keyword": "至今为止我打出的最帅一波元歌操作",
+          "score": 0.400774
+        },
+        {
+          "keyword": "进入团战交完技能的元歌很难渡过这",
+          "score": 0.399681
+        }
+      ]
+    },
+    {
+      "id": "7597773929956003098",
+      "source": "videos\\7597773929956003098\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.491338
+        },
+        {
+          "keyword": "cs2",
+          "score": 0.476035
+        },
+        {
+          "keyword": "1v5",
+          "score": 0.46863
+        },
+        {
+          "keyword": "残局",
+          "score": 0.464531
+        },
+        {
+          "keyword": "高燃集锦",
+          "score": 0.452524
+        },
+        {
+          "keyword": "一剑曾当百万师",
+          "score": 0.432289
+        },
+        {
+          "keyword": "顾风解说cs2",
+          "score": 0.428931
+        },
+        {
+          "keyword": "一身转战三千里",
+          "score": 0.418433
+        }
+      ]
+    },
+    {
+      "id": "7613973165265426161",
+      "source": "videos\\7613973165265426161\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.537382
+        },
+        {
+          "keyword": "csgo",
+          "score": 0.52817
+        },
+        {
+          "keyword": "我承认你很强",
+          "score": 0.508851
+        },
+        {
+          "keyword": "lol",
+          "score": 0.508088
+        },
+        {
+          "keyword": "永劫无间",
+          "score": 0.484182
+        },
+        {
+          "keyword": "三角洲行动",
+          "score": 0.480996
+        },
+        {
+          "keyword": "无畏契约@三月电竞",
+          "score": 0.480859
+        },
+        {
+          "keyword": "但如果我每样都略懂一些呢",
+          "score": 0.441248
+        }
+      ]
+    },
+    {
+      "id": "7502723571345640742",
+      "source": "videos\\7502723571345640742\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "steam游戏",
+          "score": 0.544903
+        },
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.53257
+        },
+        {
+          "keyword": "游戏中的名场面",
+          "score": 0.514479
+        },
+        {
+          "keyword": "单机游戏",
+          "score": 0.514299
+        },
+        {
+          "keyword": "但你一定看过我的操作",
+          "score": 0.484655
+        },
+        {
+          "keyword": "你可能不认识我",
+          "score": 0.478358
+        },
+        {
+          "keyword": "火锅做法",
+          "score": 0.480889
+        }
+      ]
+    },
+    {
+      "id": "7631149992359384753",
+      "source": "videos\\7631149992359384753\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.508115
+        },
+        {
+          "keyword": "CSGO",
+          "score": 0.495541
+        },
+        {
+          "keyword": "“胜负仅在一瞬之间”",
+          "score": 0.478161
+        },
+        {
+          "keyword": "CS2",
+          "score": 0.46935
+        },
+        {
+          "keyword": "cs有搭子才go味",
+          "score": 0.463939
+        },
+        {
+          "keyword": "CS有搭子才go味",
+          "score": 0.463939
+        },
+        {
+          "keyword": "道具教学",
+          "score": 0.46137
+        }
+      ]
+    },
+    {
+      "id": "7554329781580434723",
+      "source": "videos\\7554329781580434723\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.515807
+        },
+        {
+          "keyword": "cs2",
+          "score": 0.500314
+        },
+        {
+          "keyword": "cf",
+          "score": 0.484285
+        },
+        {
+          "keyword": "我承认你很强",
+          "score": 0.469416
+        },
+        {
+          "keyword": "三角洲行动",
+          "score": 0.460534
+        },
+        {
+          "keyword": "但如果我每样都略懂一点呢",
+          "score": 0.44184
+        }
+      ]
+    },
+    {
+      "id": "7598569201493724479",
+      "source": "videos\\7598569201493724479\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "csgo",
+          "score": 0.507762
+        },
+        {
+          "keyword": "csgo整活",
+          "score": 0.496741
+        },
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.49628
+        },
+        {
+          "keyword": "cs2",
+          "score": 0.48342
+        },
+        {
+          "keyword": "csgo搞笑时刻",
+          "score": 0.479994
+        },
+        {
+          "keyword": "csgo搞笑视频",
+          "score": 0.478536
+        },
+        {
+          "keyword": "反应快也有错吗",
+          "score": 0.460026
+        },
+        {
+          "keyword": "《棋差一招》",
+          "score": 0.423346
+        }
+      ]
+    },
+    {
+      "id": "7614827396423896346",
+      "source": "videos\\7614827396423896346\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "单机游戏",
+          "score": 0.513563
+        },
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.510086
+        },
+        {
+          "keyword": "steam游戏",
+          "score": 0.505893
+        },
+        {
+          "keyword": "游戏中的名场面",
+          "score": 0.498405
+        }
+      ]
+    },
+    {
+      "id": "7590741888928419112",
+      "source": "videos\\7590741888928419112\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.515713
+        },
+        {
+          "keyword": "因为总有人",
+          "score": 0.499101
+        },
+        {
+          "keyword": "CS2",
+          "score": 0.487378
+        },
+        {
+          "keyword": "残局",
+          "score": 0.484839
+        },
+        {
+          "keyword": "与你共鸣",
+          "score": 0.483925
+        },
+        {
+          "keyword": "高燃集锦",
+          "score": 0.472732
+        },
+        {
+          "keyword": "请保持心脏的振动",
+          "score": 0.444499
+        },
+        {
+          "keyword": "顾风解说CS2",
+          "score": 0.438868
+        }
+      ]
+    },
+    {
+      "id": "7317580713593785610",
+      "source": "videos\\7317580713593785610\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "csgo",
+          "score": 0.523686
+        },
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.514328
+        },
+        {
+          "keyword": "cs2",
+          "score": 0.50031
+        },
+        {
+          "keyword": "就是因为热爱",
+          "score": 0.483634
+        },
+        {
+          "keyword": "每一帧都是热爱",
+          "score": 0.481356
+        },
+        {
+          "keyword": "还不快艾特你好哥们一起来看",
+          "score": 0.449795
+        },
+        {
+          "keyword": "话不多说先秀一波",
+          "score": 0.425328
+        }
+      ]
+    },
+    {
+      "id": "7609920762698272036",
+      "source": "videos\\7609920762698272036\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "游戏精彩时刻",
+          "score": 0.518723
+        },
+        {
+          "keyword": "游戏日常",
+          "score": 0.516192
+        },
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.511642
+        },
+        {
+          "keyword": "游戏解说",
+          "score": 0.507919
+        },
+        {
+          "keyword": "双人游戏",
+          "score": 0.505145
+        },
+        {
+          "keyword": "两个人八张嘴",
+          "score": 0.482624
+        }
+      ]
+    },
+    {
+      "id": "7526432357901995273",
+      "source": "videos\\7526432357901995273\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "steam游戏",
+          "score": 0.565471
+        },
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.542274
+        },
+        {
+          "keyword": "“天下英雄真如过江之鲫”",
+          "score": 0.512698
+        },
+        {
+          "keyword": "每一帧都是热爱",
+          "score": 0.499252
+        },
+        {
+          "keyword": "超燃混剪",
+          "score": 0.497691
+        },
+        {
+          "keyword": "第九艺术",
+          "score": 0.462659
+        },
+        {
+          "keyword": "通勤穿搭",
+          "score": 0.489438
+        },
+        {
+          "keyword": "火锅做法",
+          "score": 0.487641
+        }
+      ]
+    },
+    {
+      "id": "7573279730443603234",
+      "source": "videos\\7573279730443603234\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.502449
+        },
+        {
+          "keyword": "CS2",
+          "score": 0.485622
+        },
+        {
+          "keyword": "残局",
+          "score": 0.47662
+        },
+        {
+          "keyword": "鸿鹄之志哉",
+          "score": 0.453168
+        },
+        {
+          "keyword": "五杀",
+          "score": 0.447487
+        },
+        {
+          "keyword": "燕雀安知",
+          "score": 0.440915
+        },
+        {
+          "keyword": "青年创作者成长计划",
+          "score": 0.435561
+        },
+        {
+          "keyword": "顾风解说CS2",
+          "score": 0.428168
+        }
+      ]
+    },
+    {
+      "id": "7346253272124001576",
+      "source": "videos\\7346253272124001576\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "csgo",
+          "score": 0.487278
+        },
+        {
+          "keyword": "游戏精彩操作",
+          "score": 0.484329
+        },
+        {
+          "keyword": "onetap",
+          "score": 0.476181
+        },
+        {
+          "keyword": "残局",
+          "score": 0.464892
+        },
+        {
+          "keyword": "“朋友的呐喊",
+          "score": 0.452866
+        },
+        {
+          "keyword": "五杀",
+          "score": 0.447139
+        },
+        {
+          "keyword": "肾上腺素的飙升”",
+          "score": 0.439959
+        }
+      ]
+    },
+    {
+      "id": "7606017446918606126",
+      "source": "videos\\7606017446918606126\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "健身教程",
+          "score": 0.509875
+        },
+        {
+          "keyword": "背部训练",
+          "score": 0.508818
+        },
+        {
+          "keyword": "训练计划教学",
+          "score": 0.503591
+        },
+        {
+          "keyword": "全网最详细新手第一次去健身房全流",
+          "score": 0.495495
+        },
+        {
+          "keyword": "到去健身房练前热身教学",
+          "score": 0.494474
+        },
+        {
+          "keyword": "新手第一次去健身房",
+          "score": 0.492241
+        },
+        {
+          "keyword": "坚持健身",
+          "score": 0.48958
+        },
+        {
+          "keyword": "训练计划表",
+          "score": 0.489518
+        }
+      ]
+    },
+    {
+      "id": "7496842721337167162",
+      "source": "videos\\7496842721337167162\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "教会你健身房器械使用大全",
+          "score": 0.517761
+        },
+        {
+          "keyword": "健身房器械使用大全",
+          "score": 0.493951
+        },
+        {
+          "keyword": "健身教学",
+          "score": 0.487665
+        },
+        {
+          "keyword": "健身小白必看经验",
+          "score": 0.484753
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.481163
+        },
+        {
+          "keyword": "健身",
+          "score": 0.478909
+        },
+        {
+          "keyword": "健身干货",
+          "score": 0.464511
+        },
+        {
+          "keyword": "一条视频",
+          "score": 0.455946
+        }
+      ]
+    },
+    {
+      "id": "7617279994330402048",
+      "source": "videos\\7617279994330402048\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "健身教程",
+          "score": 0.501589
+        },
+        {
+          "keyword": "力量训练",
+          "score": 0.485046
+        },
+        {
+          "keyword": "增肌减脂",
+          "score": 0.484388
+        },
+        {
+          "keyword": "训练计划",
+          "score": 0.482852
+        },
+        {
+          "keyword": "拉伸按摩",
+          "score": 0.481205
+        },
+        {
+          "keyword": "推拉蹲",
+          "score": 0.478693
+        },
+        {
+          "keyword": "器械使用",
+          "score": 0.477074
+        },
+        {
+          "keyword": "腹肌马甲线",
+          "score": 0.475543
+        }
+      ]
+    },
+    {
+      "id": "7195845311741316410",
+      "source": "videos\\7195845311741316410\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "告别窄肩",
+          "score": 0.521976
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.519516
+        },
+        {
+          "keyword": "元气恢复计划",
+          "score": 0.51123
+        },
+        {
+          "keyword": "抖音健身房",
+          "score": 0.510586
+        },
+        {
+          "keyword": "含详细教程",
+          "score": 0.495811
+        },
+        {
+          "keyword": "男生怎么练显宽",
+          "score": 0.481809
+        },
+        {
+          "keyword": "腹肌训练",
+          "score": 0.498569
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.493774
+        }
+      ]
+    },
+    {
+      "id": "7623732958012198179",
+      "source": "videos\\7623732958012198179\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "三分化训练",
+          "score": 0.511002
+        },
+        {
+          "keyword": "新手和训练发烧友都可以用",
+          "score": 0.495164
+        },
+        {
+          "keyword": "增肌",
+          "score": 0.492193
+        },
+        {
+          "keyword": "设计思路和训练中需要注意的细节",
+          "score": 0.490868
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.488138
+        },
+        {
+          "keyword": "力量训练",
+          "score": 0.48737
+        },
+        {
+          "keyword": "凯圣王-谭成义三分化①——训练计",
+          "score": 0.486742
+        },
+        {
+          "keyword": "健身",
+          "score": 0.479207
+        }
+      ]
+    },
+    {
+      "id": "7023294644456934693",
+      "source": "videos\\7023294644456934693\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "增肌",
+          "score": 0.462867
+        },
+        {
+          "keyword": "健身",
+          "score": 0.461477
+        },
+        {
+          "keyword": "如何练宽肩膀💪",
+          "score": 0.459188
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.459151
+        },
+        {
+          "keyword": "显壮",
+          "score": 0.421971
+        }
+      ]
+    },
+    {
+      "id": "7084874432216403230",
+      "source": "videos\\7084874432216403230\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "增肌",
+          "score": 0.49913
+        },
+        {
+          "keyword": "健身",
+          "score": 0.489687
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.47856
+        },
+        {
+          "keyword": "手臂",
+          "score": 0.474209
+        },
+        {
+          "keyword": "瘦子如何增粗手臂",
+          "score": 0.462464
+        },
+        {
+          "keyword": "告别细弱",
+          "score": 0.46185
+        },
+        {
+          "keyword": "含详细计划",
+          "score": 0.448684
+        }
+      ]
+    },
+    {
+      "id": "7617902539472554985",
+      "source": "videos\\7617902539472554985\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "炸出腹肌不废腰",
+          "score": 0.510595
+        },
+        {
+          "keyword": "阿赫教你4招“核心之王”",
+          "score": 0.508122
+        },
+        {
+          "keyword": "腹肌",
+          "score": 0.50801
+        },
+        {
+          "keyword": "健身小白必看经验",
+          "score": 0.507115
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.502754
+        },
+        {
+          "keyword": "健身干货",
+          "score": 0.49621
+        },
+        {
+          "keyword": "核心力量",
+          "score": 0.481528
+        },
+        {
+          "keyword": "核心不稳=白练",
+          "score": 0.474873
+        }
+      ]
+    },
+    {
+      "id": "7610712695184852603",
+      "source": "videos\\7610712695184852603\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "肌肉量以及功能性提升效率都很高的",
+          "score": 0.527373
+        },
+        {
+          "keyword": "这是一套很棒的基础训练",
+          "score": 0.517223
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.49981
+        },
+        {
+          "keyword": "对形体刻画",
+          "score": 0.486656
+        },
+        {
+          "keyword": "训练计划",
+          "score": 0.47589
+        },
+        {
+          "keyword": "跟练系列",
+          "score": 0.471629
+        },
+        {
+          "keyword": "有所帮助",
+          "score": 0.460966
+        },
+        {
+          "keyword": "希望能对大家",
+          "score": 0.429693
+        }
+      ]
+    },
+    {
+      "id": "7592931623697641701",
+      "source": "videos\\7592931623697641701\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "健身教学",
+          "score": 0.496683
+        },
+        {
+          "keyword": "新手一周训练计划",
+          "score": 0.483058
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.478811
+        },
+        {
+          "keyword": "下周就这么练",
+          "score": 0.47715
+        },
+        {
+          "keyword": "训练计划",
+          "score": 0.473388
+        }
+      ]
+    },
+    {
+      "id": "7590280406874129905",
+      "source": "videos\\7590280406874129905\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "健身小白增肌塑性技巧",
+          "score": 0.517371
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.496809
+        },
+        {
+          "keyword": "健身",
+          "score": 0.495164
+        },
+        {
+          "keyword": "创作灵感",
+          "score": 0.483185
+        },
+        {
+          "keyword": "鹿晨辉保姆级教程",
+          "score": 0.482306
+        },
+        {
+          "keyword": "一个视频告诉你怎么练",
+          "score": 0.481912
+        },
+        {
+          "keyword": "鹿晨辉",
+          "score": 0.477048
+        },
+        {
+          "keyword": "慕公子花絮",
+          "score": 0.475945
+        }
+      ]
+    },
+    {
+      "id": "7620365540325854473",
+      "source": "videos\\7620365540325854473\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "教你如何快速涨20斤肌肉",
+          "score": 0.56073
+        },
+        {
+          "keyword": "增肌",
+          "score": 0.512017
+        },
+        {
+          "keyword": "健身教程",
+          "score": 0.511204
+        },
+        {
+          "keyword": "健身小白必看经验",
+          "score": 0.509649
+        },
+        {
+          "keyword": "5位顶级科学家",
+          "score": 0.505703
+        },
+        {
+          "keyword": "健身",
+          "score": 0.501629
+        },
+        {
+          "keyword": "增重",
+          "score": 0.495858
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.487774
+        }
+      ]
+    },
+    {
+      "id": "7614823314162412154",
+      "source": "videos\\7614823314162412154\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "矮脚猫",
+          "score": 0.524505
+        },
+        {
+          "keyword": "小猫的心思怎么猜2",
+          "score": 0.521954
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.491639
+        },
+        {
+          "keyword": "萌宠日常记录",
+          "score": 0.474853
+        },
+        {
+          "keyword": "动物迷惑行为大赏",
+          "score": 0.460388
+        }
+      ]
+    },
+    {
+      "id": "7630396849970493553",
+      "source": "videos\\7630396849970493553\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "可爱宠物",
+          "score": 0.472126
+        },
+        {
+          "keyword": "如果萌是一种错误",
+          "score": 0.44583
+        },
+        {
+          "keyword": "蓝金渐层",
+          "score": 0.44067
+        },
+        {
+          "keyword": "它自己不知道自己可爱吧",
+          "score": 0.416634
+        }
+      ]
+    },
+    {
+      "id": "7604756780896704741",
+      "source": "videos\\7604756780896704741\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "原来你是这种小猫咪",
+          "score": 0.538182
+        },
+        {
+          "keyword": "记录猫咪日常",
+          "score": 0.522046
+        },
+        {
+          "keyword": "小猫咪三分迷茫七分呆滞",
+          "score": 0.515484
+        },
+        {
+          "keyword": "这小猫谁养谁不迷糊啊",
+          "score": 0.508244
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.504658
+        },
+        {
+          "keyword": "进屋需要打报告的哈基米",
+          "score": 0.469111
+        }
+      ]
+    },
+    {
+      "id": "7614351823194203859",
+      "source": "videos\\7614351823194203859\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "黑猫警长",
+          "score": 0.524466
+        },
+        {
+          "keyword": "奶牛猫就是神经猫",
+          "score": 0.505124
+        },
+        {
+          "keyword": "猫里猫气",
+          "score": 0.498891
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.482161
+        },
+        {
+          "keyword": "猫咪的迷惑行为",
+          "score": 0.478855
+        },
+        {
+          "keyword": "快来跟我打一架",
+          "score": 0.450843
+        }
+      ]
+    },
+    {
+      "id": "7621931963015779747",
+      "source": "videos\\7621931963015779747\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "橘猫",
+          "score": 0.523602
+        },
+        {
+          "keyword": "云吸猫",
+          "score": 0.505318
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.491826
+        },
+        {
+          "keyword": "️⃣嘻嘻",
+          "score": 0.484551
+        },
+        {
+          "keyword": "备好平板宝汁们～",
+          "score": 0.46183
+        },
+        {
+          "keyword": "它真的好像个小宝宝",
+          "score": 0.459703
+        },
+        {
+          "keyword": "小脑斧",
+          "score": 0.454713
+        }
+      ]
+    },
+    {
+      "id": "7638598761661887451",
+      "source": "videos\\7638598761661887451\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "猫咪的一百种姿势",
+          "score": 0.519166
+        },
+        {
+          "keyword": "猫型拖地机",
+          "score": 0.498647
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.481838
+        },
+        {
+          "keyword": "黑白貓",
+          "score": 0.463592
+        }
+      ]
+    },
+    {
+      "id": "7638603384777441690",
+      "source": "videos\\7638603384777441690\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "猫舍日常",
+          "score": 0.520307
+        },
+        {
+          "keyword": "吸猫",
+          "score": 0.511172
+        },
+        {
+          "keyword": "买猫推荐",
+          "score": 0.507618
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.497872
+        },
+        {
+          "keyword": "曼基康矮脚",
+          "score": 0.470023
+        },
+        {
+          "keyword": "手慢无～～",
+          "score": 0.466781
+        },
+        {
+          "keyword": "萌宠出道计划",
+          "score": 0.433722
+        }
+      ]
+    },
+    {
+      "id": "7194753252427189537",
+      "source": "videos\\7194753252427189537\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "宠物",
+          "score": 0.48347
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.477664
+        },
+        {
+          "keyword": "哥不会变",
+          "score": 0.455393
+        },
+        {
+          "keyword": "治愈系",
+          "score": 0.443239
+        },
+        {
+          "keyword": "柯基",
+          "score": 0.441762
+        },
+        {
+          "keyword": "萌宠",
+          "score": 0.428225
+        },
+        {
+          "keyword": "歌会变",
+          "score": 0.399053
+        }
+      ]
+    },
+    {
+      "id": "7627425438973877937",
+      "source": "videos\\7627425438973877937\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "可爱宠物",
+          "score": 0.469221
+        },
+        {
+          "keyword": "谁能忍住不看完这个视频",
+          "score": 0.451339
+        },
+        {
+          "keyword": "金毛",
+          "score": 0.44827
+        },
+        {
+          "keyword": "萨摩耶",
+          "score": 0.43816
+        },
+        {
+          "keyword": "可爱",
+          "score": 0.419764
+        }
+      ]
+    },
+    {
+      "id": "7525732418532740379",
+      "source": "videos\\7525732418532740379\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "小狗日记",
+          "score": 0.504766
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.478472
+        },
+        {
+          "keyword": "酱酱～",
+          "score": 0.462411
+        },
+        {
+          "keyword": "萌宠出道计划",
+          "score": 0.445807
+        },
+        {
+          "keyword": "柯基",
+          "score": 0.439963
+        }
+      ]
+    },
+    {
+      "id": "7636632219478348902",
+      "source": "videos\\7636632219478348902\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "奶牛猫",
+          "score": 0.489686
+        },
+        {
+          "keyword": "猫狗双全",
+          "score": 0.487606
+        },
+        {
+          "keyword": "可爱宠物",
+          "score": 0.451016
+        },
+        {
+          "keyword": "爱你就会一直包容你",
+          "score": 0.449448
+        },
+        {
+          "keyword": "边牧",
+          "score": 0.438541
+        }
+      ]
+    },
+    {
+      "id": "7624907649686965554",
+      "source": "videos\\7624907649686965554\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.56013
+        },
+        {
+          "keyword": "手机",
+          "score": 0.547954
+        },
+        {
+          "keyword": "数码",
+          "score": 0.539612
+        },
+        {
+          "keyword": "电脑",
+          "score": 0.524512
+        },
+        {
+          "keyword": "科技",
+          "score": 0.506998
+        },
+        {
+          "keyword": "买齐了八个必备电子产品",
+          "score": 0.506504
+        },
+        {
+          "keyword": "加一块还没我桌子贵",
+          "score": 0.505904
+        },
+        {
+          "keyword": "测评",
+          "score": 0.498461
+        }
+      ]
+    },
+    {
+      "id": "7587433159080365358",
+      "source": "videos\\7587433159080365358\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.513288
+        },
+        {
+          "keyword": "十大数码好物盘点",
+          "score": 0.50773
+        },
+        {
+          "keyword": "数码产品",
+          "score": 0.503365
+        },
+        {
+          "keyword": "科技好物",
+          "score": 0.477644
+        },
+        {
+          "keyword": "好物分享",
+          "score": 0.464518
+        },
+        {
+          "keyword": "2025",
+          "score": 0.445533
+        },
+        {
+          "keyword": "抖音知识年终大赏",
+          "score": 0.437929
+        },
+        {
+          "keyword": "种草",
+          "score": 0.437148
+        }
+      ]
+    },
+    {
+      "id": "7550992155657948479",
+      "source": "videos\\7550992155657948479\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.545476
+        },
+        {
+          "keyword": "热点零距离",
+          "score": 0.523565
+        },
+        {
+          "keyword": "iPhone",
+          "score": 0.505968
+        },
+        {
+          "keyword": "最听劝的一代",
+          "score": 0.494419
+        },
+        {
+          "keyword": "但是",
+          "score": 0.490228
+        },
+        {
+          "keyword": "智能玩家联盟",
+          "score": 0.485495
+        },
+        {
+          "keyword": "17系列首发体验",
+          "score": 0.479653
+        },
+        {
+          "keyword": "何同学",
+          "score": 0.478036
+        }
+      ]
+    },
+    {
+      "id": "7585525775688928564",
+      "source": "videos\\7585525775688928564\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "讯飞AI翻译耳机深度评测",
+          "score": 0.563858
+        },
+        {
+          "keyword": "数码产品",
+          "score": 0.550609
+        },
+        {
+          "keyword": "科技评测",
+          "score": 0.543154
+        },
+        {
+          "keyword": "深度评测",
+          "score": 0.532847
+        },
+        {
+          "keyword": "只剩一副耳机的距离——",
+          "score": 0.511034
+        },
+        {
+          "keyword": "讯飞翻译耳机",
+          "score": 0.490272
+        },
+        {
+          "keyword": "国产科技",
+          "score": 0.481285
+        },
+        {
+          "keyword": "我们与世界",
+          "score": 0.472665
+        }
+      ]
+    },
+    {
+      "id": "7642977791234854187",
+      "source": "videos\\7642977791234854187\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.534231
+        },
+        {
+          "keyword": "GoogleIO",
+          "score": 0.515414
+        },
+        {
+          "keyword": "上手AI和XR的前沿技术",
+          "score": 0.494548
+        },
+        {
+          "keyword": "O大会",
+          "score": 0.488013
+        },
+        {
+          "keyword": "AI新星计划",
+          "score": 0.486137
+        },
+        {
+          "keyword": "XREAL智能眼镜",
+          "score": 0.481682
+        },
+        {
+          "keyword": "独家",
+          "score": 0.479877
+        },
+        {
+          "keyword": "抖音前沿科技首发计划",
+          "score": 0.471145
+        }
+      ]
+    },
+    {
+      "id": "7629286314696772890",
+      "source": "videos\\7629286314696772890\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.529447
+        },
+        {
+          "keyword": "数码",
+          "score": 0.523684
+        },
+        {
+          "keyword": "大疆Pocket",
+          "score": 0.507708
+        },
+        {
+          "keyword": "2026高考",
+          "score": 0.50606
+        },
+        {
+          "keyword": "4上手",
+          "score": 0.504975
+        },
+        {
+          "keyword": "科技",
+          "score": 0.495295
+        },
+        {
+          "keyword": "相机",
+          "score": 0.482121
+        },
+        {
+          "keyword": "终于来了",
+          "score": 0.478106
+        }
+      ]
+    },
+    {
+      "id": "7589917242284838193",
+      "source": "videos\\7589917242284838193\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.515685
+        },
+        {
+          "keyword": "数码好物推荐",
+          "score": 0.490833
+        },
+        {
+          "keyword": "科技好物",
+          "score": 0.482637
+        },
+        {
+          "keyword": "年终盘点",
+          "score": 0.474773
+        },
+        {
+          "keyword": "年最受李大锤喜爱的十大科技产品",
+          "score": 0.457351
+        },
+        {
+          "keyword": "抖音知识年终大赏",
+          "score": 0.453177
+        },
+        {
+          "keyword": "2025",
+          "score": 0.451747
+        },
+        {
+          "keyword": "硬核玩家计划",
+          "score": 0.446513
+        }
+      ]
+    },
+    {
+      "id": "7622863828530859302",
+      "source": "videos\\7622863828530859302\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.512145
+        },
+        {
+          "keyword": "bose",
+          "score": 0.498935
+        },
+        {
+          "keyword": "优古E40Pro",
+          "score": 0.492321
+        },
+        {
+          "keyword": "差距真的惊到我",
+          "score": 0.485582
+        },
+        {
+          "keyword": "耳机",
+          "score": 0.466181
+        },
+        {
+          "keyword": "索尼",
+          "score": 0.458242
+        },
+        {
+          "keyword": "百元国货vs千元国际大牌",
+          "score": 0.439037
+        },
+        {
+          "keyword": "头戴式耳机",
+          "score": 0.434934
+        }
+      ]
+    },
+    {
+      "id": "7599221936631123240",
+      "source": "videos\\7599221936631123240\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.547811
+        },
+        {
+          "keyword": "SpaceX",
+          "score": 0.506953
+        },
+        {
+          "keyword": "马斯克",
+          "score": 0.490964
+        },
+        {
+          "keyword": "看完后感觉第四次工业革命已经来了",
+          "score": 0.486997
+        },
+        {
+          "keyword": "国外博主亲测全球顶级黑科技",
+          "score": 0.486672
+        },
+        {
+          "keyword": "青年创作者成长计划",
+          "score": 0.452717
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.486369
+        }
+      ]
+    },
+    {
+      "id": "7598131011486059819",
+      "source": "videos\\7598131011486059819\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.536518
+        },
+        {
+          "keyword": "硬核玩家计划",
+          "score": 0.49303
+        },
+        {
+          "keyword": "年度好物",
+          "score": 0.485019
+        },
+        {
+          "keyword": "2025年我们最喜欢的10个产品",
+          "score": 0.478622
+        },
+        {
+          "keyword": "何同学",
+          "score": 0.476759
+        },
+        {
+          "keyword": "抖音知识年终大赏",
+          "score": 0.451637
+        },
+        {
+          "keyword": "火锅做法",
+          "score": 0.48022
+        }
+      ]
+    },
+    {
+      "id": "7602591911316065551",
+      "source": "videos\\7602591911316065551\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.551383
+        },
+        {
+          "keyword": "7个数码好物真实分享",
+          "score": 0.539015
+        },
+        {
+          "keyword": "评测",
+          "score": 0.534364
+        },
+        {
+          "keyword": "数码好物",
+          "score": 0.528933
+        },
+        {
+          "keyword": "7个自费数码好物真实体验分享",
+          "score": 0.527605
+        },
+        {
+          "keyword": "你们有种草什么吗",
+          "score": 0.503642
+        },
+        {
+          "keyword": "100到2000元",
+          "score": 0.497346
+        },
+        {
+          "keyword": "智能眼镜",
+          "score": 0.497098
+        }
+      ]
+    },
+    {
+      "id": "7642258473748581672",
+      "source": "videos\\7642258473748581672\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科技评测",
+          "score": 0.504262
+        },
+        {
+          "keyword": "HRV终于来了",
+          "score": 0.478277
+        },
+        {
+          "keyword": "求求了",
+          "score": 0.472356
+        },
+        {
+          "keyword": "爆肝",
+          "score": 0.468054
+        },
+        {
+          "keyword": "小米手环10Pro",
+          "score": 0.461724
+        },
+        {
+          "keyword": "小米手环",
+          "score": 0.457288
+        },
+        {
+          "keyword": "智能手环",
+          "score": 0.457141
+        },
+        {
+          "keyword": "智能穿戴",
+          "score": 0.454282
+        }
+      ]
+    },
+    {
+      "id": "7624400279403842862",
+      "source": "videos\\7624400279403842862\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "穿搭",
+          "score": 0.527132
+        },
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.524315
+        },
+        {
+          "keyword": "韩系穿搭",
+          "score": 0.515815
+        },
+        {
+          "keyword": "hello时尚季",
+          "score": 0.506091
+        },
+        {
+          "keyword": "Clean",
+          "score": 0.494633
+        },
+        {
+          "keyword": "100",
+          "score": 0.493057
+        },
+        {
+          "keyword": "Fit韩男大盘点",
+          "score": 0.475149
+        },
+        {
+          "keyword": "时尚",
+          "score": 0.472652
+        }
+      ]
+    },
+    {
+      "id": "7570288388415163475",
+      "source": "videos\\7570288388415163475\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "ins博主穿搭",
+          "score": 0.545988
+        },
+        {
+          "keyword": "“男友感”爆棚的穿搭模板",
+          "score": 0.522063
+        },
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.521909
+        },
+        {
+          "keyword": "英式慢游",
+          "score": 0.500001
+        },
+        {
+          "keyword": "都市游猎风",
+          "score": 0.487598
+        },
+        {
+          "keyword": "扒底酷",
+          "score": 0.478312
+        },
+        {
+          "keyword": "审美积累",
+          "score": 0.473405
+        },
+        {
+          "keyword": "第三期",
+          "score": 0.473085
+        }
+      ]
+    },
+    {
+      "id": "7620342073480425841",
+      "source": "videos\\7620342073480425841\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "廉价感穿搭",
+          "score": 0.54728
+        },
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.524069
+        },
+        {
+          "keyword": "ootd穿搭",
+          "score": 0.520732
+        },
+        {
+          "keyword": "普通人买衣服避雷篇———上衣",
+          "score": 0.497291
+        },
+        {
+          "keyword": "抖音风格实验室",
+          "score": 0.486676
+        },
+        {
+          "keyword": "今天穿什么",
+          "score": 0.475901
+        }
+      ]
+    },
+    {
+      "id": "7576654688943197476",
+      "source": "videos\\7576654688943197476\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "ins博主穿搭",
+          "score": 0.543151
+        },
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.534083
+        },
+        {
+          "keyword": "复古穿搭",
+          "score": 0.525398
+        },
+        {
+          "keyword": "复古穿搭赛道里的战神—giafr",
+          "score": 0.52039
+        },
+        {
+          "keyword": "ins博主",
+          "score": 0.498153
+        },
+        {
+          "keyword": "扒底裤",
+          "score": 0.479097
+        },
+        {
+          "keyword": "普通男生如何变帅",
+          "score": 0.475228
+        },
+        {
+          "keyword": "审美积累",
+          "score": 0.472699
+        }
+      ]
+    },
+    {
+      "id": "7613659803584065506",
+      "source": "videos\\7613659803584065506\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.533785
+        },
+        {
+          "keyword": "ootd穿搭",
+          "score": 0.53006
+        },
+        {
+          "keyword": "男生穿搭",
+          "score": 0.523786
+        },
+        {
+          "keyword": "早春穿搭",
+          "score": 0.50445
+        },
+        {
+          "keyword": "评论区晒出你的开春搭配",
+          "score": 0.493689
+        },
+        {
+          "keyword": "中性风",
+          "score": 0.487674
+        },
+        {
+          "keyword": "早春男生一周穿搭fitcheck",
+          "score": 0.474492
+        },
+        {
+          "keyword": "今天穿什么",
+          "score": 0.47279
+        }
+      ]
+    },
+    {
+      "id": "7247129916821523727",
+      "source": "videos\\7247129916821523727\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.516636
+        },
+        {
+          "keyword": "男生穿搭",
+          "score": 0.515392
+        },
+        {
+          "keyword": "这种穿搭合集怎么能少得了我",
+          "score": 0.50957
+        },
+        {
+          "keyword": "简单干净",
+          "score": 0.48163
+        },
+        {
+          "keyword": "ootd",
+          "score": 0.448611
+        }
+      ]
+    },
+    {
+      "id": "7610727916616170442",
+      "source": "videos\\7610727916616170442\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "气质穿搭",
+          "score": 0.506083
+        },
+        {
+          "keyword": "约会穿搭",
+          "score": 0.500533
+        },
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.496315
+        },
+        {
+          "keyword": "ootd穿搭",
+          "score": 0.49527
+        }
+      ]
+    },
+    {
+      "id": "7580035306192528074",
+      "source": "videos\\7580035306192528074\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "穿搭博主",
+          "score": 0.55288
+        },
+        {
+          "keyword": "工地的砖也压不垮我对穿搭的热爱",
+          "score": 0.550702
+        },
+        {
+          "keyword": "穿搭",
+          "score": 0.549877
+        },
+        {
+          "keyword": "街头穿搭",
+          "score": 0.548786
+        },
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.544755
+        },
+        {
+          "keyword": "inmyfeeling",
+          "score": 0.513952
+        },
+        {
+          "keyword": "cleanfit",
+          "score": 0.496324
+        },
+        {
+          "keyword": "女生穿搭",
+          "score": 0.498162
+        }
+      ]
+    },
+    {
+      "id": "7619019884244946752",
+      "source": "videos\\7619019884244946752\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "男生穿搭",
+          "score": 0.549547
+        },
+        {
+          "keyword": "快艾特你的好兄弟来学穿搭",
+          "score": 0.526362
+        },
+        {
+          "keyword": "夏日穿搭",
+          "score": 0.525892
+        },
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.52441
+        },
+        {
+          "keyword": "ootd穿搭",
+          "score": 0.52398
+        },
+        {
+          "keyword": "不吃建模的男生夏季穿搭📝",
+          "score": 0.505384
+        },
+        {
+          "keyword": "中性风",
+          "score": 0.478576
+        },
+        {
+          "keyword": "今天穿什么",
+          "score": 0.466289
+        }
+      ]
+    },
+    {
+      "id": "7625603016713169893",
+      "source": "videos\\7625603016713169893\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "配色对穿搭的影响",
+          "score": 0.511612
+        },
+        {
+          "keyword": "时尚穿搭",
+          "score": 0.509647
+        },
+        {
+          "keyword": "春季穿搭",
+          "score": 0.509469
+        },
+        {
+          "keyword": "ootd",
+          "score": 0.452872
+        },
+        {
+          "keyword": "干货分享",
+          "score": 0.44309
+        }
+      ]
+    },
+    {
+      "id": "7587495734237269297",
+      "source": "videos\\7587495734237269297\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "用经济学原理解释日常生活中那些看",
+          "score": 0.518264
+        },
+        {
+          "keyword": "《牛奶可乐经济学》是康奈尔大学教",
+          "score": 0.515803
+        },
+        {
+          "keyword": "知识科普",
+          "score": 0.512659
+        },
+        {
+          "keyword": "经济学",
+          "score": 0.510615
+        },
+        {
+          "keyword": "经济学思维",
+          "score": 0.502099
+        },
+        {
+          "keyword": "认知觉醒",
+          "score": 0.501196
+        },
+        {
+          "keyword": "5个经济学冷知识：一瓶牛奶可乐带",
+          "score": 0.500714
+        },
+        {
+          "keyword": "涨知识",
+          "score": 0.498727
+        }
+      ]
+    },
+    {
+      "id": "7626310018807172379",
+      "source": "videos\\7626310018807172379\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "知识科普",
+          "score": 0.518234
+        },
+        {
+          "keyword": "涨知识",
+          "score": 0.512802
+        },
+        {
+          "keyword": "养胃",
+          "score": 0.505144
+        },
+        {
+          "keyword": "健康饮食",
+          "score": 0.480713
+        },
+        {
+          "keyword": "喝冰水其实并不伤胃",
+          "score": 0.475559
+        },
+        {
+          "keyword": "食品安全",
+          "score": 0.456657
+        },
+        {
+          "keyword": "腹肌训练",
+          "score": 0.501716
+        },
+        {
+          "keyword": "火锅做法",
+          "score": 0.499448
+        }
+      ]
+    },
+    {
+      "id": "7580689481808743686",
+      "source": "videos\\7580689481808743686\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "古代史",
+          "score": 0.545565
+        },
+        {
+          "keyword": "知识科普",
+          "score": 0.541724
+        },
+        {
+          "keyword": "了中国这个概念",
+          "score": 0.531481
+        },
+        {
+          "keyword": "而是他发明",
+          "score": 0.522421
+        },
+        {
+          "keyword": "秦始皇",
+          "score": 0.5209
+        },
+        {
+          "keyword": "嬴政",
+          "score": 0.518268
+        },
+        {
+          "keyword": "秦始皇之所以被称为千古一帝",
+          "score": 0.515436
+        },
+        {
+          "keyword": "不是因为他统一了六国",
+          "score": 0.50789
+        }
+      ]
+    },
+    {
+      "id": "7615921919547673919",
+      "source": "videos\\7615921919547673919\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科普",
+          "score": 0.480475
+        },
+        {
+          "keyword": "原油",
+          "score": 0.474603
+        },
+        {
+          "keyword": "石油",
+          "score": 0.474054
+        },
+        {
+          "keyword": "知识科普",
+          "score": 0.469455
+        },
+        {
+          "keyword": "真相可能远超你的想象",
+          "score": 0.465136
+        },
+        {
+          "keyword": "知识前沿派对",
+          "score": 0.444158
+        },
+        {
+          "keyword": "一桶石油究竟能提炼出多少东西",
+          "score": 0.431124
+        }
+      ]
+    },
+    {
+      "id": "7592190730908053923",
+      "source": "videos\\7592190730908053923\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "每天学点心理学",
+          "score": 0.518233
+        },
+        {
+          "keyword": "知识科普",
+          "score": 0.499003
+        },
+        {
+          "keyword": "德西效应",
+          "score": 0.495229
+        },
+        {
+          "keyword": "爱观察的汤姆",
+          "score": 0.476744
+        },
+        {
+          "keyword": "青年创作者成长计划",
+          "score": 0.474303
+        },
+        {
+          "keyword": "边画边写讲知识",
+          "score": 0.4604
+        }
+      ]
+    },
+    {
+      "id": "7528017530674302208",
+      "source": "videos\\7528017530674302208\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "知识科普",
+          "score": 0.534756
+        },
+        {
+          "keyword": "现代人精神内耗的解药",
+          "score": 0.533916
+        },
+        {
+          "keyword": "哲学",
+          "score": 0.525166
+        },
+        {
+          "keyword": "抑郁",
+          "score": 0.522539
+        },
+        {
+          "keyword": "精神内耗",
+          "score": 0.507505
+        },
+        {
+          "keyword": "内耗",
+          "score": 0.49979
+        },
+        {
+          "keyword": "人文星闪耀计划",
+          "score": 0.491988
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.513863
+        }
+      ]
+    },
+    {
+      "id": "7624120433624796456",
+      "source": "videos\\7624120433624796456\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "科普",
+          "score": 0.506657
+        },
+        {
+          "keyword": "知识科普",
+          "score": 0.504899
+        },
+        {
+          "keyword": "硬核科普",
+          "score": 0.503832
+        },
+        {
+          "keyword": "风力发电",
+          "score": 0.484068
+        },
+        {
+          "keyword": "风力发电是如何发电的呢",
+          "score": 0.471147
+        },
+        {
+          "keyword": "抖音精选",
+          "score": 0.470235
+        },
+        {
+          "keyword": "抖音青年创作者计划",
+          "score": 0.450225
+        }
+      ]
+    },
+    {
+      "id": "7587666762624290058",
+      "source": "videos\\7587666762624290058\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "知识科普",
+          "score": 0.497307
+        },
+        {
+          "keyword": "大脑可塑性",
+          "score": 0.48822
+        },
+        {
+          "keyword": "心理学知识",
+          "score": 0.486109
+        },
+        {
+          "keyword": "大脑",
+          "score": 0.48331
+        },
+        {
+          "keyword": "心理学",
+          "score": 0.480976
+        },
+        {
+          "keyword": "独立思考",
+          "score": 0.480346
+        },
+        {
+          "keyword": "三种改变大脑的方式",
+          "score": 0.440356
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.482631
+        }
+      ]
+    },
+    {
+      "id": "7605601850695355675",
+      "source": "videos\\7605601850695355675\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "生命的诞生",
+          "score": 0.492292
+        },
+        {
+          "keyword": "科学",
+          "score": 0.486743
+        },
+        {
+          "keyword": "人类",
+          "score": 0.478732
+        },
+        {
+          "keyword": "一口气了解",
+          "score": 0.475645
+        },
+        {
+          "keyword": "人类生命诞生的整个过程",
+          "score": 0.474983
+        },
+        {
+          "keyword": "科普",
+          "score": 0.474387
+        },
+        {
+          "keyword": "知识科普",
+          "score": 0.472287
+        },
+        {
+          "keyword": "知识分享",
+          "score": 0.44452
+        }
+      ]
+    },
+    {
+      "id": "7584511334205623598",
+      "source": "videos\\7584511334205623598\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "知识科普",
+          "score": 0.514356
+        },
+        {
+          "keyword": "传统文化",
+          "score": 0.505111
+        },
+        {
+          "keyword": "有啥区别",
+          "score": 0.501781
+        },
+        {
+          "keyword": "人文社科",
+          "score": 0.496366
+        },
+        {
+          "keyword": "知识年终盘点",
+          "score": 0.493543
+        },
+        {
+          "keyword": "涨知识",
+          "score": 0.489616
+        },
+        {
+          "keyword": "文脉里的中国",
+          "score": 0.475981
+        },
+        {
+          "keyword": "抖音知识年终大赏",
+          "score": 0.456757
+        }
+      ]
+    },
+    {
+      "id": "7624515337819671862",
+      "source": "videos\\7624515337819671862\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "辟谣",
+          "score": 0.512784
+        },
+        {
+          "keyword": "知识科普",
+          "score": 0.510627
+        },
+        {
+          "keyword": "冷知识",
+          "score": 0.507627
+        },
+        {
+          "keyword": "科普",
+          "score": 0.503894
+        },
+        {
+          "keyword": "海带",
+          "score": 0.503842
+        },
+        {
+          "keyword": "释放硫酸",
+          "score": 0.500892
+        },
+        {
+          "keyword": "吞噬植物",
+          "score": 0.496417
+        },
+        {
+          "keyword": "不是植物的海带还能是什么",
+          "score": 0.492122
+        }
+      ]
+    },
+    {
+      "id": "7621183643477642536",
+      "source": "videos\\7621183643477642536\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "搞笑段子",
+          "score": 0.48747
+        },
+        {
+          "keyword": "天津话",
+          "score": 0.486541
+        },
+        {
+          "keyword": "搞笑",
+          "score": 0.474768
+        },
+        {
+          "keyword": "搞笑配音",
+          "score": 0.470092
+        },
+        {
+          "keyword": "万万想不到",
+          "score": 0.456344
+        },
+        {
+          "keyword": "一本正经飚方言",
+          "score": 0.441918
+        }
+      ]
+    },
+    {
+      "id": "7624366613285948698",
+      "source": "videos\\7624366613285948698\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "前一句还没有笑完",
+          "score": 0.507908
+        },
+        {
+          "keyword": "夫妻搞笑日常",
+          "score": 0.507557
+        },
+        {
+          "keyword": "搞笑段子",
+          "score": 0.498906
+        },
+        {
+          "keyword": "后一句就撵上来了",
+          "score": 0.498443
+        },
+        {
+          "keyword": "搞笑",
+          "score": 0.494995
+        },
+        {
+          "keyword": "幽默",
+          "score": 0.485322
+        },
+        {
+          "keyword": "天塌了",
+          "score": 0.46719
+        },
+        {
+          "keyword": "笑死我了",
+          "score": 0.464508
+        }
+      ]
+    },
+    {
+      "id": "7625865552347228005",
+      "source": "videos\\7625865552347228005\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "笑点低的上不了一点学",
+          "score": 0.52347
+        },
+        {
+          "keyword": "搞笑段子",
+          "score": 0.486989
+        },
+        {
+          "keyword": "学校",
+          "score": 0.485237
+        },
+        {
+          "keyword": "笑点低",
+          "score": 0.473193
+        }
+      ]
+    },
+    {
+      "id": "7620009417622355685",
+      "source": "videos\\7620009417622355685\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "搞笑",
+          "score": 0.50068
+        },
+        {
+          "keyword": "抽象",
+          "score": 0.497334
+        },
+        {
+          "keyword": "谢大尧",
+          "score": 0.494697
+        },
+        {
+          "keyword": "搞笑段子",
+          "score": 0.493392
+        },
+        {
+          "keyword": "神经病",
+          "score": 0.492537
+        },
+        {
+          "keyword": "哈哈哈哈哈哈我要笑死了",
+          "score": 0.488398
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.481847
+        }
+      ]
+    },
+    {
+      "id": "7384747856176942375",
+      "source": "videos\\7384747856176942375\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "搞笑段子",
+          "score": 0.467994
+        },
+        {
+          "keyword": "家庭搞笑",
+          "score": 0.465818
+        },
+        {
+          "keyword": "三步上篮",
+          "score": 0.464938
+        },
+        {
+          "keyword": "走步了",
+          "score": 0.462435
+        }
+      ]
+    },
+    {
+      "id": "7563964474965626162",
+      "source": "videos\\7563964474965626162\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "搞笑段子",
+          "score": 0.495669
+        },
+        {
+          "keyword": "李宗恒",
+          "score": 0.487275
+        },
+        {
+          "keyword": "《超高情商的面试》",
+          "score": 0.487174
+        },
+        {
+          "keyword": "一定要看到最后",
+          "score": 0.4638
+        },
+        {
+          "keyword": "狗狗日常",
+          "score": 0.496262
+        },
+        {
+          "keyword": "女生穿搭",
+          "score": 0.488751
+        },
+        {
+          "keyword": "腹肌训练",
+          "score": 0.481035
+        }
+      ]
+    },
+    {
+      "id": "7640062583919086479",
+      "source": "videos\\7640062583919086479\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "抽象",
+          "score": 0.470718
+        },
+        {
+          "keyword": "搞笑配音",
+          "score": 0.458245
+        },
+        {
+          "keyword": "搞笑段子",
+          "score": 0.450547
+        },
+        {
+          "keyword": "《找医生给我找好的呀》",
+          "score": 0.409779
+        },
+        {
+          "keyword": "演绎",
+          "score": 0.405242
+        }
+      ]
+    },
+    {
+      "id": "7613377338298135793",
+      "source": "videos\\7613377338298135793\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "老爸不愧为我的榜样",
+          "score": 0.51208
+        },
+        {
+          "keyword": "父子",
+          "score": 0.509967
+        },
+        {
+          "keyword": "老爸",
+          "score": 0.495942
+        },
+        {
+          "keyword": "搞笑段子",
+          "score": 0.492951
+        },
+        {
+          "keyword": "搞笑",
+          "score": 0.489038
+        },
+        {
+          "keyword": "一定要看到结尾",
+          "score": 0.481231
+        },
+        {
+          "keyword": "看到最后",
+          "score": 0.433346
+        }
+      ]
+    },
+    {
+      "id": "7579661026900406735",
+      "source": "videos\\7579661026900406735\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "抽象",
+          "score": 0.483666
+        },
+        {
+          "keyword": "万万没想到",
+          "score": 0.480622
+        },
+        {
+          "keyword": "大学生",
+          "score": 0.479347
+        },
+        {
+          "keyword": "搞笑段子",
+          "score": 0.478191
+        },
+        {
+          "keyword": "怎么不笑了",
+          "score": 0.473083
+        },
+        {
+          "keyword": "搞笑",
+          "score": 0.462107
+        },
+        {
+          "keyword": "宿舍",
+          "score": 0.456698
+        }
+      ]
+    },
+    {
+      "id": "7560713164715724082",
+      "source": "videos\\7560713164715724082\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "反差",
+          "score": 0.481674
+        },
+        {
+          "keyword": "抽象",
+          "score": 0.480794
+        },
+        {
+          "keyword": "搞笑段子",
+          "score": 0.480183
+        },
+        {
+          "keyword": "搞笑",
+          "score": 0.476199
+        },
+        {
+          "keyword": "《害怕",
+          "score": 0.465818
+        }
+      ]
+    },
+    {
+      "id": "7602939271742224805",
+      "source": "videos\\7602939271742224805\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "高智商",
+          "score": 0.475357
+        },
+        {
+          "keyword": "搞笑段子",
+          "score": 0.474364
+        },
+        {
+          "keyword": "哈哈哈哈哈哈我要笑死了",
+          "score": 0.46677
+        },
+        {
+          "keyword": "搞笑",
+          "score": 0.466135
+        },
+        {
+          "keyword": "看到最后",
+          "score": 0.421792
+        },
+        {
+          "keyword": "欧亨利式结尾",
+          "score": 0.406005
+        }
+      ]
+    },
+    {
+      "id": "7600417617912461233",
+      "source": "videos\\7600417617912461233\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "搞笑段子",
+          "score": 0.497576
+        },
+        {
+          "keyword": "爆笑开场",
+          "score": 0.485325
+        },
+        {
+          "keyword": "脱口秀",
+          "score": 0.484609
+        },
+        {
+          "keyword": "专治不开心",
+          "score": 0.474354
+        }
+      ]
+    },
+    {
+      "id": "7628228164082255350",
+      "source": "videos\\7628228164082255350\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.517097
+        },
+        {
+          "keyword": "把仰望开上墙一共分几步",
+          "score": 0.496045
+        },
+        {
+          "keyword": "电动车",
+          "score": 0.490635
+        },
+        {
+          "keyword": "越野",
+          "score": 0.4903
+        },
+        {
+          "keyword": "充电",
+          "score": 0.486994
+        },
+        {
+          "keyword": "提车",
+          "score": 0.48209
+        },
+        {
+          "keyword": "比亚迪",
+          "score": 0.481731
+        },
+        {
+          "keyword": "国产豪车有什么技术含量",
+          "score": 0.447457
+        }
+      ]
+    },
+    {
+      "id": "7643098987477683482",
+      "source": "videos\\7643098987477683482\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.510947
+        },
+        {
+          "keyword": "一条视频看明白",
+          "score": 0.454406
+        },
+        {
+          "keyword": "月销过万的合资新能源到底有何过人",
+          "score": 0.431267
+        }
+      ]
+    },
+    {
+      "id": "7643432727039579833",
+      "source": "videos\\7643432727039579833\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.523518
+        },
+        {
+          "keyword": "大虾沉浸式试车",
+          "score": 0.515712
+        },
+        {
+          "keyword": "小鹏汽车",
+          "score": 0.511243
+        },
+        {
+          "keyword": "98万起",
+          "score": 0.505189
+        },
+        {
+          "keyword": "标配双腔空悬+后轮转向+HUD+",
+          "score": 0.491256
+        },
+        {
+          "keyword": "26",
+          "score": 0.485396
+        },
+        {
+          "keyword": "小鹏GX",
+          "score": 0.479202
+        },
+        {
+          "keyword": "小鹏GX👉快来快来～带你沉浸式体",
+          "score": 0.467336
+        }
+      ]
+    },
+    {
+      "id": "7520257347655044379",
+      "source": "videos\\7520257347655044379\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.496472
+        },
+        {
+          "keyword": "关于YU7的一切",
+          "score": 0.482342
+        },
+        {
+          "keyword": "新车抢先看",
+          "score": 0.459063
+        },
+        {
+          "keyword": "一条视频看全了",
+          "score": 0.438415
+        }
+      ]
+    },
+    {
+      "id": "7565034050794589459",
+      "source": "videos\\7565034050794589459\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.513661
+        },
+        {
+          "keyword": "奔驰CLA",
+          "score": 0.496794
+        },
+        {
+          "keyword": "20多万的奔驰你让我感到陌生",
+          "score": 0.487716
+        },
+        {
+          "keyword": "提车",
+          "score": 0.482255
+        },
+        {
+          "keyword": "纯电动",
+          "score": 0.477392
+        },
+        {
+          "keyword": "是时候重新认识一下电动奔驰了",
+          "score": 0.433619
+        }
+      ]
+    },
+    {
+      "id": "7618903593327889664",
+      "source": "videos\\7618903593327889664\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.517716
+        },
+        {
+          "keyword": "评测",
+          "score": 0.500042
+        },
+        {
+          "keyword": "极氪",
+          "score": 0.496643
+        },
+        {
+          "keyword": "极氪9X到底戳中了什么需求",
+          "score": 0.482893
+        },
+        {
+          "keyword": "深度车评",
+          "score": 0.477614
+        },
+        {
+          "keyword": "深度",
+          "score": 0.466394
+        },
+        {
+          "keyword": "9X",
+          "score": 0.465705
+        },
+        {
+          "keyword": "争议越大卖得越好",
+          "score": 0.461803
+        }
+      ]
+    },
+    {
+      "id": "7597758047066393875",
+      "source": "videos\\7597758047066393875\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.510942
+        },
+        {
+          "keyword": "奥迪R8",
+          "score": 0.496075
+        },
+        {
+          "keyword": "“圈出你身边的小富婆给你买”",
+          "score": 0.491362
+        },
+        {
+          "keyword": "梦中情车",
+          "score": 0.48046
+        },
+        {
+          "keyword": "dou是好车",
+          "score": 0.479465
+        },
+        {
+          "keyword": "纯欲天花板",
+          "score": 0.464571
+        },
+        {
+          "keyword": "奥迪",
+          "score": 0.45604
+        }
+      ]
+    },
+    {
+      "id": "7642502198719313637",
+      "source": "videos\\7642502198719313637\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "@小米汽车",
+          "score": 0.524181
+        },
+        {
+          "keyword": "小米YU7GT首发评测",
+          "score": 0.51507
+        },
+        {
+          "keyword": "汽车评测",
+          "score": 0.514656
+        },
+        {
+          "keyword": "GT首试",
+          "score": 0.481906
+        },
+        {
+          "keyword": "YU7",
+          "score": 0.475992
+        },
+        {
+          "keyword": "最快量产SUV开起来怎么样",
+          "score": 0.466733
+        }
+      ]
+    },
+    {
+      "id": "7600328338896375075",
+      "source": "videos\\7600328338896375075\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.533186
+        },
+        {
+          "keyword": "RAV4",
+          "score": 0.52591
+        },
+        {
+          "keyword": "丰田荣放rav4",
+          "score": 0.519954
+        },
+        {
+          "keyword": "试驾评测",
+          "score": 0.512884
+        },
+        {
+          "keyword": "不折腾人的RAV4",
+          "score": 0.508324
+        },
+        {
+          "keyword": "丰田荣放",
+          "score": 0.499612
+        },
+        {
+          "keyword": "长途及非铺装路面之间找到了一个非",
+          "score": 0.496362
+        },
+        {
+          "keyword": "我们认为这台车在城市",
+          "score": 0.49468
+        }
+      ]
+    },
+    {
+      "id": "7587754673466019081",
+      "source": "videos\\7587754673466019081\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车评测",
+          "score": 0.499532
+        },
+        {
+          "keyword": "RS7",
+          "score": 0.47896
+        },
+        {
+          "keyword": "只为RS7夜不能寐",
+          "score": 0.47706
+        },
+        {
+          "keyword": "Audi",
+          "score": 0.473297
+        },
+        {
+          "keyword": "男人的玩具",
+          "score": 0.471624
+        },
+        {
+          "keyword": "V8",
+          "score": 0.462216
+        },
+        {
+          "keyword": "不为感情流一滴泪",
+          "score": 0.456518
+        },
+        {
+          "keyword": "奥迪",
+          "score": 0.441591
+        }
+      ]
+    },
+    {
+      "id": "7613152919105326379",
+      "source": "videos\\7613152919105326379\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "汽车知识",
+          "score": 0.519849
+        },
+        {
+          "keyword": "汽车评测",
+          "score": 0.516842
+        },
+        {
+          "keyword": "宝马M4",
+          "score": 0.515453
+        },
+        {
+          "keyword": "dou是好车",
+          "score": 0.502629
+        },
+        {
+          "keyword": "一分钟带你了解",
+          "score": 0.49675
+        },
+        {
+          "keyword": "宝马",
+          "score": 0.495129
+        },
+        {
+          "keyword": "“地表最强把妹王是谁",
+          "score": 0.486322
+        },
+        {
+          "keyword": "Mpower",
+          "score": 0.473101
+        }
+      ]
+    },
+    {
+      "id": "7639298673129573682",
+      "source": "videos\\7639298673129573682\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "美妆模范生",
+          "score": 0.47681
+        },
+        {
+          "keyword": "每个部位的重点步骤",
+          "score": 0.473812
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.466924
+        },
+        {
+          "keyword": "超详细全流程步骤拆解",
+          "score": 0.463447
+        },
+        {
+          "keyword": "重点解析大集合",
+          "score": 0.463418
+        },
+        {
+          "keyword": "日常全妆教程",
+          "score": 0.459091
+        },
+        {
+          "keyword": "迟到1000天的作业来了",
+          "score": 0.456537
+        },
+        {
+          "keyword": "抖音美妆春夏宝藏",
+          "score": 0.456474
+        }
+      ]
+    },
+    {
+      "id": "7643279560682851647",
+      "source": "videos\\7643279560682851647\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "韩妆",
+          "score": 0.469074
+        },
+        {
+          "keyword": "美妆模范生",
+          "score": 0.468981
+        },
+        {
+          "keyword": "妆容分享",
+          "score": 0.453755
+        },
+        {
+          "keyword": "化完满头小汗的全妆跟练",
+          "score": 0.452531
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.449848
+        },
+        {
+          "keyword": "谁敢看",
+          "score": 0.435299
+        },
+        {
+          "keyword": "新手化妆教程",
+          "score": 0.426071
+        }
+      ]
+    },
+    {
+      "id": "7532837816289545482",
+      "source": "videos\\7532837816289545482\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "淡妆",
+          "score": 0.469977
+        },
+        {
+          "keyword": "0基础新手7min淡妆跟练",
+          "score": 0.460654
+        },
+        {
+          "keyword": "潮妆研究所",
+          "score": 0.457565
+        },
+        {
+          "keyword": "妆容教程",
+          "score": 0.449259
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.440228
+        },
+        {
+          "keyword": "变美小技巧",
+          "score": 0.432894
+        },
+        {
+          "keyword": "巨详细巨简单",
+          "score": 0.430389
+        },
+        {
+          "keyword": "新手化妆教程",
+          "score": 0.429866
+        }
+      ]
+    },
+    {
+      "id": "7262663983516126524",
+      "source": "videos\\7262663983516126524\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "下次化妆打开这个视频跟着画就好",
+          "score": 0.451504
+        },
+        {
+          "keyword": "美妆",
+          "score": 0.448913
+        },
+        {
+          "keyword": "化妆新手零基础教程",
+          "score": 0.433032
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.43115
+        },
+        {
+          "keyword": "新手化妆步骤",
+          "score": 0.430749
+        },
+        {
+          "keyword": "巨无敌详细的新手淡妆教程来啦",
+          "score": 0.418949
+        },
+        {
+          "keyword": "新手化妆教程",
+          "score": 0.417284
+        },
+        {
+          "keyword": "化妆技巧",
+          "score": 0.414481
+        }
+      ]
+    },
+    {
+      "id": "7615269547390195557",
+      "source": "videos\\7615269547390195557\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "美妆模范生",
+          "score": 0.462858
+        },
+        {
+          "keyword": "方圆脸",
+          "score": 0.443601
+        },
+        {
+          "keyword": "dou上热门",
+          "score": 0.435585
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.434757
+        },
+        {
+          "keyword": "美妆百万新星计划",
+          "score": 0.432403
+        },
+        {
+          "keyword": "巨详细全妆跟练｜普通女生速学清冷",
+          "score": 0.430211
+        },
+        {
+          "keyword": "新手化妆教程",
+          "score": 0.418724
+        }
+      ]
+    },
+    {
+      "id": "7595875661857945690",
+      "source": "videos\\7595875661857945690\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "狐系眼妆",
+          "score": 0.466336
+        },
+        {
+          "keyword": "新年妆没有不红的义务",
+          "score": 0.464457
+        },
+        {
+          "keyword": "妆教跟练",
+          "score": 0.446882
+        },
+        {
+          "keyword": "狐系红妆的权威后知后觉…",
+          "score": 0.444755
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.444571
+        }
+      ]
+    },
+    {
+      "id": "7625583267706776939",
+      "source": "videos\\7625583267706776939\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "人鱼姬珍珠心愿美瞳",
+          "score": 0.506784
+        },
+        {
+          "keyword": "姐感转场灵感@翻新酱",
+          "score": 0.476907
+        },
+        {
+          "keyword": "高智野心并存｜骨相轮廓感小烟熏",
+          "score": 0.469959
+        },
+        {
+          "keyword": "老婆们妆2改妆3超详细教程来啦",
+          "score": 0.467663
+        },
+        {
+          "keyword": "无效化妆vs有效化妆",
+          "score": 0.466074
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.464962
+        },
+        {
+          "keyword": "妆教",
+          "score": 0.463841
+        },
+        {
+          "keyword": "新手化妆教程",
+          "score": 0.434597
+        }
+      ]
+    },
+    {
+      "id": "7498672418501807372",
+      "source": "videos\\7498672418501807372\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "level",
+          "score": 0.48974
+        },
+        {
+          "keyword": "妆容",
+          "score": 0.48402
+        },
+        {
+          "keyword": "内双眼妆",
+          "score": 0.476767
+        },
+        {
+          "keyword": "妆容分享",
+          "score": 0.46409
+        },
+        {
+          "keyword": "美妆",
+          "score": 0.463802
+        },
+        {
+          "keyword": "变妆",
+          "score": 0.450526
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.446693
+        },
+        {
+          "keyword": "本人的换头技术已经next",
+          "score": 0.434656
+        }
+      ]
+    },
+    {
+      "id": "7268585690617679139",
+      "source": "videos\\7268585690617679139\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "化妆",
+          "score": 0.470283
+        },
+        {
+          "keyword": "妆前妆后",
+          "score": 0.464583
+        },
+        {
+          "keyword": "妆容分享",
+          "score": 0.463625
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.461801
+        },
+        {
+          "keyword": "妆教",
+          "score": 0.461478
+        },
+        {
+          "keyword": "美妆",
+          "score": 0.458705
+        },
+        {
+          "keyword": "快来学",
+          "score": 0.450461
+        },
+        {
+          "keyword": "谁催我发的妆教",
+          "score": 0.43927
+        }
+      ]
+    },
+    {
+      "id": "7630103781162215537",
+      "source": "videos\\7630103781162215537\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "抛开化妆来谈",
+          "score": 0.456337
+        },
+        {
+          "keyword": "妆教",
+          "score": 0.455634
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.45476
+        },
+        {
+          "keyword": "蓝瞳",
+          "score": 0.445679
+        },
+        {
+          "keyword": "我确实抛不开",
+          "score": 0.426131
+        },
+        {
+          "keyword": "轻欧美",
+          "score": 0.423642
+        }
+      ]
+    },
+    {
+      "id": "7586205655829155118",
+      "source": "videos\\7586205655829155118\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "伪素颜",
+          "score": 0.48112
+        },
+        {
+          "keyword": "男生妆教",
+          "score": 0.474825
+        },
+        {
+          "keyword": "刘必爱用物",
+          "score": 0.473799
+        },
+        {
+          "keyword": "八分钟男生伪素颜教程",
+          "score": 0.470197
+        },
+        {
+          "keyword": "美妆",
+          "score": 0.460247
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.449401
+        },
+        {
+          "keyword": "抖音美妆年度宝藏",
+          "score": 0.444921
+        }
+      ]
+    },
+    {
+      "id": "7589657153058872562",
+      "source": "videos\\7589657153058872562\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "方圆脸｜新手老婆速学甜欲小野猫妆",
+          "score": 0.49615
+        },
+        {
+          "keyword": "小猫妆",
+          "score": 0.48812
+        },
+        {
+          "keyword": "姐感妆容",
+          "score": 0.480013
+        },
+        {
+          "keyword": "妆教",
+          "score": 0.459339
+        },
+        {
+          "keyword": "美妆",
+          "score": 0.450486
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.448787
+        },
+        {
+          "keyword": "超上镜",
+          "score": 0.440844
+        },
+        {
+          "keyword": "新手化妆教程",
+          "score": 0.43335
+        }
+      ]
+    },
+    {
+      "id": "7634142287135624475",
+      "source": "videos\\7634142287135624475\\video_360p.mp4",
+      "frameCount": 3,
+      "searches": [
+        {
+          "keyword": "日常妆",
+          "score": 0.46992
+        },
+        {
+          "keyword": "美妆",
+          "score": 0.466916
+        },
+        {
+          "keyword": "新手",
+          "score": 0.466837
+        },
+        {
+          "keyword": "跟练",
+          "score": 0.465776
+        },
+        {
+          "keyword": "无剪辑",
+          "score": 0.458828
+        },
+        {
+          "keyword": "美妆教程",
+          "score": 0.456431
+        },
+        {
+          "keyword": "无剪辑巨细版",
+          "score": 0.447615
+        },
+        {
+          "keyword": "30min男生日常全妆跟练",
+          "score": 0.442539
+        }
+      ]
+    }
+  ]
+}

@@ -22,6 +22,7 @@ import androidx.media3.exoplayer.metadata.MetadataOutput
 import androidx.media3.exoplayer.text.TextOutput
 import androidx.media3.exoplayer.video.VideoRendererEventListener
 import com.example.flower_show.util.MetricsCollector
+import com.example.flower_show.util.PerformanceDiagnostics
 import kotlin.math.abs
 
 class FeedPreloadController(
@@ -65,6 +66,8 @@ class FeedPreloadController(
             .distinctBy { it.url }
         val desiredUrls = desiredRequests.mapTo(mutableSetOf()) { it.url }
         val currentUrl = currentPlayingUrl
+        var removedCount = 0
+        var addedCount = 0
 
         val iterator = trackedMediaItemsByUrl.iterator()
         while (iterator.hasNext()) {
@@ -72,6 +75,7 @@ class FeedPreloadController(
             if (url !in desiredUrls && url != currentUrl) {
                 preloadManager.remove(mediaItem)
                 iterator.remove()
+                removedCount += 1
             }
         }
 
@@ -80,11 +84,22 @@ class FeedPreloadController(
                 val mediaItem = MediaItem.fromUri(request.url)
                 preloadManager.add(mediaItem, request.index)
                 trackedMediaItemsByUrl[request.url] = mediaItem
+                addedCount += 1
             }
         }
 
         preloadManager.invalidate()
         MetricsCollector.record("preload_window_size", desiredRequests.size.toLong())
+        PerformanceDiagnostics.event(
+            "preload_window",
+            mapOf(
+                "currentIndex" to currentIndex,
+                "desiredSize" to desiredRequests.size,
+                "trackedSize" to trackedMediaItemsByUrl.size,
+                "added" to addedCount,
+                "removed" to removedCount,
+            ),
+        )
         Log.d(TAG, "Preload window current=$currentIndex size=${desiredRequests.size}")
     }
 

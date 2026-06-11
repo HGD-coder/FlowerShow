@@ -2,10 +2,13 @@ package com.example.flower_show.player
 
 import android.content.Context
 import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
+import com.example.flower_show.util.PerformanceDiagnostics
+import com.example.flower_show.util.PerformanceExperimentConfig
 import java.io.File
 
 /**
@@ -29,20 +32,47 @@ object CacheManager {
                     getCacheDirectory(appContext),
                     LeastRecentlyUsedCacheEvictor(MAX_CACHE_SIZE_BYTES),
                     getDatabaseProvider(appContext),
-                ).also { cache = it }
+                ).also {
+                    cache = it
+                    PerformanceDiagnostics.event(
+                        "cache_initialized",
+                        mapOf(
+                            "directory" to getCacheDirectory(appContext).absolutePath,
+                            "maxSizeBytes" to MAX_CACHE_SIZE_BYTES,
+                            "usedBytes" to it.cacheSpace,
+                        ),
+                    )
+                }
             }
         }
     }
 
+    fun createDataSourceFactory(context: Context): DataSource.Factory {
+        val profile = PerformanceExperimentConfig.current
+        if (!profile.enableCache) {
+            PerformanceDiagnostics.event(
+                "cache_disabled",
+                mapOf("profile" to profile.id),
+            )
+            return createUpstreamFactory()
+        }
+        return createCacheDataSourceFactory(context)
+    }
+
     fun createCacheDataSourceFactory(context: Context): CacheDataSource.Factory {
-        val upstreamFactory = DefaultHttpDataSource.Factory()
-            .setTransferListener(CacheMetricsTracker.upstreamTransferListener)
+        val upstreamFactory = createUpstreamFactory()
 
         return CacheDataSource.Factory()
             .setCache(getInstance(context))
             .setUpstreamDataSourceFactory(upstreamFactory)
             .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
             .setEventListener(CacheMetricsTracker.cacheEventListener)
+    }
+
+    private fun createUpstreamFactory(): DefaultHttpDataSource.Factory {
+        val upstreamFactory = DefaultHttpDataSource.Factory()
+            .setTransferListener(CacheMetricsTracker.upstreamTransferListener)
+        return upstreamFactory
     }
 
     fun getCacheDirectory(context: Context): File {

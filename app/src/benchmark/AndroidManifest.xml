@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <!--
+            Some OEM builds do not deliver shell ProfileInstaller broadcasts when the
+            library receiver keeps android.permission.DUMP. This override is limited
+            to the benchmark APK so Macrobenchmark can install profiles reliably.
+        -->
+        <receiver
+            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+            tools:node="merge"
+            tools:remove="android:permission" />
+    </application>
+</manifest>

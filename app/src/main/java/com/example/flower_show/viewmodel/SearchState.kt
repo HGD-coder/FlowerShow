@@ -7,6 +7,7 @@ import com.example.flower_show.model.CardItem
  */
 data class SearchState(
     val history: List<String> = emptyList(),
+    val guessCandidates: List<String> = emptyList(),
     val results: List<CardItem> = emptyList(),
     val isSearching: Boolean = false,
     val currentKeyword: String = "",

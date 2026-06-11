@@ -2,6 +2,11 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    jacoco
+}
+
+jacoco {
+    toolVersion = "0.8.12"
 }
 
 android {
@@ -18,6 +23,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+            enableAndroidTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -47,6 +56,56 @@ android {
     }
 }
 
+val jacocoCoverageExclusions = listOf(
+    "**/R.class",
+    "**/R$*.class",
+    "**/BuildConfig.*",
+    "**/Manifest*.*",
+    "**/*Test*.*",
+    "**/*Preview*.*",
+    "**/ComposableSingletons*.*",
+)
+
+tasks.withType<Test>().configureEach {
+    useJUnit()
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    group = "verification"
+    description = "Generates Jacoco coverage reports for app debug unit tests."
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    sourceDirectories.setFrom(files("src/main/java"))
+    classDirectories.setFrom(
+        files(
+            fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+                exclude(jacocoCoverageExclusions)
+            },
+            fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
+                exclude(jacocoCoverageExclusions)
+            },
+        ),
+    )
+    executionData.setFrom(
+        fileTree(layout.buildDirectory) {
+            include(
+                "jacoco/testDebugUnitTest.exec",
+                "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+            )
+        },
+    )
+}
+
+tasks.withType<Test>().matching { it.name == "testDebugUnitTest" }.configureEach {
+    finalizedBy("jacocoTestReport")
+}
+
 dependencies {
     // Compose BOM
     implementation(platform(libs.androidx.compose.bom))
@@ -70,12 +129,16 @@ dependencies {
 
     // Performance tracing for Macrobenchmark custom metrics
     implementation(libs.androidx.tracing.ktx)
+    implementation(libs.androidx.profileinstaller)
 
     // Coil (Compose image loading)
     implementation(libs.coil.compose)
 
     // Gson (JSON)
     implementation(libs.gson)
+
+    // On-device embedding inference
+    implementation(libs.onnxruntime.android)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

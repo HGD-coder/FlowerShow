@@ -12,6 +12,7 @@ data class VideoState(
     val hasMore: Boolean = true,
     val currentPosition: Int = 0,
     val isPlayerReady: Boolean = false,
+    val playbackSpeed: Float = 1f,
     val error: String? = null,
     val toastMessage: String? = null,
     val targetVideoId: String? = null,

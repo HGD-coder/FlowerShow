@@ -56,17 +56,17 @@ fun ImageCard(
                 ),
         )
 
-        TikTokCaptionPanel(
+        VideoCaptionPanel(
             author = card.author,
             title = card.title,
-            subtitle = "This is a TikTok subtitle.",
+            subtitle = null,
             onSubtitleClick = null,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 24.dp, end = 98.dp, bottom = 112.dp),
         )
 
-        TikTokActionRail(
+        VideoActionRail(
             avatarUrl = card.imageUrl,
             isLiked = isLiked,
             isCollected = isCollected,

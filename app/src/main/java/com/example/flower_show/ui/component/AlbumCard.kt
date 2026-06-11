@@ -64,20 +64,23 @@ fun AlbumCard(
         SlideProgressBar(
             slideCount = card.slideCount,
             currentSlide = pagerState.currentPage,
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 224.dp),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 74.dp),
         )
 
-        TikTokCaptionPanel(
+        VideoCaptionPanel(
             author = card.author,
             title = card.title,
-            subtitle = card.recommendWords.firstOrNull() ?: "This is a TikTok subtitle.",
+            subtitle = null,
             onSubtitleClick = null,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 24.dp, end = 98.dp, bottom = 112.dp),
         )
 
-        TikTokActionRail(
+        VideoActionRail(
             avatarUrl = card.avatarUrl,
             isLiked = isLiked,
             isCollected = isCollected,

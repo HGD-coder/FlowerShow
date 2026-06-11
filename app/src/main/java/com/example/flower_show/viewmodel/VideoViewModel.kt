@@ -6,6 +6,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flower_show.data.repository.IVideoRepository
 import com.example.flower_show.data.repository.RepositoryFactory
+import com.example.flower_show.model.AlbumCardItem
+import com.example.flower_show.model.CardItem
+import com.example.flower_show.model.ImageCardItem
 import com.example.flower_show.model.QualityMode
 import com.example.flower_show.model.Result
 import com.example.flower_show.model.VideoItem
@@ -15,6 +18,7 @@ import com.example.flower_show.player.PlayerCallback
 import com.example.flower_show.player.VideoPlayerManager
 import com.example.flower_show.player.VideoPreloadRequest
 import com.example.flower_show.util.MetricsCollector
+import com.example.flower_show.util.PerformanceDiagnostics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -65,6 +69,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         private const val COOLDOWN_MS = 30_000L
         private const val PRELOAD_BEHIND_COUNT = 1
         private const val PRELOAD_AHEAD_COUNT = 3
+        private val PLAYBACK_SPEEDS = listOf(0.5f, 1f, 1.5f, 2f)
     }
 
     private val qualityCallback = PlayerCallback { event ->
@@ -93,6 +98,8 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         playerManager.addCallback(qualityCallback)
+        playerManager.initialize()
+        _state.update { it.copy(isPlayerReady = true) }
         loadFirstPage(refreshOrder = true)
     }
 
@@ -106,6 +113,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             is VideoIntent.ResumePlayer -> resumePlayer()
             is VideoIntent.TogglePlayPause -> playerManager.togglePlayPause()
             is VideoIntent.SeekTo -> playerManager.seekTo(intent.positionMs)
+            is VideoIntent.SetPlaybackSpeed -> setPlaybackSpeed(intent.speed)
             is VideoIntent.DismissError -> _state.update { it.copy(error = null) }
             is VideoIntent.DismissToast -> _state.update { it.copy(toastMessage = null) }
             is VideoIntent.JumpToVideo -> jumpToVideo(intent.videoId)
@@ -113,6 +121,14 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             is VideoIntent.SelectManualQuality -> selectManualQuality(intent.name, intent.url)
             is VideoIntent.ReportBuffering -> onBufferingReported(intent.durationMs)
         }
+    }
+
+    private fun setPlaybackSpeed(speed: Float) {
+        val target = PLAYBACK_SPEEDS.firstOrNull { it == speed } ?: return
+        playerManager.setPlaybackSpeed(target)
+        _state.update { it.copy(playbackSpeed = target) }
+        MetricsCollector.recordLabel("playback_speed", "${target}x")
+        PerformanceDiagnostics.recordLabel("playback_speed", "${target}x")
     }
 
     private fun selectManualQuality(name: String, url: String) {
@@ -130,9 +146,10 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                 currentQualityName = target.name,
             )
         }
-        playerManager.setQuality(target.name, target.url)
+        playerManager.setQuality(target.name, target.url, trigger = "manual")
         refreshPreloadWindow()
         MetricsCollector.recordLabel("manual_quality", target.name)
+        PerformanceDiagnostics.recordLabel("manual_quality", target.name)
         Log.d(TAG, "Manual quality: ${target.name}")
     }
 
@@ -229,11 +246,12 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
         showToast: Boolean,
     ) {
         _state.update { it.copy(currentQualityName = target.name) }
-        playerManager.setQuality(target.name, target.url)
+        playerManager.setQuality(target.name, target.url, trigger = "auto_${direction}_$reason")
         lastAutoSwitchMs = System.currentTimeMillis()
         stablePlaybackSinceMs = 0
         refreshPreloadWindow()
         MetricsCollector.recordLabel("auto_quality", "${direction}_${target.name}_$reason")
+        PerformanceDiagnostics.recordLabel("auto_quality", "${direction}_${target.name}_$reason")
         Log.d(TAG, "Auto quality $direction -> ${target.name}, reason=$reason")
         if (showToast) {
             _state.update { it.copy(toastMessage = "网络波动，已自动切换到 ${target.name}") }
@@ -301,6 +319,9 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
                     currentPage = 1
+                    if (result.data.isNotEmpty()) {
+                        playPosition(0)
+                    }
                 }
 
                 is Result.Error -> withContext(Dispatchers.Main) {
@@ -342,7 +363,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun jumpToVideo(videoId: String) {
-        val existingIndex = _state.value.items.indexOfFirst { it is VideoItem && it.id == videoId }
+        val existingIndex = _state.value.items.indexOfFirst { it.matchesTarget(videoId) }
         if (existingIndex >= 0) {
             _state.update { it.copy(targetVideoId = null, currentPosition = existingIndex) }
             playPosition(existingIndex)
@@ -359,7 +380,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                 when (val result = repository.loadFeed(nextPage, PAGE_SIZE)) {
                     is Result.Success -> {
                         val newItems = s.items + result.data
-                        val index = newItems.indexOfFirst { it is VideoItem && it.id == videoId }
+                        val index = newItems.indexOfFirst { it.matchesTarget(videoId) }
                         if (index >= 0) {
                             found = true
                             withContext(Dispatchers.Main) {
@@ -414,8 +435,40 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
     private fun playPosition(position: Int) {
         val item = _state.value.items.getOrNull(position) ?: return
         if (item !is VideoItem) {
-            playerManager.pause()
+            val bgMusicUrl = backgroundMusicUrlFor(item)
+            _state.update {
+                it.copy(
+                    currentPosition = position,
+                    availableQualities = emptyList(),
+                    currentQualityName = null,
+                )
+            }
             stopProgress()
+            stopAutoQuality()
+            if (bgMusicUrl.isBlank()) {
+                playerManager.pause()
+                playingPosition = -1
+                MetricsCollector.recordLabel("image_card_music", "missing")
+                return
+            }
+
+            resetQualityRuntimeState()
+            playerManager.play(
+                videoUrl = bgMusicUrl,
+                feedIndex = position,
+                videoId = cardPlaybackId(item),
+                qualityName = "bg_music",
+            )
+            playingPosition = position
+            MetricsCollector.recordLabel("image_card_music", "playing")
+            PerformanceDiagnostics.event(
+                "image_card_music_play",
+                mapOf(
+                    "feedIndex" to position,
+                    "itemType" to item.javaClass.simpleName,
+                    "itemId" to cardPlaybackId(item),
+                ),
+            )
             return
         }
 
@@ -431,6 +484,15 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                 currentQualityName = displayName,
             )
         }
+        PerformanceDiagnostics.event(
+            "feed_play_position",
+            mapOf(
+                "feedIndex" to position,
+                "videoId" to item.id,
+                "quality" to displayName,
+                "qualityCount" to qualities.size,
+            ),
+        )
         resetQualityRuntimeState()
 
         if (!playerManager.isInitialized) {
@@ -438,7 +500,12 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                 playerManager.initialize()
                 withContext(Dispatchers.Main) {
                     _state.update { it.copy(isPlayerReady = true) }
-                    playerManager.play(playbackUrl, position)
+                    playerManager.play(
+                        videoUrl = playbackUrl,
+                        feedIndex = position,
+                        videoId = item.id,
+                        qualityName = displayName,
+                    )
                     playingPosition = position
                     startProgress()
                     refreshPreloadWindow()
@@ -448,11 +515,41 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        playerManager.play(playbackUrl, position)
+        playerManager.play(
+            videoUrl = playbackUrl,
+            feedIndex = position,
+            videoId = item.id,
+            qualityName = displayName,
+        )
         playingPosition = position
         startProgress()
         refreshPreloadWindow()
         if (_state.value.qualityMode == QualityMode.Auto) evaluateAutoQuality()
+    }
+
+    private fun backgroundMusicUrlFor(item: CardItem): String {
+        return when (item) {
+            is ImageCardItem -> item.bgMusicUrl
+            is AlbumCardItem -> item.bgMusicUrl
+            else -> ""
+        }
+    }
+
+    private fun cardPlaybackId(item: CardItem): String? {
+        return when (item) {
+            is ImageCardItem -> "image:${item.id}"
+            is AlbumCardItem -> "album:${item.id}"
+            else -> null
+        }
+    }
+
+    private fun CardItem.matchesTarget(target: String): Boolean {
+        return when (this) {
+            is VideoItem -> target == id || target == "video:$id"
+            is ImageCardItem -> target == id || target == "image:$id"
+            is AlbumCardItem -> target == id || target == "album:$id"
+            else -> false
+        }
     }
 
     private fun qualitiesFor(item: VideoItem): List<VideoQuality> {
@@ -521,6 +618,7 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
             Log.d("FlowerMetrics", report)
             val file = java.io.File(getApplication<Application>().cacheDir, "flower_metrics.txt")
             file.writeText(report)
+            PerformanceDiagnostics.flushToDisk(getApplication(), report)
         } catch (_: Exception) {
         }
     }

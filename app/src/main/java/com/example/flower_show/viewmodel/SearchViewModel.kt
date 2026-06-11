@@ -38,6 +38,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     init {
+        loadGuessCandidates()
         loadHistory()
     }
 
@@ -79,6 +80,13 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             .onFailure { Log.w(TAG, "Failed to load search history", it) }
             .getOrDefault(emptyList())
         _state.update { it.copy(history = history) }
+    }
+
+    private fun loadGuessCandidates() {
+        val candidates = runCatching { repository.getGuessCandidates() }
+            .onFailure { Log.w(TAG, "Failed to load guess candidates", it) }
+            .getOrDefault(emptyList())
+        _state.update { it.copy(guessCandidates = candidates) }
     }
 
     private fun deleteHistory(keyword: String) {

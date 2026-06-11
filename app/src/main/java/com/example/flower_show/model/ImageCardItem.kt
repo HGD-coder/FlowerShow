@@ -10,6 +10,7 @@ data class ImageCardItem(
     val imageUrl: String,
     val likes: Int = 0,
     val comments: Int = 0,
+    val bgMusicUrl: String = "",
 ) : CardItem {
     override val itemType: CardItem = CardItem.TypeImage
 }

@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,6 +46,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.flower_show.model.AlbumCardItem
+import com.example.flower_show.model.CardItem
+import com.example.flower_show.model.ImageCardItem
 import com.example.flower_show.model.VideoItem
 import com.example.flower_show.ui.component.FlowerImageSlot
 import com.example.flower_show.ui.component.SearchIcon
@@ -81,6 +85,7 @@ fun SearchResultScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .testTag("search_result_screen")
             .background(ArcticColors.Background)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
     ) {
@@ -98,17 +103,20 @@ fun SearchResultScreen(
             state.error != null -> ResultStatusText(state.error.orEmpty(), emphasis = true)
             state.results.isEmpty() -> ResultStatusText("\u6682\u65e0\u641c\u7d22\u7ed3\u679c")
             else -> {
-                val videos = state.results
-                    .filterIsInstance<VideoItem>()
-                    .distinctBy { it.id }
+                val results = state.results.distinctBy { it.searchResultStableKey() }
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag("search_result_list"),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    items(videos, key = { it.id }) { item ->
+                    itemsIndexed(
+                        items = results,
+                        key = { index, item -> "${item.searchResultStableKey()}:$index" },
+                    ) { _, item ->
                         SearchResultRow(
-                            video = item,
-                            onClick = { onResultClick(item.id) },
+                            item = item,
+                            onClick = { onResultClick(item.searchNavigationTarget()) },
                         )
                     }
                 }
@@ -137,6 +145,7 @@ private fun SearchResultHeader(
             fontWeight = FontWeight.Light,
             modifier = Modifier
                 .clickable(onClick = onBack)
+                .testTag("result_back_button")
                 .padding(end = 12.dp),
         )
 
@@ -162,7 +171,9 @@ private fun SearchResultHeader(
                     color = ArcticColors.OnSurface,
                     fontSize = 16.sp,
                 ),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("result_search_input"),
                 decorationBox = { innerTextField ->
                     Box(contentAlignment = Alignment.CenterStart) {
                         if (input.isBlank()) {
@@ -183,6 +194,7 @@ private fun SearchResultHeader(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
+                    .testTag("result_search_submit_button")
                     .clickable(onClick = onSubmit)
                     .padding(horizontal = 10.dp, vertical = 8.dp),
             )
@@ -231,19 +243,20 @@ private fun ResultFilterChips() {
 
 @Composable
 private fun SearchResultRow(
-    video: VideoItem,
+    item: CardItem,
     onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("search_result_row_${item.searchResultStableKey()}")
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AsyncImage(
             model = rememberFlowerImageRequest(
-                data = video.preferredCoverUrl(),
+                data = item.searchThumbnailUrl(),
                 slot = FlowerImageSlot.SearchThumbnail,
             ),
             contentDescription = "\u7f29\u7565\u56fe",
@@ -256,7 +269,7 @@ private fun SearchResultRow(
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = video.title,
+                text = item.searchTitle(),
                 color = ArcticColors.OnSurface,
                 fontSize = 15.sp,
                 lineHeight = 20.sp,
@@ -265,7 +278,7 @@ private fun SearchResultRow(
             )
             Spacer(Modifier.height(5.dp))
             Text(
-                text = "@${video.author}",
+                text = "@${item.searchAuthor()}",
                 color = ArcticColors.Muted,
                 fontSize = 12.sp,
                 maxLines = 1,
@@ -273,7 +286,7 @@ private fun SearchResultRow(
             )
             Spacer(Modifier.height(5.dp))
             Text(
-                text = "${fmt(video.likes)}\u8d5e  \u00b7  ${fmt(video.comments)}\u8bc4\u8bba",
+                text = "${item.searchTypeLabel()}  \u00b7  ${fmt(item.searchLikes())}\u8d5e  \u00b7  ${fmt(item.searchComments())}\u8bc4\u8bba",
                 color = ArcticColors.Muted.copy(alpha = 0.82f),
                 fontSize = 12.sp,
             )
@@ -299,4 +312,79 @@ private fun fmt(n: Int): String {
     val major = n / 10000
     val minor = (n % 10000) / 1000
     return if (minor == 0) "$major\u4e07" else "$major.$minor\u4e07"
+}
+
+private fun CardItem.searchResultStableKey(): String {
+    return when (this) {
+        is VideoItem -> "video:${id.ifBlank { "$videoUrl|$title" }}"
+        is ImageCardItem -> "image:${id.ifBlank { imageUrl }}"
+        is AlbumCardItem -> "album:${id.ifBlank { slides.joinToString("|") { it.mediaUrl } }}"
+        CardItem.TypeVideo -> "type_video"
+        CardItem.TypeImage -> "type_image"
+        CardItem.TypeAlbum -> "type_album"
+    }
+}
+
+private fun CardItem.searchNavigationTarget(): String {
+    return when (this) {
+        is VideoItem -> id
+        is ImageCardItem -> "image:$id"
+        is AlbumCardItem -> "album:$id"
+        else -> searchResultStableKey()
+    }
+}
+
+private fun CardItem.searchThumbnailUrl(): String {
+    return when (this) {
+        is VideoItem -> preferredCoverUrl()
+        is ImageCardItem -> imageUrl
+        is AlbumCardItem -> slides.firstOrNull { it.isImage }?.mediaUrl
+            ?: slides.firstOrNull()?.mediaUrl.orEmpty()
+        else -> ""
+    }
+}
+
+private fun CardItem.searchTitle(): String {
+    return when (this) {
+        is VideoItem -> title
+        is ImageCardItem -> title
+        is AlbumCardItem -> title
+        else -> ""
+    }
+}
+
+private fun CardItem.searchAuthor(): String {
+    return when (this) {
+        is VideoItem -> author
+        is ImageCardItem -> author
+        is AlbumCardItem -> author
+        else -> ""
+    }
+}
+
+private fun CardItem.searchLikes(): Int {
+    return when (this) {
+        is VideoItem -> likes
+        is ImageCardItem -> likes
+        is AlbumCardItem -> likes
+        else -> 0
+    }
+}
+
+private fun CardItem.searchComments(): Int {
+    return when (this) {
+        is VideoItem -> comments
+        is ImageCardItem -> comments
+        is AlbumCardItem -> comments
+        else -> 0
+    }
+}
+
+private fun CardItem.searchTypeLabel(): String {
+    return when (this) {
+        is VideoItem -> "\u89c6\u9891"
+        is ImageCardItem -> "\u56fe\u6587"
+        is AlbumCardItem -> "\u56fe\u6587\u00b7${slideCount}\u5f20"
+        else -> "\u5185\u5bb9"
+    }
 }

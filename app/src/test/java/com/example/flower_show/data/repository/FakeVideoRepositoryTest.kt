@@ -1,8 +1,10 @@
 package com.example.flower_show.data.repository
 
+import com.example.flower_show.ai.VectorSearchEngine
 import org.junit.Assert.*
 import org.junit.Test
 import com.example.flower_show.model.AlbumCardItem
+import com.example.flower_show.model.AlbumSlide
 import com.example.flower_show.model.CardItem
 import com.example.flower_show.model.ImageCardItem
 import com.example.flower_show.model.Result
@@ -42,6 +44,72 @@ class FakeVideoRepositoryTest {
         val second = (repo.loadFeed(2, 5) as Result.Success).data.map { it.feedTestKey() }.toSet()
 
         assertTrue(first.intersect(second).isEmpty())
+    }
+
+    @Test
+    fun loadFeed_duplicateVideoIds_returnsUniqueItems() {
+        val duplicated = VideoItem(
+            id = "same-id",
+            title = "Duplicate video",
+            author = "Tester",
+            avatarUrl = "",
+            videoUrl = "https://example.com/same.mp4",
+        )
+        val repo = FakeVideoRepository.withVideos(
+            listOf(
+                duplicated,
+                duplicated.copy(title = "Duplicate video from source data"),
+                duplicated.copy(id = "other-id"),
+            ),
+        )
+
+        val result = repo.loadFeed(1, 10)
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            listOf("other-id", "same-id").sorted(),
+            (result as Result.Success).data.filterIsInstance<VideoItem>().map { it.id }.sorted(),
+        )
+    }
+
+    @Test
+    fun loadFeed_withVideoCovers_doesNotSynthesizeImageOrAlbumCards() {
+        val repo = FakeVideoRepository.withVideos(testVideosWithCovers())
+
+        val result = repo.loadFeed(1, 20)
+
+        assertTrue(result.isSuccess)
+        val data = (result as Result.Success).data
+        assertFalse(data.any { it is ImageCardItem })
+        assertFalse(data.any { it is AlbumCardItem })
+    }
+
+    @Test
+    fun loadFeed_withExplicitImageCards_includesImageAndAlbumCards() {
+        val image = ImageCardItem(
+            id = "image-1",
+            title = "Image card",
+            author = "Tester",
+            imageUrl = "https://example.com/image.jpg",
+        )
+        val album = AlbumCardItem(
+            id = "album-1",
+            title = "Album card",
+            author = "Tester",
+            avatarUrl = "",
+            slides = listOf(
+                AlbumSlide(AlbumSlide.TYPE_IMAGE, "https://example.com/album-1.jpg"),
+                AlbumSlide(AlbumSlide.TYPE_IMAGE, "https://example.com/album-2.jpg"),
+            ),
+        )
+        val repo = FakeVideoRepository.withFeedItems(testVideos().take(2) + image + album)
+
+        val result = repo.loadFeed(1, 20)
+
+        assertTrue(result.isSuccess)
+        val data = (result as Result.Success).data
+        assertTrue(data.any { it is ImageCardItem && it.id == "image-1" })
+        assertTrue(data.any { it is AlbumCardItem && it.id == "album-1" })
     }
 
     @Test
@@ -97,6 +165,38 @@ class FakeVideoRepositoryTest {
     }
 
     @Test
+    fun search_cookingKeyword_returnsRecipeResults() {
+        val repo = repo()
+        val result = repo.search("做饭")
+
+        assertTrue(result.isSuccess)
+        assertTrue((result as Result.Success).data.isNotEmpty())
+    }
+
+    @Test
+    fun search_albumCardKeyword_returnsAlbumResult() {
+        val album = AlbumCardItem(
+            id = "album-outfit",
+            title = "Outfit check spring look",
+            author = "Tester",
+            avatarUrl = "",
+            slides = listOf(
+                AlbumSlide(AlbumSlide.TYPE_IMAGE, "https://example.com/outfit-1.jpg"),
+                AlbumSlide(AlbumSlide.TYPE_IMAGE, "https://example.com/outfit-2.jpg"),
+            ),
+            tags = listOf("fashion", "ootd"),
+            recommendWords = listOf("spring outfit"),
+        )
+        val repo = FakeVideoRepository.withFeedItems(testVideos().take(2) + album)
+
+        val result = repo.search("outfit")
+
+        assertTrue(result.isSuccess)
+        val data = (result as Result.Success).data
+        assertTrue(data.any { it is AlbumCardItem && it.id == "album-outfit" })
+    }
+
+    @Test
     fun search_duplicateVideoIds_returnsUniqueItems() {
         val duplicated = VideoItem(
             id = "same-id",
@@ -117,6 +217,30 @@ class FakeVideoRepositoryTest {
 
         assertTrue(result.isSuccess)
         assertEquals(1, (result as Result.Success).data.size)
+    }
+
+    @Test
+    fun search_vectorOnlyHit_returnsSemanticResult() {
+        val videos = listOf(
+            VideoItem(
+                id = "recipe",
+                title = "家常菜新手教程",
+                author = "测试作者",
+                avatarUrl = "",
+                videoUrl = "",
+                tags = listOf("美食教程"),
+            ),
+        )
+        val repo = FakeVideoRepository.withVideos(
+            videos = videos,
+            matcher = SearchMatcher { _, _ -> 0f },
+            vectorSearchEngine = VectorSearchEngine { _, _ -> mapOf("recipe" to 0.72f) },
+        )
+
+        val result = repo.search("下班吃什么")
+
+        assertTrue(result.isSuccess)
+        assertEquals(listOf("recipe"), (result as Result.Success).data.filterIsInstance<VideoItem>().map { it.id })
     }
 
     @Test
@@ -146,13 +270,24 @@ class FakeVideoRepositoryTest {
                 tags = when (index) {
                     1 -> listOf("足球", "梅西")
                     2 -> listOf("美食教程", "虾滑的做法")
+                    3 -> listOf("美食教程", "家常菜", "下饭菜")
                     else -> listOf("测试")
                 },
                 recommendWords = when (index) {
                     1 -> listOf("梅西世界杯")
                     2 -> listOf("土豆虾滑卷")
+                    3 -> listOf("家常菜做法")
                     else -> emptyList()
                 },
+            )
+        }
+    }
+
+    private fun testVideosWithCovers(): List<VideoItem> {
+        return testVideos().mapIndexed { index, video ->
+            video.copy(
+                coverThumbnailUrl = "https://example.com/cover-${index + 1}.jpg",
+                coverUrl = "https://example.com/full-cover-${index + 1}.jpg",
             )
         }
     }

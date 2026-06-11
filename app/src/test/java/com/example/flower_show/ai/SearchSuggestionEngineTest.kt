@@ -8,6 +8,35 @@ import org.junit.Test
 
 class SearchSuggestionEngineTest {
     @Test
+    fun relatedSearchPrefersContentSearchFromVideoFrames() {
+        val video = VideoItem(
+            id = "food",
+            title = "普通标题",
+            author = "作者",
+            avatarUrl = "",
+            videoUrl = "",
+            tags = listOf("美食"),
+            contentSearches = listOf("青椒变酿虾", "懒人快手菜"),
+        )
+
+        val relatedSearch = SearchSuggestionEngine.relatedSearch(video)
+
+        assertEquals("青椒变酿虾", relatedSearch)
+    }
+
+    @Test
+    fun guessSearchesUsesContentCandidatesBeforeGenericGuesses() {
+        val guesses = SearchSuggestionEngine.guessSearches(
+            history = emptyList(),
+            page = 0,
+            count = 2,
+            contentCandidates = listOf("旅行vlog", "游戏精彩操作"),
+        )
+
+        assertEquals(listOf("旅行vlog", "游戏精彩操作"), guesses)
+    }
+
+    @Test
     fun relatedSearchPrefersInferredMusicTopicOverExactTitle() {
         val video = VideoItem(
             id = "music",
@@ -59,5 +88,70 @@ class SearchSuggestionEngineTest {
         assertFalse(candidates.contains("游戏"))
         assertFalse(candidates.contains("王者"))
         assertTrue(candidates.any { it.contains("上分") || it.contains("游戏") || it.contains("赛季") })
+    }
+
+    @Test
+    fun guessSearchesUsesHistoryBeforeContentCandidates() {
+        val guesses = SearchSuggestionEngine.guessSearches(
+            history = listOf("iphone bgm"),
+            page = 0,
+            count = 3,
+            contentCandidates = listOf("content candidate"),
+        )
+
+        assertTrue(guesses.first().contains("iphone"))
+        assertFalse(guesses.first() == "content candidate")
+    }
+
+    @Test
+    fun guessSearchesPaginatesCandidates() {
+        val firstPage = SearchSuggestionEngine.guessSearches(
+            history = emptyList(),
+            page = 0,
+            count = 2,
+            contentCandidates = listOf("one", "two", "three"),
+        )
+        val secondPage = SearchSuggestionEngine.guessSearches(
+            history = emptyList(),
+            page = 1,
+            count = 2,
+            contentCandidates = listOf("one", "two", "three"),
+        )
+
+        assertEquals(listOf("one", "two"), firstPage)
+        assertEquals("three", secondPage[0])
+    }
+
+    @Test
+    fun guessSearchesWithZeroCountReturnsEmptyList() {
+        val guesses = SearchSuggestionEngine.guessSearches(
+            history = listOf("iphone"),
+            page = -1,
+            count = 0,
+            contentCandidates = listOf("content"),
+        )
+
+        assertTrue(guesses.isEmpty())
+    }
+
+    @Test
+    fun inferVideoSearchesIncludesRecommendWordsAndContentSearches() {
+        val video = VideoItem(
+            id = "video",
+            title = "plain title",
+            author = "author",
+            avatarUrl = "",
+            videoUrl = "",
+            tags = listOf("tag topic"),
+            recommendWords = listOf("recommend topic"),
+            contentSearches = listOf("visual topic"),
+        )
+
+        val searches = SearchSuggestionEngine.inferVideoSearches(video, count = 10)
+
+        assertTrue(searches.contains("plain title"))
+        assertTrue(searches.contains("tag topic"))
+        assertTrue(searches.contains("recommend topic"))
+        assertTrue(searches.contains("visual topic"))
     }
 }

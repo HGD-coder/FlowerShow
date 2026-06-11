@@ -1,0 +1,406 @@
+{
+  "version": 1,
+  "model": "Xenova/chinese-clip-vit-base-patch16",
+  "suggestions": [
+    {
+      "keyword": "旅行vlog",
+      "score": 7.256806,
+      "videoCount": 14
+    },
+    {
+      "keyword": "游戏精彩操作",
+      "score": 7.162948,
+      "videoCount": 14
+    },
+    {
+      "keyword": "科技评测",
+      "score": 6.393531,
+      "videoCount": 12
+    },
+    {
+      "keyword": "健身教程",
+      "score": 5.927379,
+      "videoCount": 12
+    },
+    {
+      "keyword": "美妆教程",
+      "score": 5.850315,
+      "videoCount": 13
+    },
+    {
+      "keyword": "美食教程",
+      "score": 5.819046,
+      "videoCount": 12
+    },
+    {
+      "keyword": "搞笑段子",
+      "score": 5.804232,
+      "videoCount": 12
+    },
+    {
+      "keyword": "汽车评测",
+      "score": 5.65457,
+      "videoCount": 11
+    },
+    {
+      "keyword": "知识科普",
+      "score": 5.575306,
+      "videoCount": 11
+    },
+    {
+      "keyword": "可爱宠物",
+      "score": 5.298494,
+      "videoCount": 11
+    },
+    {
+      "keyword": "时尚穿搭",
+      "score": 5.229926,
+      "videoCount": 10
+    },
+    {
+      "keyword": "热门音乐",
+      "score": 5.215776,
+      "videoCount": 10
+    },
+    {
+      "keyword": "狗狗日常",
+      "score": 4.408538,
+      "videoCount": 9
+    },
+    {
+      "keyword": "火锅做法",
+      "score": 3.431483,
+      "videoCount": 7
+    },
+    {
+      "keyword": "搞笑",
+      "score": 3.363922,
+      "videoCount": 7
+    },
+    {
+      "keyword": "音乐推荐",
+      "score": 3.187541,
+      "videoCount": 6
+    },
+    {
+      "keyword": "音乐分享",
+      "score": 3.14919,
+      "videoCount": 6
+    },
+    {
+      "keyword": "健身",
+      "score": 2.906074,
+      "videoCount": 6
+    },
+    {
+      "keyword": "vlog",
+      "score": 2.876279,
+      "videoCount": 6
+    },
+    {
+      "keyword": "美妆",
+      "score": 2.749069,
+      "videoCount": 6
+    },
+    {
+      "keyword": "音乐",
+      "score": 2.62288,
+      "videoCount": 5
+    },
+    {
+      "keyword": "新手化妆教程",
+      "score": 2.559892,
+      "videoCount": 6
+    },
+    {
+      "keyword": "ootd穿搭",
+      "score": 2.55275,
+      "videoCount": 5
+    },
+    {
+      "keyword": "青年创作者成长计划",
+      "score": 2.27608,
+      "videoCount": 5
+    },
+    {
+      "keyword": "旅行",
+      "score": 2.14399,
+      "videoCount": 4
+    },
+    {
+      "keyword": "csgo",
+      "score": 2.046896,
+      "videoCount": 4
+    },
+    {
+      "keyword": "家常菜",
+      "score": 2.041901,
+      "videoCount": 4
+    },
+    {
+      "keyword": "下饭菜",
+      "score": 2.040536,
+      "videoCount": 4
+    },
+    {
+      "keyword": "增肌",
+      "score": 1.966206,
+      "videoCount": 4
+    },
+    {
+      "keyword": "科普",
+      "score": 1.965412,
+      "videoCount": 4
+    },
+    {
+      "keyword": "腹肌训练",
+      "score": 1.962395,
+      "videoCount": 4
+    },
+    {
+      "keyword": "cs2",
+      "score": 1.960079,
+      "videoCount": 4
+    },
+    {
+      "keyword": "抽象",
+      "score": 1.932512,
+      "videoCount": 4
+    },
+    {
+      "keyword": "戴上耳机",
+      "score": 1.93095,
+      "videoCount": 4
+    },
+    {
+      "keyword": "残局",
+      "score": 1.890882,
+      "videoCount": 4
+    },
+    {
+      "keyword": "妆教",
+      "score": 1.840292,
+      "videoCount": 4
+    },
+    {
+      "keyword": "抖音知识年终大赏",
+      "score": 1.799499,
+      "videoCount": 4
+    },
+    {
+      "keyword": "steam游戏",
+      "score": 1.616266,
+      "videoCount": 3
+    },
+    {
+      "keyword": "男生穿搭",
+      "score": 1.588724,
+      "videoCount": 3
+    },
+    {
+      "keyword": "健身小白必看经验",
+      "score": 1.501516,
+      "videoCount": 3
+    },
+    {
+      "keyword": "涨知识",
+      "score": 1.501145,
+      "videoCount": 3
+    },
+    {
+      "keyword": "女生穿搭",
+      "score": 1.47429,
+      "videoCount": 3
+    },
+    {
+      "keyword": "CS2",
+      "score": 1.44235,
+      "videoCount": 3
+    },
+    {
+      "keyword": "训练计划",
+      "score": 1.43213,
+      "videoCount": 3
+    },
+    {
+      "keyword": "交换世界计划",
+      "score": 1.423171,
+      "videoCount": 3
+    },
+    {
+      "keyword": "今天穿什么",
+      "score": 1.41498,
+      "videoCount": 3
+    },
+    {
+      "keyword": "美妆模范生",
+      "score": 1.40865,
+      "videoCount": 3
+    },
+    {
+      "keyword": "妆容分享",
+      "score": 1.381471,
+      "videoCount": 3
+    },
+    {
+      "keyword": "环球旅行1995",
+      "score": 1.101643,
+      "videoCount": 2
+    },
+    {
+      "keyword": "ins博主穿搭",
+      "score": 1.089139,
+      "videoCount": 2
+    },
+    {
+      "keyword": "穿搭",
+      "score": 1.07701,
+      "videoCount": 2
+    },
+    {
+      "keyword": "数码",
+      "score": 1.063296,
+      "videoCount": 2
+    },
+    {
+      "keyword": "数码产品",
+      "score": 1.053974,
+      "videoCount": 2
+    },
+    {
+      "keyword": "懒人快手菜",
+      "score": 1.036084,
+      "videoCount": 2
+    },
+    {
+      "keyword": "美食",
+      "score": 1.036025,
+      "videoCount": 2
+    },
+    {
+      "keyword": "评测",
+      "score": 1.034406,
+      "videoCount": 2
+    },
+    {
+      "keyword": "单机游戏",
+      "score": 1.027862,
+      "videoCount": 2
+    },
+    {
+      "keyword": "游戏中的名场面",
+      "score": 1.012884,
+      "videoCount": 2
+    },
+    {
+      "keyword": "热歌热门分享",
+      "score": 1.004371,
+      "videoCount": 2
+    },
+    {
+      "keyword": "鸡腿的神仙做法",
+      "score": 1.003265,
+      "videoCount": 2
+    },
+    {
+      "keyword": "科技",
+      "score": 1.002293,
+      "videoCount": 2
+    },
+    {
+      "keyword": "2026高考",
+      "score": 0.997717,
+      "videoCount": 2
+    },
+    {
+      "keyword": "健身教学",
+      "score": 0.984348,
+      "videoCount": 2
+    },
+    {
+      "keyword": "dou是好车",
+      "score": 0.982094,
+      "videoCount": 2
+    },
+    {
+      "keyword": "每一帧都是热爱",
+      "score": 0.980608,
+      "videoCount": 2
+    },
+    {
+      "keyword": "我承认你很强",
+      "score": 0.978267,
+      "videoCount": 2
+    },
+    {
+      "keyword": "通勤穿搭",
+      "score": 0.975799,
+      "videoCount": 2
+    },
+    {
+      "keyword": "力量训练",
+      "score": 0.972416,
+      "videoCount": 2
+    },
+    {
+      "keyword": "中性风",
+      "score": 0.96625,
+      "videoCount": 2
+    },
+    {
+      "keyword": "提车",
+      "score": 0.964345,
+      "videoCount": 2
+    },
+    {
+      "keyword": "健身干货",
+      "score": 0.960721,
+      "videoCount": 2
+    },
+    {
+      "keyword": "科技好物",
+      "score": 0.960281,
+      "videoCount": 2
+    },
+    {
+      "keyword": "哈哈哈哈哈哈我要笑死了",
+      "score": 0.955168,
+      "videoCount": 2
+    },
+    {
+      "keyword": "何同学",
+      "score": 0.954795,
+      "videoCount": 2
+    },
+    {
+      "keyword": "审美积累",
+      "score": 0.946104,
+      "videoCount": 2
+    },
+    {
+      "keyword": "三角洲行动",
+      "score": 0.94153,
+      "videoCount": 2
+    },
+    {
+      "keyword": "硬核玩家计划",
+      "score": 0.939543,
+      "videoCount": 2
+    },
+    {
+      "keyword": "你的秋日美食正在派送中",
+      "score": 0.935847,
+      "videoCount": 2
+    },
+    {
+      "keyword": "搞笑配音",
+      "score": 0.928338,
+      "videoCount": 2
+    },
+    {
+      "keyword": "高燃集锦",
+      "score": 0.925256,
+      "videoCount": 2
+    }
+  ]
+}

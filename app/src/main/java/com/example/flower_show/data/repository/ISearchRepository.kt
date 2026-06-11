@@ -9,6 +9,7 @@ import com.example.flower_show.model.Result
 interface ISearchRepository {
     fun search(keyword: String): Result<List<CardItem>>
     fun getHistory(): List<String>
+    fun getGuessCandidates(): List<String>
     fun addHistory(keyword: String)
     fun deleteHistory(keyword: String)
     fun clearHistory()

@@ -14,9 +14,11 @@ android {
     }
 
     targetProjectPath = ":app"
+    experimentalProperties["android.experimental.self-instrumenting"] = true
 
     buildTypes {
         create("benchmark") {
+            signingConfig = signingConfigs.getByName("debug")
             isDebuggable = true
         }
     }
@@ -28,6 +30,12 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+}
+
+androidComponents {
+    beforeVariants(selector().all()) { variantBuilder ->
+        variantBuilder.enable = variantBuilder.buildType == "benchmark"
     }
 }
 

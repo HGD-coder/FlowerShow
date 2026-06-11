@@ -37,6 +37,7 @@ data class VideoItem(
     // Tags & recommendations / 标签和推荐词
     val tags: List<String> = emptyList(),
     val recommendWords: List<String> = emptyList(),
+    val contentSearches: List<String> = emptyList(),
 
     // Multi-quality / 多清晰度预留
     val qualityUrls: Map<String, String>? = null,

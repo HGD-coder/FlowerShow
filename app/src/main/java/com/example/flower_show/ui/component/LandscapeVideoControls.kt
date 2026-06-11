@@ -2,7 +2,9 @@ package com.example.flower_show.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,14 +61,25 @@ import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.delay
 
+private val LandscapeLikeRed = Color(0xFFFF2D55)
+private val LandscapeCollectGold = Color(0xFFFFC107)
+private val LandscapePlaybackSpeeds = listOf(0.5f, 1f, 1.5f, 2f)
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LandscapeVideoControls(
     video: VideoItem?,
     playerManager: VideoPlayerManager,
     visible: Boolean,
+    isLiked: Boolean = false,
+    isCollected: Boolean = false,
+    onLikeClick: () -> Unit = {},
+    onCollectClick: () -> Unit = {},
     onToggleVisible: () -> Unit,
     onBack: () -> Unit,
     onSeek: (Long) -> Unit,
+    playbackSpeed: Float = 1f,
+    onPlaybackSpeedChange: (Float) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var isPlaying by remember { mutableStateOf(playerManager.isPlaying) }
@@ -106,10 +119,14 @@ fun LandscapeVideoControls(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .clickable(
+            .combinedClickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },
-            ) { onToggleVisible() },
+                onClick = onToggleVisible,
+                onDoubleClick = {
+                    if (!isLiked) onLikeClick()
+                },
+            ),
     ) {
         if (!visible) return@Box
 
@@ -156,6 +173,8 @@ fun LandscapeVideoControls(
 
         LandscapeBottomControls(
             video = video,
+            isLiked = isLiked,
+            isCollected = isCollected,
             positionMs = positionMs,
             durationMs = durationMs,
             sliderPosition = if (isDragging) sliderPosition else {
@@ -170,6 +189,10 @@ fun LandscapeVideoControls(
                 val target = (sliderPosition * durationMs).toLong().coerceAtLeast(0L)
                 onSeek(target)
             },
+            onLikeClick = onLikeClick,
+            onCollectClick = onCollectClick,
+            playbackSpeed = playbackSpeed,
+            onPlaybackSpeedChange = onPlaybackSpeedChange,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 24.dp, vertical = 16.dp),
@@ -311,11 +334,17 @@ private fun LandscapeCenterToggle(
 @Composable
 private fun LandscapeBottomControls(
     video: VideoItem?,
+    isLiked: Boolean,
+    isCollected: Boolean,
     positionMs: Long,
     durationMs: Long,
     sliderPosition: Float,
     onSliderChange: (Float) -> Unit,
     onSliderFinished: () -> Unit,
+    onLikeClick: () -> Unit,
+    onCollectClick: () -> Unit,
+    playbackSpeed: Float,
+    onPlaybackSpeedChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -358,8 +387,15 @@ private fun LandscapeBottomControls(
             modifier = Modifier.fillMaxWidth(),
         ) {
             BottomAction(
-                count = formatCount(video?.likes ?: 0),
-                icon = { HeartFilledIcon(size = 30.dp, tint = Color.White) },
+                count = formatCount((video?.likes ?: 0) + if (isLiked) 1 else 0),
+                onClick = onLikeClick,
+                icon = {
+                    if (isLiked) {
+                        HeartFilledIcon(size = 30.dp, tint = LandscapeLikeRed)
+                    } else {
+                        HeartOutlineIcon(size = 30.dp, tint = Color.White)
+                    }
+                },
             )
             Spacer(Modifier.width(26.dp))
             BottomAction(
@@ -368,38 +404,68 @@ private fun LandscapeBottomControls(
             )
             Spacer(Modifier.width(26.dp))
             BottomAction(
-                count = formatCount(video?.collections ?: 0),
-                icon = { BookmarkIcon(size = 31.dp, tint = Color.White) },
-            )
-            Spacer(Modifier.width(26.dp))
-            BottomAction(
-                count = "弹",
-                icon = { Text("弹", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold) },
+                count = formatCount((video?.collections ?: 0) + if (isCollected) 1 else 0),
+                onClick = onCollectClick,
+                icon = {
+                    BookmarkIcon(
+                        size = 31.dp,
+                        tint = if (isCollected) LandscapeCollectGold else Color.White,
+                        filled = isCollected,
+                    )
+                },
             )
 
             Spacer(Modifier.weight(1f))
+            LandscapeSpeedSelector(
+                playbackSpeed = playbackSpeed,
+                onPlaybackSpeedChange = onPlaybackSpeedChange,
+            )
+            Spacer(Modifier.width(12.dp))
 
-            Box(
-                modifier = Modifier
-                    .height(38.dp)
-                    .width(300.dp)
-                    .clip(RoundedCornerShape(19.dp))
-                    .background(ArcticColors.Glass.copy(alpha = 0.48f))
-                    .border(1.dp, ArcticColors.Outline.copy(alpha = 0.52f), RoundedCornerShape(19.dp)),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                Text(
-                    text = "发一条友好的弹幕吧~",
-                    color = Color.White.copy(alpha = 0.64f),
-                    fontSize = 15.sp,
-                    modifier = Modifier.padding(horizontal = 18.dp),
-                )
-            }
-
+            /*
             Spacer(Modifier.weight(1f))
 
             Text("倍速", color = Color.White, fontSize = 17.sp, modifier = Modifier.padding(horizontal = 18.dp))
+            */
             MoreDotsIcon(tint = Color.White, size = 32.dp)
+        }
+    }
+}
+
+@Composable
+private fun LandscapeSpeedSelector(
+    playbackSpeed: Float,
+    onPlaybackSpeedChange: (Float) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .height(38.dp)
+            .clip(RoundedCornerShape(19.dp))
+            .background(ArcticColors.Glass.copy(alpha = 0.48f))
+            .border(1.dp, ArcticColors.Outline.copy(alpha = 0.52f), RoundedCornerShape(19.dp))
+            .padding(horizontal = 3.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        LandscapePlaybackSpeeds.forEach { speed ->
+            val selected = playbackSpeed == speed
+            Box(
+                modifier = Modifier
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(if (selected) ArcticColors.PrimaryContainer else Color.Transparent)
+                    .clickable { onPlaybackSpeedChange(speed) }
+                    .padding(horizontal = 9.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = formatSpeed(speed),
+                    color = if (selected) ArcticColors.OnPrimary else Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    maxLines = 1,
+                )
+            }
         }
     }
 }
@@ -407,9 +473,21 @@ private fun LandscapeBottomControls(
 @Composable
 private fun BottomAction(
     count: String,
+    onClick: (() -> Unit)? = null,
     icon: @Composable () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    val clickableModifier = if (onClick != null) {
+        Modifier
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 6.dp, vertical = 4.dp)
+    } else {
+        Modifier
+    }
+    Row(
+        modifier = clickableModifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         icon()
         Spacer(Modifier.width(5.dp))
         Text(
@@ -541,6 +619,14 @@ private fun MoreDotsIcon(tint: Color, size: Dp) {
 }
 
 private fun Long.validDuration(): Long = if (this > 0L && this < Long.MAX_VALUE / 2) this else 0L
+
+private fun formatSpeed(speed: Float): String {
+    return if (speed % 1f == 0f) {
+        "${speed.toInt()}x"
+    } else {
+        "${speed}x"
+    }
+}
 
 private fun formatDuration(ms: Long): String {
     val totalSeconds = (ms.coerceAtLeast(0L) / 1000L).toInt()

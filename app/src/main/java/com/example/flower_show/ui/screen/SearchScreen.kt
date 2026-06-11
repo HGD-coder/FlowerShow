@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -76,17 +77,19 @@ fun SearchScreen(
     } else {
         state.history.take(HistoryCollapsedCount)
     }
-    val guessKeywords = remember(state.history, guessPage) {
+    val guessKeywords = remember(state.history, state.guessCandidates, guessPage) {
         SearchSuggestionEngine.guessSearches(
             history = state.history,
             page = guessPage,
             count = GuessPageSize,
+            contentCandidates = state.guessCandidates,
         )
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .testTag("search_screen")
             .background(SearchPageBackground)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
             .imePadding()
@@ -191,7 +194,9 @@ private fun SearchTopBar(
     ) {
         IconButton(
             onClick = onBack,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier
+                .size(48.dp)
+                .testTag("search_back_button"),
         ) {
             BackChevronIcon(tint = SearchTextPrimary, size = 30.dp)
         }
@@ -222,7 +227,9 @@ private fun SearchTopBar(
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { onSubmit() }),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("search_input"),
                 decorationBox = { innerTextField ->
                     Box(contentAlignment = Alignment.CenterStart) {
                         if (input.isEmpty()) {
@@ -244,6 +251,7 @@ private fun SearchTopBar(
                 modifier = Modifier
                     .height(48.dp)
                     .width(70.dp)
+                    .testTag("search_submit_button")
                     .clickable { onSubmit() },
                 contentAlignment = Alignment.Center,
             ) {

@@ -97,6 +97,22 @@ class SearchMatcherTest {
         assertTrue("Compound food query should reach related shrimp content, got $score", score > 0f)
     }
 
+    @Test
+    fun hybrid_cookingQuery_matchesRecipeVideo() {
+        val recipeVideo = VideoItem(
+            id = "recipe",
+            title = "蜂蜜黄油脆皮鸡超详细保姆级教程 做法超简单 肉嫩爆汁太下饭了",
+            author = "测试作者",
+            avatarUrl = "",
+            videoUrl = "",
+            tags = listOf("美食教程", "家常菜", "下饭菜"),
+        )
+
+        val score = hybrid.score(recipeVideo, "做饭")
+
+        assertTrue("Cooking query should reach recipe content, got $score", score > 0f)
+    }
+
     // ── LevenshteinDistanceMatcher tests ──
 
     @Test

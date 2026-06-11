@@ -3,13 +3,18 @@ package com.example.flower_show.ui.component
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
@@ -19,15 +24,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.flower_show.ai.SearchSuggestionEngine
 import com.example.flower_show.model.VideoItem
 import com.example.flower_show.model.VideoQuality
@@ -35,6 +42,8 @@ import com.example.flower_show.player.PlayerCallback
 import com.example.flower_show.player.VideoPlayerManager
 import com.example.flower_show.ui.theme.ArcticColors
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @Composable
 fun VideoCard(
@@ -44,20 +53,32 @@ fun VideoCard(
     isActive: Boolean = false,
     onSeek: (Long) -> Unit = {},
     onRecommendWordClick: (String) -> Unit = {},
+    isLiked: Boolean = false,
+    isCollected: Boolean = false,
+    onLikeClick: () -> Unit = {},
+    onCollectClick: () -> Unit = {},
     onSetQuality: (String, String) -> Unit = { _, _ -> },
     onEnableAutoQuality: () -> Unit = {},
     qualityMode: String = "Auto",       // "Auto" or "Manual"
     currentQualityName: String? = null,
     availableQualities: List<VideoQuality> = emptyList(),
+    playbackSpeed: Float = 1f,
+    onPlaybackSpeedChange: (Float) -> Unit = {},
     onToggleFullscreen: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var isPlaying by remember { mutableStateOf(false) }
     var hasVideoFrame by remember(video.id) { mutableStateOf(false) }
     var controlsVisible by remember { mutableStateOf(true) }
-    var isLiked by remember { mutableStateOf(false) }
-    var isCollected by remember { mutableStateOf(false) }
     var isLandscapeVideo by remember(video.id) { mutableStateOf(false) }
+    var isLongPressing by remember { mutableStateOf(false) }
+    var showLikeHeart by remember { mutableStateOf(false) }
+    var likeHeartOffset by remember { mutableStateOf(Offset.Zero) }
+    val coroutineScope = rememberCoroutineScope()
+    val currentPlaybackSpeed by rememberUpdatedState(playbackSpeed)
+    val currentOnPlaybackSpeedChange by rememberUpdatedState(onPlaybackSpeedChange)
+    val currentIsLiked by rememberUpdatedState(isLiked)
+    val currentOnLikeClick by rememberUpdatedState(onLikeClick)
     val relatedSearch = remember(video.id, video.title, video.tags, video.recommendWords) {
         SearchSuggestionEngine.relatedSearch(video)
     }
@@ -69,28 +90,45 @@ fun VideoCard(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        // Cover image for pages that do not own the active PlayerView yet.
-        if (playerContent == null) {
-            AsyncImage(
-                model = rememberFlowerImageRequest(
-                    data = video.preferredCoverUrl(),
-                    slot = FlowerImageSlot.VideoCover,
-                ),
-                contentDescription = "封面",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-        }
-
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .testTag("video_card_${video.id}"),
+    ) {
         playerContent?.invoke(this)
 
-        // Tap area
+        // Tap toggles controls; double-tap likes; long press boosts playback to 2x.
         Box(
-            modifier = Modifier.fillMaxSize().clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) { controlsVisible = !controlsVisible }
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(video.id) {
+                    detectTapGestures(
+                        onDoubleTap = { offset ->
+                            if (!currentIsLiked) {
+                                currentOnLikeClick()
+                            }
+                            likeHeartOffset = offset
+                            showLikeHeart = true
+                            coroutineScope.launch {
+                                delay(800)
+                                showLikeHeart = false
+                            }
+                        },
+                        onTap = { controlsVisible = !controlsVisible },
+                        onLongPress = {
+                            isLongPressing = true
+                            currentOnPlaybackSpeedChange(2f)
+                        },
+                        onPress = {
+                            val restoreSpeed = currentPlaybackSpeed
+                            tryAwaitRelease()
+                            if (isLongPressing) {
+                                isLongPressing = false
+                                currentOnPlaybackSpeedChange(restoreSpeed)
+                            }
+                        },
+                    )
+                },
         )
 
         Box(
@@ -142,7 +180,50 @@ fun VideoCard(
             }
         }
 
-        TikTokCaptionPanel(
+        AnimatedVisibility(
+            visible = isLongPressing,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(y = (-86).dp),
+        ) {
+            Text(
+                text = "2.0x",
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color.Black.copy(alpha = 0.58f))
+                    .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(18.dp))
+                    .padding(horizontal = 18.dp, vertical = 8.dp),
+            )
+        }
+
+        // Double-tap like heart animation
+        AnimatedVisibility(
+            visible = showLikeHeart,
+            enter = scaleIn(initialScale = 0.5f, animationSpec = tween(300)),
+            exit = scaleOut(targetScale = 1.5f, animationSpec = tween(300)),
+            modifier = Modifier
+                .offset {
+                    val halfHeartPx = (50.dp.toPx()).roundToInt()
+                    IntOffset(
+                        likeHeartOffset.x.roundToInt() - halfHeartPx,
+                        likeHeartOffset.y.roundToInt() - halfHeartPx,
+                    )
+                },
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = "Like",
+                tint = Color(0xFFFF2D55),
+                modifier = Modifier.size(100.dp),
+            )
+        }
+
+        VideoCaptionPanel(
             author = video.author,
             title = video.title,
             subtitle = null,
@@ -152,7 +233,7 @@ fun VideoCard(
                 .padding(start = 24.dp, end = 98.dp, bottom = 156.dp),
         )
 
-        TikTokActionRail(
+        VideoActionRail(
             avatarUrl = video.avatarUrl,
             isLiked = isLiked,
             isCollected = isCollected,
@@ -160,8 +241,8 @@ fun VideoCard(
             comments = video.comments,
             collections = video.collections,
             shares = video.shares,
-            onLikeClick = { isLiked = !isLiked },
-            onCollectClick = { isCollected = !isCollected },
+            onLikeClick = onLikeClick,
+            onCollectClick = onCollectClick,
             availableQualities = availableQualities,
             qualityMode = qualityMode,
             currentQualityName = currentQualityName,
@@ -177,6 +258,7 @@ fun VideoCard(
             onClick = { onRecommendWordClick(relatedSearch) },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                .testTag("related_search_bar")
                 .padding(start = 18.dp, end = 18.dp, bottom = 92.dp),
         )
 
@@ -186,9 +268,9 @@ fun VideoCard(
             onSeek = onSeek,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 72.dp)
+                .padding(bottom = 60.dp)
                 .fillMaxWidth()
-                .height(14.dp),
+                .height(4.dp),
         )
     }
 
@@ -344,7 +426,7 @@ private fun RelatedSearchBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(46.dp)
+            .height(30.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(ArcticColors.Glass.copy(alpha = 0.54f))
             .border(1.dp, ArcticColors.Outline.copy(alpha = 0.55f), RoundedCornerShape(8.dp))
@@ -352,12 +434,12 @@ private fun RelatedSearchBar(
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SearchIcon(tint = ArcticColors.Primary, size = 23.dp)
-        Spacer(Modifier.width(10.dp))
+        SearchIcon(tint = ArcticColors.Primary, size = 18.dp)
+        Spacer(Modifier.width(8.dp))
         Text(
             text = "相关搜索 · $keyword",
             color = ArcticColors.OnSurface,
-            fontSize = 17.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -366,7 +448,7 @@ private fun RelatedSearchBar(
         Text(
             text = "›",
             color = ArcticColors.OnSurfaceVariant.copy(alpha = 0.68f),
-            fontSize = 32.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Light,
         )
     }
