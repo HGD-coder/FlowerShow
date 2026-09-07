@@ -67,6 +67,38 @@ cd D:\android-studio\flowershow
 adb install -r .\app\build\outputs\apk\debug\app-debug.apk
 ```
 
+Backend gateway URL is configured in one place:
+
+```properties
+FLOWER_SHOW_PUBLIC_GATEWAY_BASE_URL=https://mit-mentioned-avi-mark.trycloudflare.com
+```
+
+The app derives API and media URLs from it:
+
+```text
+API:   {gateway}/api/v1
+Media: {gateway}/media
+```
+
+You can also override it for one build:
+
+```powershell
+.\gradlew.bat :app:assembleDebug -PFLOWER_SHOW_PUBLIC_GATEWAY_BASE_URL=https://your-domain.example.com
+```
+
+### Firebase Cloud Messaging
+
+要启用推送，请在 Firebase Console 中创建 Android 应用，并确保其 applicationId 精确为
+`com.example.flower_show`，然后将该应用下载的配置文件放到：
+
+```text
+app/google-services.json
+```
+
+Gradle 只会在该文件存在时应用 Google Services 插件。仓库默认不包含此文件；缺少配置时
+FCM 会被禁用，但单元测试和 APK 构建仍可正常完成。不要把服务账号密钥或其他真实私钥放入
+Android 客户端或提交到仓库。
+
 也可以直接通过 Android Studio 运行 `app` 模块。
 
 ## 性能测试

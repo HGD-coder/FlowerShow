@@ -5,14 +5,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Fullscreen
@@ -23,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -35,12 +33,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.flower_show.ai.SearchSuggestionEngine
 import com.example.flower_show.model.VideoItem
 import com.example.flower_show.model.VideoQuality
 import com.example.flower_show.player.PlayerCallback
 import com.example.flower_show.player.VideoPlayerManager
 import com.example.flower_show.ui.theme.ArcticColors
+import com.example.flower_show.ui.theme.AuroraShapes
+import com.example.flower_show.ui.theme.LikeGradient
+import com.example.flower_show.ui.theme.auroraGlass
+import com.example.flower_show.ui.theme.gradientForeground
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -53,10 +54,15 @@ fun VideoCard(
     isActive: Boolean = false,
     onSeek: (Long) -> Unit = {},
     onRecommendWordClick: (String) -> Unit = {},
+    relatedSearch: String? = null,
     isLiked: Boolean = false,
     isCollected: Boolean = false,
     onLikeClick: () -> Unit = {},
     onCollectClick: () -> Unit = {},
+    onCommentClick: () -> Unit = {},
+    commentButtonTestTag: String? = null,
+    onCreatorClick: () -> Unit = {},
+    onShareClick: () -> Unit = {},
     onSetQuality: (String, String) -> Unit = { _, _ -> },
     onEnableAutoQuality: () -> Unit = {},
     qualityMode: String = "Auto",       // "Auto" or "Manual"
@@ -79,9 +85,6 @@ fun VideoCard(
     val currentOnPlaybackSpeedChange by rememberUpdatedState(onPlaybackSpeedChange)
     val currentIsLiked by rememberUpdatedState(isLiked)
     val currentOnLikeClick by rememberUpdatedState(onLikeClick)
-    val relatedSearch = remember(video.id, video.title, video.tags, video.recommendWords) {
-        SearchSuggestionEngine.relatedSearch(video)
-    }
 
     LaunchedEffect(isPlaying, controlsVisible) {
         if (isPlaying && controlsVisible) {
@@ -121,10 +124,16 @@ fun VideoCard(
                         },
                         onPress = {
                             val restoreSpeed = currentPlaybackSpeed
-                            tryAwaitRelease()
-                            if (isLongPressing) {
-                                isLongPressing = false
-                                currentOnPlaybackSpeedChange(restoreSpeed)
+                            try {
+                                tryAwaitRelease()
+                            } finally {
+                                // 长按后手指转为滑动时，父级 Pager 会取消本手势协程，
+                                // tryAwaitRelease() 抛出 CancellationException；恢复逻辑必须
+                                // 放在 finally 里，否则倍速会永久卡在 2x。
+                                if (isLongPressing) {
+                                    isLongPressing = false
+                                    currentOnPlaybackSpeedChange(restoreSpeed)
+                                }
                             }
                         },
                     )
@@ -194,9 +203,7 @@ fun VideoCard(
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(Color.Black.copy(alpha = 0.58f))
-                    .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(18.dp))
+                    .auroraGlass(AuroraShapes.Capsule)
                     .padding(horizontal = 18.dp, vertical = 8.dp),
             )
         }
@@ -204,7 +211,13 @@ fun VideoCard(
         // Double-tap like heart animation
         AnimatedVisibility(
             visible = showLikeHeart,
-            enter = scaleIn(initialScale = 0.5f, animationSpec = tween(300)),
+            enter = scaleIn(
+                initialScale = 0.35f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            ),
             exit = scaleOut(targetScale = 1.5f, animationSpec = tween(300)),
             modifier = Modifier
                 .offset {
@@ -218,8 +231,10 @@ fun VideoCard(
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = "Like",
-                tint = Color(0xFFFF2D55),
-                modifier = Modifier.size(100.dp),
+                tint = Color.White,
+                modifier = Modifier
+                    .size(100.dp)
+                    .gradientForeground(LikeGradient),
             )
         }
 
@@ -243,6 +258,10 @@ fun VideoCard(
             shares = video.shares,
             onLikeClick = onLikeClick,
             onCollectClick = onCollectClick,
+            onCommentClick = onCommentClick,
+            commentButtonTestTag = commentButtonTestTag,
+            onCreatorClick = onCreatorClick,
+            onShareClick = onShareClick,
             availableQualities = availableQualities,
             qualityMode = qualityMode,
             currentQualityName = currentQualityName,
@@ -253,14 +272,16 @@ fun VideoCard(
                 .padding(end = 10.dp, bottom = 146.dp),
         )
 
-        RelatedSearchBar(
-            keyword = relatedSearch,
-            onClick = { onRecommendWordClick(relatedSearch) },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .testTag("related_search_bar")
-                .padding(start = 18.dp, end = 18.dp, bottom = 92.dp),
-        )
+        relatedSearch?.takeIf(String::isNotBlank)?.let { serverKeyword ->
+            RelatedSearchBar(
+                keyword = serverKeyword,
+                onClick = { onRecommendWordClick(serverKeyword) },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .testTag("related_search_bar")
+                    .padding(start = 18.dp, end = 18.dp, bottom = 92.dp),
+            )
+        }
 
         VideoProgressSlider(
             playerManager = playerManager,
@@ -287,6 +308,16 @@ fun VideoCard(
         if (!isActive) {
             onDispose { }
         } else {
+            // 快速滑走再滑回（播放 debounce 内、播放器没有换源走 resume 路径）时
+            // 不会有新的 Ready/StateChanged 事件到来：激活时直接用播放器当前状态
+            // 播种，避免出现"实际在播却显示大播放按钮/横屏入口不出现"的假象。
+            if (playerManager.isPlaying) {
+                isPlaying = true
+                hasVideoFrame = true
+            }
+            if (playerManager.isInitialized) {
+                isLandscapeVideo = playerManager.isCurrentVideoLandscape
+            }
             val cb = PlayerCallback { event ->
                 when (event) {
                     is PlayerCallback.PlaybackEvent.Ready -> {
@@ -373,7 +404,11 @@ private fun VideoProgressSlider(
         onValueChangeFinished = {
             isDragging = false
             if (durationMs > 0L) {
-                onSeek((sliderPos.coerceIn(0f, 1f) * durationMs).toLong())
+                val target = (sliderPos.coerceIn(0f, 1f) * durationMs).toLong()
+                // 暂停时 Progress 事件不会派发，seek 后本地直接更新进度，
+                // 否则滑块会跳回 seek 前的位置。
+                progress = sliderPos.coerceIn(0f, 1f)
+                onSeek(target)
             }
         },
         modifier = modifier,
@@ -399,9 +434,7 @@ private fun FullscreenWatchButton(
 ) {
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(28.dp))
-            .background(ArcticColors.Glass.copy(alpha = 0.50f))
-            .border(1.dp, ArcticColors.PrimaryContainer.copy(alpha = 0.42f), RoundedCornerShape(28.dp))
+            .auroraGlass(AuroraShapes.Capsule)
             .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -427,9 +460,7 @@ private fun RelatedSearchBar(
         modifier = modifier
             .fillMaxWidth()
             .height(30.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(ArcticColors.Glass.copy(alpha = 0.54f))
-            .border(1.dp, ArcticColors.Outline.copy(alpha = 0.55f), RoundedCornerShape(8.dp))
+            .auroraGlass(AuroraShapes.Capsule)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,

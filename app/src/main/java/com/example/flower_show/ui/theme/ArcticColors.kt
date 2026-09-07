@@ -3,21 +3,31 @@ package com.example.flower_show.ui.theme
 import androidx.compose.ui.graphics.Color
 
 object ArcticColors {
-    val Background = Color(0xFF0B1326)
-    val BackgroundDeep = Color(0xFF060E20)
-    val Surface = Color(0xFF131B2E)
-    val SurfaceLow = Color(0xFF171F33)
-    val SurfaceHigh = Color(0xFF222A3D)
-    val SurfaceHighest = Color(0xFF2D3449)
-    val Outline = Color(0xFF334155)
-    val OutlineSoft = Color(0xFF41484D)
-    val Primary = Color(0xFFE1F0FF)
-    val PrimaryContainer = Color(0xFFA5D8FF)
-    val PrimaryGlow = Color(0xFF9ACCF3)
-    val OnPrimary = Color(0xFF00344D)
-    val OnSurface = Color(0xFFDAE2FD)
-    val OnSurfaceVariant = Color(0xFFC1C7CE)
-    val Muted = Color(0xFF94A3B8)
-    val Glass = Color(0xFF131B2E)
-    val NeonCyan = Color(0xFF25D7EE)
+    val Background = Color(0xFF070B14)
+    val BackgroundDeep = Background
+    val Surface = Color(0xFF0F1626)
+    val SurfaceLow = Color(0xFF121B2E)
+    val SurfaceHigh = Color(0xFF172136)
+    val SurfaceHighest = Color(0xFF1D2941)
+    val Outline = Color(0xFF34405E)
+    val OutlineSoft = Color(0xFF45516E)
+
+    val TextPrimary = Color(0xFFEDF2FF)
+    val TextSecondary = Color(0xFFA8B3CF)
+    val TextTertiary = Color(0xFF6B7599)
+
+    // Compatibility aliases used throughout the existing UI.
+    val Primary = TextPrimary
+    val PrimaryContainer = Color(0xFF22D3EE)
+    val PrimaryGlow = Color(0xFF818CF8)
+    val OnPrimary = Background
+    val OnSurface = TextPrimary
+    val OnSurfaceVariant = TextSecondary
+    val Muted = TextTertiary
+
+    val AuroraCyan = Color(0xFF22D3EE)
+    val AuroraIndigo = Color(0xFF818CF8)
+    val AuroraPink = Color(0xFFE879F9)
+    val AuroraGreen = Color(0xFF34D399)
+    val NeonCyan = AuroraCyan
 }

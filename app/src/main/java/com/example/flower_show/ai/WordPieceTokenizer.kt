@@ -21,8 +21,11 @@ class WordPieceTokenizer private constructor(
         val tokenIds = mutableListOf<Int>()
         tokenIds += clsId
         for (token in basicTokenize(text)) {
-            tokenIds += wordPiece(token)
-            if (tokenIds.size >= maxLength - 1) break
+            val pieces = wordPiece(token)
+            // 追加前检查：为 [SEP] 预留位置。若一个 token 被拆成多段直接越过
+            // maxLength - 1，[SEP] 会被 take(maxLength) 截掉，模型输入缺分隔符。
+            if (tokenIds.size + pieces.size > maxLength - 1) break
+            tokenIds += pieces
         }
         tokenIds += sepId
 
@@ -47,15 +50,21 @@ class WordPieceTokenizer private constructor(
             }
         }
 
-        text.forEach { char ->
+        // 按 code point 迭代：按 Char(UTF-16 code unit) 迭代会把 emoji 等
+        // 增补平面字符拆成孤立代理项，几乎必然命中 UNK。
+        var index = 0
+        while (index < text.length) {
+            val codePoint = text.codePointAt(index)
+            val charCount = Character.charCount(codePoint)
             when {
-                char.isWhitespace() || char.isSeparator() -> flush()
-                char.isCjk() -> {
+                Character.isWhitespace(codePoint) || codePoint in SEPARATOR_CODE_POINTS -> flush()
+                codePoint in CJK_START..CJK_END -> {
                     flush()
-                    tokens += char.toString()
+                    tokens += String(Character.toChars(codePoint))
                 }
-                else -> builder.append(char)
+                else -> builder.appendCodePoint(codePoint)
             }
+            index += charCount
         }
         flush()
         return tokens
@@ -77,26 +86,30 @@ class WordPieceTokenizer private constructor(
                 }
                 end--
             }
-            if (current == null) return listOf(unkId)
+            if (current == null) {
+                // 与 BERT 参考实现一致：词内任何一段匹配失败时，整个词降级为
+                // 单个 [UNK]。模型训练数据里不存在"前缀片段 + 词中 [UNK]"的序列，
+                // 保留已匹配前缀反而是分布外输入，会扭曲嵌入向量。
+                return listOf(unkId)
+            }
             pieces += vocab.getValue(current)
             start = end
         }
         return pieces
     }
 
-    private fun Char.isSeparator(): Boolean {
-        return this in setOf(
-            '#', '，', ',', '。', '.', '！', '!', '？', '?', '、', '｜', '|',
-            '/', '\\', '_', ':', ';', '；', '（', '）', '(', ')', '【', '】',
-            '[', ']', '「', '」', '『', '』', '"', '\'', '~', '`',
-        )
-    }
-
-    private fun Char.isCjk(): Boolean {
-        return this in '\u4e00'..'\u9fff'
-    }
-
     companion object {
+        private const val CJK_START = 0x4E00
+        private const val CJK_END = 0x9FFF
+
+        private val SEPARATOR_CODE_POINTS = setOf(
+            '#'.code, '，'.code, ','.code, '。'.code, '.'.code, '！'.code, '!'.code,
+            '？'.code, '?'.code, '、'.code, '｜'.code, '|'.code, '/'.code, '\\'.code,
+            '_'.code, ':'.code, ';'.code, '；'.code, '（'.code, '）'.code, '('.code,
+            ')'.code, '【'.code, '】'.code, '['.code, ']'.code, '「'.code, '」'.code,
+            '『'.code, '』'.code, '"'.code, '\''.code, '~'.code, '`'.code,
+        )
+
         fun fromAssets(
             context: Context,
             assetPath: String = DEFAULT_VOCAB_ASSET,

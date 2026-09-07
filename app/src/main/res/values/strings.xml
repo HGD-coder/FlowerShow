@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Flower Show</string>
+    <string name="notification_channel_name">Flower Show 通知</string>
+    <string name="notification_channel_description">互动与内容更新通知</string>
+    <string name="notification_default_body">你有一条新消息</string>
 </resources>

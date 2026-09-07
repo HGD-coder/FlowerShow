@@ -7,6 +7,12 @@ sealed interface SearchIntent {
     /** Execute search / 执行搜索 */
     data class Search(val keyword: String) : SearchIntent
 
+    data object LoadNextGuesses : SearchIntent
+
+    data object LoadMoreResults : SearchIntent
+
+    data class SuggestionClick(val suggestionId: String) : SearchIntent
+
     /** Load history from storage / 加载搜索历史 */
     data object LoadHistory : SearchIntent
 

@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "FlowerShow 运行时架构",
+    "quality_profile": "showcase",
+    "viewBox": [1320, 620],
+    "views": [
+      {
+        "id": "primary-feed",
+        "label": "主信息流路径",
+        "focus": ["compose-ui", "mvi-viewmodels", "video-repo", "gateway", "media3", "assets"],
+        "note": "从 UI 事件到后端推荐流,再到本地播放与缓存的主路径。"
+      },
+      {
+        "id": "on-device-search",
+        "label": "端侧搜索路径",
+        "focus": ["search-ai", "assets", "compose-ui"],
+        "note": "不依赖网络的本地向量搜索:资产索引 + ONNX 嵌入,结果直达界面。"
+      }
+    ]
+  },
+  "components": [
+    { "id": "compose-ui", "type": "frontend", "label": "Jetpack Compose UI", "sublabel": "信息流 · 搜索 · 聊天 · 登录", "pos": [70, 90], "size": [200, 92] },
+    { "id": "mvi-viewmodels", "type": "backend", "label": "MVI ViewModel", "sublabel": "Video · Search · Chat · Auth", "pos": [350, 90], "size": [230, 92] },
+    { "id": "video-repo", "type": "backend", "label": "视频仓库", "sublabel": "ApiVideoRepository · Fake", "pos": [660, 90], "size": [230, 92] },
+    { "id": "gateway", "type": "external", "label": "后端网关", "sublabel": "10.0.2.2:8088 · REST + WebSocket", "pos": [1010, 90], "size": [230, 92] },
+    { "id": "search-ai", "type": "backend", "label": "本地向量搜索", "sublabel": "ONNX Runtime · WordPiece", "pos": [70, 260], "size": [200, 92] },
+    { "id": "auth", "type": "security", "label": "认证会话", "sublabel": "Keystore Token · JWT", "pos": [350, 260], "size": [230, 92] },
+    { "id": "media3", "type": "backend", "label": "Media3 播放器", "sublabel": "预加载窗口 · 磁盘缓存", "pos": [660, 260], "size": [230, 92] },
+    { "id": "assets", "type": "database", "label": "本地素材资产", "sublabel": "爬虫视频 · 图文 · 向量索引", "pos": [350, 430], "size": [230, 92] }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Android 设备 · flower_show",
+      "wraps": ["compose-ui", "mvi-viewmodels", "video-repo", "search-ai", "auth", "media3", "assets"]
+    }
+  ],
+  "connections": [
+    { "id": "ui-vm", "from": "compose-ui", "to": "mvi-viewmodels", "label": "MVI 状态", "variant": "emphasis", "labelAt": [310, 122] },
+    { "id": "vm-video", "from": "mvi-viewmodels", "to": "video-repo", "label": "请求推荐流", "variant": "emphasis", "labelAt": [620, 122] },
+    { "id": "video-gateway", "from": "video-repo", "to": "gateway", "label": "REST /recommend (OkHttp)", "variant": "emphasis", "labelAt": [950, 196] },
+    { "id": "video-player", "from": "video-repo", "to": "media3", "label": "视频 URL · 预加载", "labelAt": [775, 196] },
+    { "id": "player-assets", "from": "media3", "to": "assets", "label": "素材读取 · 缓存", "labelAt": [620, 476], "via": [[590, 306], [590, 476]] },
+    { "id": "assets-search", "from": "assets", "to": "search-ai", "label": "向量索引读取", "labelAt": [235, 374], "toSide": "bottom", "via": [[280, 476], [280, 380], [170, 380]] },
+    { "id": "search-ui", "from": "search-ai", "to": "compose-ui", "label": "搜索结果" },
+    { "id": "vm-auth", "from": "mvi-viewmodels", "to": "auth", "label": "登录 · Token 刷新", "variant": "security", "labelAt": [465, 196] }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "信息流主路径",
+      "items": [
+        "Compose UI 发出 MVI 事件,VideoViewModel 经视频仓库请求后端推荐流",
+        "命中后由 Media3 播放器接管:预加载窗口、磁盘缓存与短视频 LoadControl"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "端侧能力",
+      "items": [
+        "ONNX Runtime 本地向量搜索,资产索引随 App 打包,无需联网",
+        "爬虫素材(视频/图文)全部来自本地资产"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "安全与信任边界",
+      "items": [
+        "设备内组件与外部网络隔离:仅后端网关(10.0.2.2:8088)直连",
+        "认证(AuthApi)与聊天(ChatRealtimeClient)同样直连后端网关;AuthInterceptor 为 OkHttp 附加 JWT,RefreshToken 存于 Android Keystore",
+        "推送:FCM 下发通知,设备 FID/Token 经 DeviceRegistrationApi 上报网关"
+      ]
+    }
+  ]
+}

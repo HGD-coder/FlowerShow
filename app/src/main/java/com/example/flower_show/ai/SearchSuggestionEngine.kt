@@ -50,7 +50,8 @@ object SearchSuggestionEngine {
         val candidates = (inferredFromHistory + contentCandidates + genericGuesses).distinct()
         if (candidates.isEmpty()) return emptyList()
 
-        val start = (page.coerceAtLeast(0) * count) % candidates.size
+        // 用 Long 计算，page * count 在 Int 上溢出为负时 drop() 会直接抛异常。
+        val start = ((page.coerceAtLeast(0).toLong() * count) % candidates.size).toInt()
         return (candidates.drop(start) + candidates.take(start)).take(count)
     }
 

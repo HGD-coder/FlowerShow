@@ -13,10 +13,16 @@ class VideoItemTest {
             avatarUrl = "https://a.jpg", videoUrl = "https://v.mp4",
             likes = 100, comments = 20, collections = 5, shares = 10,
             tags = listOf("tag1"), recommendWords = listOf("rec1"),
+            authorUserId = "user-1",
+            likedByViewer = true,
+            favoritedByViewer = true,
         )
         assertEquals("v001", video.id)
         assertEquals(100, video.likes)
         assertEquals(listOf("tag1"), video.tags)
+        assertEquals("user-1", video.authorUserId)
+        assertTrue(video.likedByViewer)
+        assertTrue(video.favoritedByViewer)
     }
 
     @Test
@@ -67,5 +73,21 @@ class VideoItemTest {
         )
 
         assertEquals("cover.jpg", video.preferredCoverUrl())
+    }
+
+    @Test
+    fun hlsUrlKeepsProgressiveFallback() {
+        val video = VideoItem(
+            id = "v001",
+            title = "A",
+            author = "A",
+            avatarUrl = "a",
+            videoUrl = "https://cdn.example/video.mp4",
+            qualityUrls = mapOf("360p" to "https://cdn.example/video_360p.mp4"),
+            hlsUrl = "https://cdn.example/hls/master.m3u8",
+        )
+
+        assertEquals("https://cdn.example/hls/master.m3u8", video.hlsUrl)
+        assertEquals("https://cdn.example/video.mp4", video.videoUrl)
     }
 }

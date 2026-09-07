@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <exclude domain="sharedpref" path="auth_encrypted_storage.xml" />
+        <exclude domain="sharedpref" path="push_registration.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="auth_encrypted_storage.xml" />
+        <exclude domain="sharedpref" path="push_registration.xml" />
+    </device-transfer>
+</data-extraction-rules>

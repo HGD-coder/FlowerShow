@@ -100,10 +100,13 @@ fun SearchResultScreen(
 
         when {
             state.isSearching -> ResultStatusText("\u641c\u7d22\u4e2d...")
-            state.error != null -> ResultStatusText(state.error.orEmpty(), emphasis = true)
+            // 只有首屏（还没有任何结果）才整页显示错误；
+            // 分页失败时保留已加载的列表，错误以页脚形式提示。
+            state.results.isEmpty() && state.error != null ->
+                ResultStatusText(state.error.orEmpty(), emphasis = true)
             state.results.isEmpty() -> ResultStatusText("\u6682\u65e0\u641c\u7d22\u7ed3\u679c")
             else -> {
-                val results = state.results.distinctBy { it.searchResultStableKey() }
+                val results = state.results
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -112,12 +115,30 @@ fun SearchResultScreen(
                 ) {
                     itemsIndexed(
                         items = results,
-                        key = { index, item -> "${item.searchResultStableKey()}:$index" },
-                    ) { _, item ->
+                        key = { index, item ->
+                            state.resultDeliveries.getOrNull(index)?.id?.let { "$it:$index" }
+                                ?: "${item.searchResultStableKey()}:$index"
+                        },
+                    ) { index, item ->
+                        if (index == results.lastIndex && state.resultHasMore) {
+                            LaunchedEffect(
+                                state.resultNextCursor,
+                                state.isLoadingMoreResults,
+                            ) {
+                                if (!state.isLoadingMoreResults) {
+                                    viewModel.dispatch(SearchIntent.LoadMoreResults)
+                                }
+                            }
+                        }
                         SearchResultRow(
                             item = item,
                             onClick = { onResultClick(item.searchNavigationTarget()) },
                         )
+                    }
+                    if (state.error != null && !state.resultHasMore) {
+                        item(key = "load_more_error") {
+                            ResultStatusText(state.error.orEmpty(), emphasis = true)
+                        }
                     }
                 }
             }

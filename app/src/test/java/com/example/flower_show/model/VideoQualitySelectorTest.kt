@@ -45,4 +45,41 @@ class VideoQualitySelectorTest {
         assertTrue(VideoQualitySelector.hasBandwidthFor(quality, estimatedBandwidthKbps = 4_000, headroom = 1.35))
         assertFalse(VideoQualitySelector.hasBandwidthFor(quality, estimatedBandwidthKbps = 2_000, headroom = 1.35))
     }
+
+    @Test
+    fun autoModeStartsAt480pInsteadOfHighestQuality() {
+        val qualities = VideoQualitySelector.from(
+            mapOf(
+                "1080p" to "1080.mp4",
+                "720p" to "720.mp4",
+                "480p" to "480.mp4",
+                "360p" to "360.mp4",
+            ),
+        )
+
+        val selected = VideoQualitySelector.chooseForMode(
+            qualities = qualities,
+            mode = QualityMode.Auto,
+            currentQualityName = "1080p",
+        )
+
+        assertEquals("480p", selected?.name)
+    }
+
+    @Test
+    fun videoSizeQualityNameUsesShortEdgeForLandscapeAndPortrait() {
+        assertEquals("480p", VideoQualitySelector.qualityNameForVideoSize(width = 854, height = 480))
+        assertEquals("480p", VideoQualitySelector.qualityNameForVideoSize(width = 480, height = 854))
+        assertEquals("1080p", VideoQualitySelector.qualityNameForVideoSize(width = 1920, height = 1080))
+        assertNull(VideoQualitySelector.qualityNameForVideoSize(width = 0, height = 1080))
+    }
+
+    @Test
+    fun qualityDisplayNameUsesUppercasePSuffixWithoutChangingOtherNames() {
+        assertEquals("480P", VideoQualitySelector.qualityNameForDisplay("480p"))
+        assertEquals("720P", VideoQualitySelector.qualityNameForDisplay(" 720P "))
+        assertEquals("1080P", VideoQualitySelector.qualityNameForDisplay("1080"))
+        assertEquals("原画", VideoQualitySelector.qualityNameForDisplay("原画"))
+        assertNull(VideoQualitySelector.qualityNameForDisplay(" "))
+    }
 }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,10 +36,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,16 +55,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.flower_show.model.VideoQuality
+import com.example.flower_show.model.VideoQualitySelector
 import com.example.flower_show.ui.theme.ArcticColors
+import com.example.flower_show.ui.theme.AuroraGradient
+import com.example.flower_show.ui.theme.AuroraShapes
+import com.example.flower_show.ui.theme.CollectGradient
+import com.example.flower_show.ui.theme.LikeGradient
+import com.example.flower_show.ui.theme.auroraGlass
+import com.example.flower_show.ui.theme.auroraGradient
+import com.example.flower_show.ui.theme.gradientForeground
+import com.example.flower_show.ui.theme.radialGlow
+import com.example.flower_show.viewmodel.FeedKind
 
 private val VideoFeedAccent = ArcticColors.PrimaryContainer
-private val ActionLikeRed = Color(0xFFFF2D55)
-private val ActionCollectGold = Color(0xFFFFC107)
 
 @Composable
 fun VideoFeedTopBar(
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier,
+    selectedFeed: FeedKind = FeedKind.Recommended,
+    onFeedSelected: (FeedKind) -> Unit = {},
 ) {
     Box(
         modifier = modifier
@@ -72,36 +90,18 @@ fun VideoFeedTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(26.dp),
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "关注",
-                    color = ArcticColors.OnSurfaceVariant.copy(alpha = 0.68f),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-                Spacer(Modifier.height(10.dp))
-                Box(
-                    modifier = Modifier
-                        .width(30.dp)
-                        .height(2.dp),
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "推荐",
-                    color = ArcticColors.Primary,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.height(10.dp))
-                Box(
-                    modifier = Modifier
-                        .width(30.dp)
-                        .height(2.dp)
-                        .background(ArcticColors.PrimaryContainer, RoundedCornerShape(2.dp)),
-                )
-            }
+            FeedTab(
+                text = "关注",
+                selected = selectedFeed == FeedKind.Following,
+                testTag = "feed_tab_following",
+                onClick = { onFeedSelected(FeedKind.Following) },
+            )
+            FeedTab(
+                text = "推荐",
+                selected = selectedFeed == FeedKind.Recommended,
+                testTag = "feed_tab_recommended",
+                onClick = { onFeedSelected(FeedKind.Recommended) },
+            )
         }
 
         Box(
@@ -109,9 +109,7 @@ fun VideoFeedTopBar(
                 .align(Alignment.CenterEnd)
                 .size(44.dp)
                 .testTag("home_search_button")
-                .clip(CircleShape)
-                .background(ArcticColors.Glass.copy(alpha = 0.24f))
-                .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
+                .auroraGlass(CircleShape)
                 .clickable(onClick = onSearchClick),
             contentAlignment = Alignment.Center,
         ) {
@@ -124,14 +122,62 @@ fun VideoFeedTopBar(
 }
 
 @Composable
+private fun FeedTab(
+    text: String,
+    selected: Boolean,
+    testTag: String,
+    onClick: () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .testTag(testTag)
+            .clickable(onClick = onClick),
+    ) {
+        if (selected) {
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.gradientForeground(),
+            )
+        } else {
+            Text(
+                text = text,
+                color = ArcticColors.TextTertiary,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        Box(
+            modifier = Modifier
+                .width(24.dp)
+                .height(3.dp)
+                .then(
+                    if (selected) {
+                        Modifier.background(AuroraGradient, AuroraShapes.Capsule)
+                    } else {
+                        Modifier
+                    },
+                ),
+        )
+    }
+}
+
+@Composable
 fun VideoFeedBottomBar(
     modifier: Modifier = Modifier,
+    onFriendsClick: () -> Unit = {},
+    onCreateClick: () -> Unit = {},
+    onMessagesClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(ArcticColors.Background.copy(alpha = 0.72f))
-            .border(1.dp, ArcticColors.Outline.copy(alpha = 0.28f))
+            .auroraGlass(RectangleShape)
             .navigationBarsPadding()
             .padding(start = 18.dp, top = 6.dp, end = 18.dp, bottom = 6.dp),
         verticalAlignment = Alignment.Top,
@@ -140,16 +186,23 @@ fun VideoFeedBottomBar(
         VideoFeedNavItem(
             selected = true,
             icon = { tint -> HomeNavIcon(tint = tint, size = 32.dp) },
+            testTag = "bottom_home_button",
         )
         VideoFeedNavItem(
             icon = { tint -> FriendsNavIcon(tint = tint, size = 32.dp) },
+            onClick = onFriendsClick,
+            testTag = "bottom_friends_button",
         )
-        CreateNavButton()
+        CreateNavButton(onClick = onCreateClick)
         VideoFeedNavItem(
             icon = { tint -> InboxNavIcon(tint = tint, size = 32.dp) },
+            onClick = onMessagesClick,
+            testTag = "bottom_messages_button",
         )
         VideoFeedNavItem(
             icon = { tint -> ProfileNavIcon(tint = tint, size = 32.dp) },
+            onClick = onProfileClick,
+            testTag = "bottom_profile_button",
         )
     }
 }
@@ -165,6 +218,10 @@ fun VideoActionRail(
     shares: Int,
     onLikeClick: () -> Unit,
     onCollectClick: () -> Unit,
+    onCommentClick: (() -> Unit)? = null,
+    commentButtonTestTag: String? = null,
+    onCreatorClick: (() -> Unit)? = null,
+    onShareClick: (() -> Unit)? = null,
     availableQualities: List<VideoQuality> = emptyList(),
     qualityMode: String = "Auto",
     currentQualityName: String? = null,
@@ -179,35 +236,86 @@ fun VideoActionRail(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        CreatorAvatar(avatarUrl = avatarUrl)
+        CreatorAvatar(
+            avatarUrl = avatarUrl,
+            onClick = onCreatorClick,
+        )
 
         VideoActionItem(
-            count = formatCount(if (isLiked) likes + 1 else likes),
+            count = formatCount(likes),
             icon = {
-                if (isLiked) HeartFilledIcon(size = 42.dp, tint = ActionLikeRed, onClick = onLikeClick)
-                else HeartOutlineIcon(size = 42.dp, tint = Color.White, onClick = onLikeClick)
+                if (isLiked) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .radialGlow(ArcticColors.AuroraCyan),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        HeartFilledIcon(
+                            modifier = Modifier.gradientForeground(LikeGradient),
+                            size = 42.dp,
+                            tint = Color.White,
+                            onClick = onLikeClick,
+                        )
+                    }
+                } else {
+                    HeartOutlineIcon(size = 42.dp, tint = Color.White, onClick = onLikeClick)
+                }
+            },
+        )
+
+        if (onShareClick != null) {
+            VideoActionItem(
+                count = if (shares > 0) formatCount(shares) else "分享",
+                icon = {
+                    ShareIcon(
+                        modifier = Modifier.testTag("share_video_button"),
+                        size = 48.dp,
+                        onClick = onShareClick,
+                    )
+                },
+            )
+        }
+        VideoActionItem(
+            count = formatCount(comments),
+            icon = {
+                CommentIcon(
+                    modifier = if (commentButtonTestTag != null) {
+                        Modifier.testTag(commentButtonTestTag)
+                    } else {
+                        Modifier
+                    },
+                    size = 40.dp,
+                    onClick = onCommentClick,
+                )
             },
         )
         VideoActionItem(
-            count = formatCount(comments),
-            icon = { CommentIcon(size = 40.dp) },
-        )
-        VideoActionItem(
-            count = if (collections > 0) formatCount(if (isCollected) collections + 1 else collections) else "收藏",
+            count = if (collections > 0) formatCount(collections) else "收藏",
             icon = {
-                BookmarkIcon(
-                    tint = if (isCollected) ActionCollectGold else Color.White,
-                    size = 42.dp,
-                    filled = isCollected,
-                    onClick = onCollectClick,
-                )
+                if (isCollected) {
+                    BookmarkIcon(
+                        modifier = Modifier.gradientForeground(CollectGradient),
+                        tint = Color.White,
+                        size = 42.dp,
+                        filled = true,
+                        onClick = onCollectClick,
+                    )
+                } else {
+                    BookmarkIcon(
+                        tint = Color.White,
+                        size = 42.dp,
+                        filled = false,
+                        onClick = onCollectClick,
+                    )
+                }
             },
         )
 
         // Quality selector — only visible when multi-quality data exists
         if (availableQualities.size > 1) {
             VideoActionItem(
-                count = currentQualityName ?: "画质",
+                count = VideoQualitySelector.qualityNameForDisplay(currentQualityName) ?: "画质",
                 icon = {
                     Box {
                         Text(
@@ -225,7 +333,9 @@ fun VideoActionRail(
                             DropdownMenuItem(
                                 modifier = Modifier.testTag("quality_option_auto"),
                                 text = {
-                                    val label = if (qualityMode == "Auto") "✓ 自动（当前 ${currentQualityName ?: "自动"}）"
+                                    val currentQualityLabel =
+                                        VideoQualitySelector.qualityNameForDisplay(currentQualityName) ?: "自动"
+                                    val label = if (qualityMode == "Auto") "✓ 自动（当前 $currentQualityLabel）"
                                     else "  自动"
                                     Text(label, color = Color.White)
                                 },
@@ -235,8 +345,10 @@ fun VideoActionRail(
                                 DropdownMenuItem(
                                     modifier = Modifier.testTag("quality_option_${quality.name}"),
                                     text = {
+                                        val qualityLabel =
+                                            VideoQualitySelector.qualityNameForDisplay(quality.name) ?: quality.name
                                         val label = if (qualityMode == "Manual" && currentQualityName == quality.name)
-                                            "✓ ${quality.name}" else "  ${quality.name}"
+                                            "✓ $qualityLabel" else "  $qualityLabel"
                                         Text(label, color = Color.White)
                                     },
                                     onClick = {
@@ -283,9 +395,7 @@ fun VideoCaptionPanel(
         if (!subtitle.isNullOrBlank()) {
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(7.dp))
-                    .background(ArcticColors.Glass.copy(alpha = 0.42f))
-                    .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(7.dp))
+                    .auroraGlass(AuroraShapes.Small)
                     .clickable(enabled = onSubtitleClick != null) {
                         onSubtitleClick?.invoke(subtitle)
                     }
@@ -350,9 +460,7 @@ fun VideoCaptionPanel(
 private fun LiveBadge(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(7.dp))
-            .background(ArcticColors.Glass.copy(alpha = 0.34f))
-            .border(1.dp, ArcticColors.PrimaryContainer.copy(alpha = 0.45f), RoundedCornerShape(7.dp))
+            .auroraGlass(AuroraShapes.Small)
             .padding(horizontal = 6.dp, vertical = 3.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -370,8 +478,16 @@ private fun LiveBadge(modifier: Modifier = Modifier) {
 private fun CreatorAvatar(
     avatarUrl: String,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
-    Box(modifier = modifier.size(62.dp), contentAlignment = Alignment.TopCenter) {
+    Box(
+        modifier = modifier
+            .size(62.dp)
+            .testTag("creator_profile_button")
+            .clip(CircleShape)
+            .clickable(enabled = onClick != null, onClick = onClick ?: {}),
+        contentAlignment = Alignment.TopCenter,
+    ) {
         AsyncImage(
             model = rememberFlowerImageRequest(
                 data = avatarUrl,
@@ -452,17 +568,39 @@ private fun VideoFeedNavItem(
     selected: Boolean = false,
     badge: String? = null,
     icon: @Composable (Color) -> Unit,
+    onClick: (() -> Unit)? = null,
+    testTag: String? = null,
 ) {
-    val tint = if (selected) ArcticColors.Primary else ArcticColors.OnSurfaceVariant.copy(alpha = 0.64f)
-    Column(
-        modifier = Modifier.width(58.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Box(
+        modifier = Modifier
+            .width(58.dp)
+            .sizeIn(minHeight = 48.dp)
+            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier)
+            .clickable(enabled = onClick != null, onClick = onClick ?: {}),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(contentAlignment = Alignment.TopEnd) {
-            icon(tint)
+        Box(
+            modifier = Modifier
+                .size(width = 54.dp, height = 44.dp)
+                .clip(AuroraShapes.Capsule)
+                .then(
+                    if (selected) {
+                        Modifier.background(auroraGradient(alpha = 0.20f), AuroraShapes.Capsule)
+                    } else {
+                        Modifier
+                    },
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier = if (selected) Modifier.gradientForeground() else Modifier,
+            ) {
+                icon(if (selected) Color.White else ArcticColors.TextTertiary)
+            }
             if (badge != null) {
                 Box(
                     modifier = Modifier
+                        .align(Alignment.TopEnd)
                         .offset(x = 11.dp, y = (-7).dp)
                         .background(VideoFeedAccent, CircleShape)
                         .padding(horizontal = 7.dp, vertical = 2.dp),
@@ -481,24 +619,37 @@ private fun VideoFeedNavItem(
 }
 
 @Composable
-private fun CreateNavButton() {
+private fun CreateNavButton(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .width(66.dp)
-            .height(44.dp),
+            .height(56.dp)
+            .testTag("bottom_create_button")
+            .semantics {
+                role = Role.Button
+                contentDescription = "创作"
+            }
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .size(width = 54.dp, height = 36.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(ArcticColors.Glass.copy(alpha = 0.62f))
-                .border(1.dp, ArcticColors.PrimaryContainer.copy(alpha = 0.70f), RoundedCornerShape(10.dp)),
+                .size(48.dp)
+                .blur(
+                    radius = 24.dp,
+                    edgeTreatment = BlurredEdgeTreatment.Unbounded,
+                )
+                .background(ArcticColors.AuroraCyan.copy(alpha = 0.35f), CircleShape),
+        )
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(AuroraGradient, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = "+",
-                color = ArcticColors.Primary,
+                color = ArcticColors.TextPrimary,
                 fontSize = 34.sp,
                 fontWeight = FontWeight.Medium,
             )

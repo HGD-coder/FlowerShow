@@ -67,6 +67,21 @@ class WordPieceTokenizerTest {
         assertArrayEquals(longArrayOf(1, 1, 1, 1), encoded.attentionMask)
     }
 
+    @Test
+    fun encodeKeepsSeparatorWhenMultiPieceTokenWouldOverflow() {
+        val tokenizer = tokenizer(
+            "ab" to 220,
+            "##c" to 221,
+        )
+
+        // "abc" 拆成 [ab, ##c] 两段，maxLength=3 时放不下任何内容 token；
+        // 此时应保留 [SEP]，而不是让内容把分隔符挤出 maxLength。
+        val encoded = tokenizer.encode("abc", maxLength = 3)
+
+        assertArrayEquals(longArrayOf(101, 102, 0), encoded.inputIds)
+        assertArrayEquals(longArrayOf(1, 1, 0), encoded.attentionMask)
+    }
+
     private fun tokenizer(vararg extraTokens: Pair<String, Int>): WordPieceTokenizer {
         val vocab = linkedMapOf(
             "[PAD]" to 0,

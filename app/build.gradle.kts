@@ -5,6 +5,19 @@ plugins {
     jacoco
 }
 
+val firebaseConfigured = layout.projectDirectory.file("google-services.json").asFile.isFile
+if (firebaseConfigured) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
+fun String.asBuildConfigString(): String =
+    "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
+val publicGatewayBaseUrl: String = providers
+    .gradleProperty("FLOWER_SHOW_PUBLIC_GATEWAY_BASE_URL")
+    .orElse("http://10.0.2.2:8088")
+    .get()
+
 jacoco {
     toolVersion = "0.8.12"
 }
@@ -20,12 +33,21 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["firebaseConfigured"] = firebaseConfigured.toString()
+        manifestPlaceholders["usesCleartextTraffic"] = "false"
+        buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
+        buildConfigField(
+            "String",
+            "PUBLIC_GATEWAY_BASE_URL",
+            publicGatewayBaseUrl.asBuildConfigString(),
+        )
     }
 
     buildTypes {
         debug {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
         }
         release {
             isMinifyEnabled = false
@@ -52,6 +74,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }
@@ -68,6 +91,12 @@ val jacocoCoverageExclusions = listOf(
 
 tasks.withType<Test>().configureEach {
     useJUnit()
+}
+
+// Espresso 3.7.0 supports newer platform InputManager APIs and requires Futures 1.2.0.
+// Keep this alignment scoped to instrumentation tests so the production dependency graph is unchanged.
+configurations.matching { it.name.contains("AndroidTest", ignoreCase = true) }.configureEach {
+    resolutionStrategy.force("androidx.concurrent:concurrent-futures:1.2.0")
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
@@ -123,8 +152,12 @@ dependencies {
     // Activity Compose
     implementation(libs.androidx.activity.compose)
 
+    // Navigation Compose
+    implementation(libs.androidx.navigation.compose)
+
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.androidx.media3.ui)
 
     // Performance tracing for Macrobenchmark custom metrics
@@ -137,6 +170,13 @@ dependencies {
     // Gson (JSON)
     implementation(libs.gson)
 
+    // HTTP + authentication
+    implementation(libs.okhttp)
+
+    // Firebase Cloud Messaging (FID registration API; intentionally not the retired KTX module)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+
     // On-device embedding inference
     implementation(libs.onnxruntime.android)
 
@@ -146,6 +186,7 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -153,4 +194,5 @@ dependencies {
 
     // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

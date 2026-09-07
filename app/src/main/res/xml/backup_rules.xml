@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <exclude domain="sharedpref" path="auth_encrypted_storage.xml" />
+    <exclude domain="sharedpref" path="push_registration.xml" />
+</full-backup-content>

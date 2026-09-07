@@ -1,7 +1,6 @@
 package com.example.flower_show.ui.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -47,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -56,6 +56,8 @@ import com.example.flower_show.model.VideoItem
 import com.example.flower_show.player.PlayerCallback
 import com.example.flower_show.player.VideoPlayerManager
 import com.example.flower_show.ui.theme.ArcticColors
+import com.example.flower_show.ui.theme.AuroraShapes
+import com.example.flower_show.ui.theme.auroraGlass
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -75,6 +77,7 @@ fun LandscapeVideoControls(
     isCollected: Boolean = false,
     onLikeClick: () -> Unit = {},
     onCollectClick: () -> Unit = {},
+    onCommentClick: () -> Unit = {},
     onToggleVisible: () -> Unit,
     onBack: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -88,32 +91,37 @@ fun LandscapeVideoControls(
     var sliderPosition by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
 
-    DisposableEffect(playerManager) {
-        val callback = PlayerCallback { event ->
-            when (event) {
-                is PlayerCallback.PlaybackEvent.Ready -> {
-                    durationMs = event.durationMs.validDuration()
-                    isPlaying = playerManager.isPlaying
-                }
-
-                is PlayerCallback.PlaybackEvent.Progress -> {
-                    positionMs = event.positionMs.coerceAtLeast(0L)
-                    if (!isDragging && durationMs > 0) {
-                        sliderPosition = (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
+    // 控制层隐藏时不再注册进度回调，避免不可见状态下每 200ms 被触发一次重组。
+    DisposableEffect(playerManager, visible) {
+        if (!visible) {
+            onDispose { }
+        } else {
+            val callback = PlayerCallback { event ->
+                when (event) {
+                    is PlayerCallback.PlaybackEvent.Ready -> {
+                        durationMs = event.durationMs.validDuration()
+                        isPlaying = playerManager.isPlaying
                     }
-                }
 
-                is PlayerCallback.PlaybackEvent.StateChanged -> isPlaying = event.isPlaying
-                is PlayerCallback.PlaybackEvent.Complete -> {
-                    isPlaying = false
-                    sliderPosition = 1f
-                }
+                    is PlayerCallback.PlaybackEvent.Progress -> {
+                        positionMs = event.positionMs.coerceAtLeast(0L)
+                        if (!isDragging && durationMs > 0) {
+                            sliderPosition = (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
+                        }
+                    }
 
-                else -> Unit
+                    is PlayerCallback.PlaybackEvent.StateChanged -> isPlaying = event.isPlaying
+                    is PlayerCallback.PlaybackEvent.Complete -> {
+                        isPlaying = false
+                        sliderPosition = 1f
+                    }
+
+                    else -> Unit
+                }
             }
+            playerManager.addCallback(callback)
+            onDispose { playerManager.removeCallback(callback) }
         }
-        playerManager.addCallback(callback)
-        onDispose { playerManager.removeCallback(callback) }
     }
 
     Box(
@@ -187,10 +195,14 @@ fun LandscapeVideoControls(
             onSliderFinished = {
                 isDragging = false
                 val target = (sliderPosition * durationMs).toLong().coerceAtLeast(0L)
+                // 暂停时 Progress 事件不会派发，seek 后本地直接更新显示位置，
+                // 否则滑块/时间文本会跳回 seek 前的位置。
+                positionMs = target
                 onSeek(target)
             },
             onLikeClick = onLikeClick,
             onCollectClick = onCollectClick,
+            onCommentClick = onCommentClick,
             playbackSpeed = playbackSpeed,
             onPlaybackSpeedChange = onPlaybackSpeedChange,
             modifier = Modifier
@@ -317,9 +329,7 @@ private fun LandscapeCenterToggle(
     Box(
         modifier = modifier
             .size(96.dp)
-            .clip(CircleShape)
-            .background(ArcticColors.Glass.copy(alpha = 0.26f))
-            .border(1.dp, Color.White.copy(alpha = 0.10f), CircleShape)
+            .auroraGlass(CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -343,6 +353,7 @@ private fun LandscapeBottomControls(
     onSliderFinished: () -> Unit,
     onLikeClick: () -> Unit,
     onCollectClick: () -> Unit,
+    onCommentClick: () -> Unit,
     playbackSpeed: Float,
     onPlaybackSpeedChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
@@ -387,7 +398,7 @@ private fun LandscapeBottomControls(
             modifier = Modifier.fillMaxWidth(),
         ) {
             BottomAction(
-                count = formatCount((video?.likes ?: 0) + if (isLiked) 1 else 0),
+                count = formatCount(video?.likes ?: 0),
                 onClick = onLikeClick,
                 icon = {
                     if (isLiked) {
@@ -400,11 +411,13 @@ private fun LandscapeBottomControls(
             Spacer(Modifier.width(26.dp))
             BottomAction(
                 count = formatCount(video?.comments ?: 0),
+                onClick = onCommentClick,
+                modifier = Modifier.testTag("comment_video_button"),
                 icon = { CommentIcon(size = 30.dp, tint = Color.White) },
             )
             Spacer(Modifier.width(26.dp))
             BottomAction(
-                count = formatCount((video?.collections ?: 0) + if (isCollected) 1 else 0),
+                count = formatCount(video?.collections ?: 0),
                 onClick = onCollectClick,
                 icon = {
                     BookmarkIcon(
@@ -440,9 +453,7 @@ private fun LandscapeSpeedSelector(
     Row(
         modifier = Modifier
             .height(38.dp)
-            .clip(RoundedCornerShape(19.dp))
-            .background(ArcticColors.Glass.copy(alpha = 0.48f))
-            .border(1.dp, ArcticColors.Outline.copy(alpha = 0.52f), RoundedCornerShape(19.dp))
+            .auroraGlass(AuroraShapes.Capsule)
             .padding(horizontal = 3.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -474,15 +485,16 @@ private fun LandscapeSpeedSelector(
 private fun BottomAction(
     count: String,
     onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
     icon: @Composable () -> Unit,
 ) {
     val clickableModifier = if (onClick != null) {
-        Modifier
+        modifier
             .clip(RoundedCornerShape(18.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 6.dp, vertical = 4.dp)
     } else {
-        Modifier
+        modifier
     }
     Row(
         modifier = clickableModifier,
@@ -504,9 +516,7 @@ private fun LandscapeCircleButton(content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .size(48.dp)
-            .clip(CircleShape)
-            .background(ArcticColors.Glass.copy(alpha = 0.42f))
-            .border(1.dp, ArcticColors.Outline.copy(alpha = 0.72f), CircleShape),
+            .auroraGlass(CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         content()

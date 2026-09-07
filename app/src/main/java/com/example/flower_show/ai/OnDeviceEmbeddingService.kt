@@ -56,8 +56,10 @@ class OnDeviceEmbeddingService private constructor(
     private fun createSessionOrNull(): OrtSession? {
         return try {
             val modelFile = copyAssetToCache(modelAssetPath)
-            val options = OrtSession.SessionOptions()
-            env.createSession(modelFile.absolutePath, options)
+            // SessionOptions 持有原生资源，必须关闭。
+            OrtSession.SessionOptions().use { options ->
+                env.createSession(modelFile.absolutePath, options)
+            }
         } catch (e: Exception) {
             Log.i(TAG, "Embedding model is not available yet: $modelAssetPath")
             null
@@ -73,11 +75,13 @@ class OnDeviceEmbeddingService private constructor(
 
         return when {
             shape.size >= 3 && shape[2] > 0L -> {
-                val dim = shape[2].toInt()
-                values.copyOfRange(0, dim)
+                // shape[2] 超 Int 范围时 toInt() 溢出为负，先钳制再 minOf，
+                // 避免 copyOfRange 抛异常后被外层 catch 吞掉、向量搜索静默禁用。
+                val dim = shape[2].toInt().coerceAtLeast(0)
+                values.copyOfRange(0, minOf(dim, values.size))
             }
             shape.size >= 2 && shape[1] > 0L -> {
-                val dim = shape[1].toInt()
+                val dim = shape[1].toInt().coerceAtLeast(0)
                 values.copyOfRange(0, minOf(dim, values.size))
             }
             else -> values
@@ -85,13 +89,33 @@ class OnDeviceEmbeddingService private constructor(
     }
 
     private fun copyAssetToCache(assetPath: String): File {
-        val outFile = File(context.cacheDir, assetPath.replace('/', '_'))
-        if (outFile.exists() && outFile.length() > 0L) return outFile
-
         context.assets.open(assetPath).use { input ->
-            outFile.outputStream().use { output -> input.copyTo(output) }
+            // available() 对 APK 资产流返回剩余（未压缩）字节数，作为资产长度指纹。
+            val assetLength = input.available().toLong()
+            val baseName = assetPath.replace('/', '_')
+            // 把资产长度编进缓存文件名：cacheDir 会跨应用升级保留，
+            // 只判断"文件存在且非空"会让更新后打包的新模型永远不生效。
+            val outFile = File(context.cacheDir, "$baseName.$assetLength")
+            if (outFile.exists() && outFile.length() == assetLength) return outFile
+
+            // 先写临时文件再原子重命名：拷贝中途进程被杀不会留下
+            // 非空但截断的缓存被后续启动当作有效模型加载。
+            val tmpFile = File(context.cacheDir, "$baseName.$assetLength.tmp")
+            try {
+                tmpFile.outputStream().use { output -> input.copyTo(output) }
+                // 清掉旧版本（含旧命名方案）的缓存副本，避免 cacheDir 积累多个模型文件。
+                context.cacheDir.listFiles()?.forEach { cached ->
+                    if (cached.isFile && cached.name.startsWith(baseName) && cached != outFile) {
+                        cached.delete()
+                    }
+                }
+                if (outFile.exists()) outFile.delete()
+                check(tmpFile.renameTo(outFile)) { "Failed to move model cache into place" }
+            } finally {
+                tmpFile.delete()
+            }
+            return outFile
         }
-        return outFile
     }
 
     companion object {

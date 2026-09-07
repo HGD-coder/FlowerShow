@@ -26,3 +26,6 @@ tmp/
 skills-lock.json
 /.agents
 /.codex
+/.workbuddy/
+/open-design-tmp/
+/outputs/

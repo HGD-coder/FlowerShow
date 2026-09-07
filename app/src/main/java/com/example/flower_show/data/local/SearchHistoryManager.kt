@@ -22,6 +22,7 @@ class SearchHistoryManager(context: Context) {
         private const val MAX_HISTORY = 20
     }
 
+    @Synchronized
     fun addHistory(keyword: String) {
         val cleaned = keyword.trim()
         if (cleaned.isBlank()) return
@@ -34,19 +35,25 @@ class SearchHistoryManager(context: Context) {
         saveHistory(history)
     }
 
+    // getHistory 也会写 SharedPreferences（清除损坏的 V2 值、迁移 legacy 数据），
+    // 必须与其他修改方法一样持锁，否则并发调用会交错丢失刚写入的记录。
+    @Synchronized
     fun getHistory(): List<String> {
         // Try new JSON format first
         runCatching { prefs.getString(KEY_HISTORY_V2, null) }.getOrNull()?.let { json ->
-            return try {
+            val parsed = try {
                 val type = object : TypeToken<List<String?>>() {}.type
                 val result: List<String?> = gson.fromJson(json, type) ?: emptyList()
                 MetricsCollector.recordLabel("search_history_source", "json")
                 sanitize(result)
             } catch (_: Exception) {
-                emptyList<String>().also {
-                    MetricsCollector.recordLabel("search_history_source", "json_error")
-                }
+                MetricsCollector.recordLabel("search_history_source", "json_error")
+                null
             }
+            if (parsed != null) return parsed
+            // V2 数据损坏：清除损坏值并继续走 legacy 迁移，
+            // 而不是每次都返回空历史（否则要到下次 addHistory 才能自愈）。
+            prefs.edit().remove(KEY_HISTORY_V2).apply()
         }
         // Fallback: read old StringSet, migrate to new format
         val legacySet = runCatching { prefs.getStringSet(KEY_HISTORY, emptySet()) }
@@ -63,6 +70,7 @@ class SearchHistoryManager(context: Context) {
         return emptyList()
     }
 
+    @Synchronized
     fun deleteHistory(keyword: String) {
         val cleaned = keyword.trim()
         val history = getHistory().toMutableList()
@@ -70,6 +78,7 @@ class SearchHistoryManager(context: Context) {
         saveHistory(history)
     }
 
+    @Synchronized
     fun clearAll() {
         prefs.edit().remove(KEY_HISTORY).remove(KEY_HISTORY_V2).apply()
     }

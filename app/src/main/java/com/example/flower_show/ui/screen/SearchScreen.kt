@@ -20,9 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,14 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.flower_show.ai.SearchSuggestionEngine
 import com.example.flower_show.ui.component.SearchIcon
 import com.example.flower_show.ui.theme.ArcticColors
 import com.example.flower_show.viewmodel.SearchIntent
 import com.example.flower_show.viewmodel.SearchViewModel
 
 private const val HistoryCollapsedCount = 6
-private const val GuessPageSize = 8
 
 private val SearchPageBackground = ArcticColors.Background
 private val SearchTextPrimary = ArcticColors.OnSurface
@@ -63,7 +59,6 @@ fun SearchScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var input by rememberSaveable { mutableStateOf("") }
     var historyExpanded by rememberSaveable { mutableStateOf(false) }
-    var guessPage by rememberSaveable { mutableIntStateOf(0) }
 
     fun submit(keyword: String) {
         val trimmed = keyword.trim()
@@ -76,14 +71,6 @@ fun SearchScreen(
         state.history
     } else {
         state.history.take(HistoryCollapsedCount)
-    }
-    val guessKeywords = remember(state.history, state.guessCandidates, guessPage) {
-        SearchSuggestionEngine.guessSearches(
-            history = state.history,
-            page = guessPage,
-            count = GuessPageSize,
-            contentCandidates = state.guessCandidates,
-        )
     }
 
     Column(
@@ -109,6 +96,7 @@ fun SearchScreen(
             title = "历史记录",
             keywords = historyKeywords,
             emptyText = "暂无历史记录",
+            keywordText = { it },
             modifier = Modifier.weight(1f),
             onKeywordClick = { submit(it) },
             actions = {
@@ -152,15 +140,27 @@ fun SearchScreen(
 
         KeywordSection(
             title = "猜你想搜",
-            keywords = guessKeywords,
+            keywords = state.guesses,
+            emptyText = when {
+                state.isLoadingGuesses -> "加载中..."
+                state.guessError != null -> state.guessError
+                else -> "暂无推荐"
+            },
+            keywordText = { it.text },
             modifier = Modifier.weight(1f),
-            onKeywordClick = { submit(it) },
+            onKeywordClick = { guess ->
+                // 直接携带被点击建议的 id 上报，避免两条建议文本相同时按文本匹配错归因。
+                viewModel.dispatch(SearchIntent.SuggestionClick(guess.id))
+                submit(guess.text)
+            },
             actions = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .height(40.dp)
-                        .clickable { guessPage += 1 }
+                        .clickable(
+                            enabled = !state.isLoadingGuesses && state.guessHasMore,
+                        ) { viewModel.dispatch(SearchIntent.LoadNextGuesses) }
                         .padding(horizontal = 6.dp),
                 ) {
                     RefreshIcon(tint = SearchTextSecondary, size = 22.dp)
@@ -169,7 +169,8 @@ fun SearchScreen(
                 }
                 VerticalSeparator()
                 IconButton(
-                    onClick = { guessPage += 1 },
+                    onClick = { viewModel.dispatch(SearchIntent.LoadNextGuesses) },
+                    enabled = !state.isLoadingGuesses && state.guessHasMore,
                     modifier = Modifier.size(40.dp),
                 ) {
                     MoreVerticalIcon(tint = SearchTextSecondary, size = 22.dp)
@@ -267,12 +268,13 @@ private fun SearchTopBar(
 }
 
 @Composable
-private fun KeywordSection(
+private fun <T> KeywordSection(
     title: String,
-    keywords: List<String>,
+    keywords: List<T>,
     modifier: Modifier = Modifier,
     emptyText: String? = null,
-    onKeywordClick: (String) -> Unit,
+    keywordText: (T) -> String,
+    onKeywordClick: (T) -> Unit,
     actions: @Composable RowScope.() -> Unit,
 ) {
     Column(
@@ -308,6 +310,7 @@ private fun KeywordSection(
         } else {
             KeywordGrid(
                 keywords = keywords,
+                keywordText = keywordText,
                 onKeywordClick = onKeywordClick,
             )
         }
@@ -315,9 +318,10 @@ private fun KeywordSection(
 }
 
 @Composable
-private fun KeywordGrid(
-    keywords: List<String>,
-    onKeywordClick: (String) -> Unit,
+private fun <T> KeywordGrid(
+    keywords: List<T>,
+    keywordText: (T) -> String,
+    onKeywordClick: (T) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
         keywords.chunked(2).forEach { rowKeywords ->
@@ -327,7 +331,7 @@ private fun KeywordGrid(
             ) {
                 rowKeywords.forEach { keyword ->
                     KeywordText(
-                        keyword = keyword,
+                        keyword = keywordText(keyword),
                         modifier = Modifier.weight(1f),
                         onClick = { onKeywordClick(keyword) },
                     )

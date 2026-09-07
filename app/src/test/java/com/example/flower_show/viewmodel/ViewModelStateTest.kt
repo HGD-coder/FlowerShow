@@ -1,6 +1,7 @@
 package com.example.flower_show.viewmodel
 
 import com.example.flower_show.model.QualityMode
+import com.example.flower_show.model.SearchGuess
 import com.example.flower_show.model.VideoQuality
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -14,7 +15,7 @@ class ViewModelStateTest {
         val state = SearchState()
 
         assertTrue(state.history.isEmpty())
-        assertTrue(state.guessCandidates.isEmpty())
+        assertTrue(state.guesses.isEmpty())
         assertTrue(state.results.isEmpty())
         assertFalse(state.isSearching)
         assertEquals("", state.currentKeyword)
@@ -25,14 +26,16 @@ class ViewModelStateTest {
     fun searchStateCopyCarriesSearchResultMetadata() {
         val state = SearchState().copy(
             history = listOf("food"),
-            guessCandidates = listOf("shrimp"),
+            guesses = listOf(
+                SearchGuess("s1", "shrimp", 0, "server", "exposure"),
+            ),
             isSearching = true,
             currentKeyword = "shrimp",
             error = "network",
         )
 
         assertEquals(listOf("food"), state.history)
-        assertEquals(listOf("shrimp"), state.guessCandidates)
+        assertEquals(listOf("shrimp"), state.guesses.map { it.text })
         assertTrue(state.isSearching)
         assertEquals("shrimp", state.currentKeyword)
         assertEquals("network", state.error)
@@ -53,6 +56,13 @@ class ViewModelStateTest {
         assertEquals(QualityMode.Auto, state.qualityMode)
         assertNull(state.currentQualityName)
         assertTrue(state.availableQualities.isEmpty())
+        assertEquals(FeedKind.Recommended, state.selectedFeed)
+        assertTrue(state.interactionRequests.isEmpty())
+        assertNull(state.commentSheetVideoId)
+        assertTrue(state.commentsByVideoId.isEmpty())
+        assertEquals("", state.commentDraft)
+        assertFalse(state.isCommentsLoading)
+        assertFalse(state.isCommentSubmitting)
     }
 
     @Test
@@ -93,5 +103,11 @@ class ViewModelStateTest {
         assertEquals("720p", VideoIntent.SelectManualQuality("720p", "url").name)
         assertEquals("url", VideoIntent.SelectManualQuality("720p", "url").url)
         assertEquals(300L, VideoIntent.ReportBuffering(300L).durationMs)
+        assertEquals(FeedKind.Following, VideoIntent.SelectFeed(FeedKind.Following).feed)
+        assertEquals("v9", VideoIntent.ToggleLike("v9").videoId)
+        assertEquals("v9", VideoIntent.ToggleFavorite("v9").videoId)
+        assertEquals("v9", VideoIntent.OpenComments("v9").videoId)
+        assertEquals("hello", VideoIntent.UpdateCommentDraft("hello").text)
+        assertEquals("user-1", VideoIntent.BindViewer("user-1").userId)
     }
 }

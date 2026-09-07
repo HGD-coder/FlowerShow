@@ -57,6 +57,26 @@ class FeedPreloadController(
         preloadManager.invalidate()
     }
 
+    /**
+     * 移除当前播放项之外的全部预加载任务，把带宽让给正在播放的视频。
+     *
+     * 已消费的媒体源不受影响（播放器已持有引用）；
+     * 恢复时调用方重新 updateWindow 即可重建预加载窗口。
+     */
+    fun removeAllExceptCurrent() {
+        val currentUrl = currentPlayingUrl
+        val iterator = trackedMediaItemsByUrl.iterator()
+        while (iterator.hasNext()) {
+            val (url, mediaItem) = iterator.next()
+            if (url != currentUrl) {
+                preloadManager.remove(mediaItem)
+                iterator.remove()
+            }
+        }
+        preloadManager.invalidate()
+        Log.d(TAG, "Preload paused: kept current=${currentUrl != null}")
+    }
+
     fun updateWindow(currentIndex: Int, requests: List<VideoPreloadRequest>) {
         targetControl.currentPlayingIndex = currentIndex
         preloadManager.setCurrentPlayingIndex(currentIndex)

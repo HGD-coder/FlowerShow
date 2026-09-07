@@ -1,6 +1,7 @@
 package com.example.flower_show.player
 
 import android.content.Context
+import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
@@ -11,7 +12,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
@@ -19,6 +20,7 @@ import com.example.flower_show.util.MetricsCollector
 import com.example.flower_show.util.PerformanceDiagnostics
 import com.example.flower_show.util.PerformanceExperimentConfig
 import com.example.flower_show.util.PerformanceTrace
+import java.util.concurrent.CountDownLatch
 import kotlin.math.abs
 
 /**
@@ -29,6 +31,7 @@ class VideoPlayerManager(context: Context) {
 
     private val appContext = context.applicationContext
     private var player: ExoPlayer? = null
+    private var trackSelector: DefaultTrackSelector? = null
     private var preloadController: FeedPreloadController? = null
     private var currentVideoUrl: String? = null
     private var currentVideoId: String? = null
@@ -54,6 +57,7 @@ class VideoPlayerManager(context: Context) {
     private var qualitySwitchPositionMs: Long = 0
     private var qualitySwitchSource: String = "direct"
     private var lastHealthLogMs: Long = 0
+    private var isAutoHlsVideoBitrateLimited = false
     @Volatile private var playbackSpeed: Float = 1f
 
     companion object {
@@ -61,10 +65,30 @@ class VideoPlayerManager(context: Context) {
         private const val PLAYBACK_HEALTH_INTERVAL_MS = 5_000L
         private const val LOW_BUFFER_HEALTH_INTERVAL_MS = 1_000L
         private const val LOW_PLAYABLE_BUFFER_MS = 1_500L
+        // The current HLS ladder uses 1,040,600 bps for 480p and 1,865,600 bps for 720p.
+        // A bitrate limit avoids orientation-dependent width/height constraints for portrait video.
+        private const val AUTO_HLS_MAX_VIDEO_BITRATE_BPS = 1_500_000
+        private const val UNRESTRICTED_MAX_VIDEO_BITRATE_BPS = Int.MAX_VALUE
     }
 
     fun initialize() {
         if (player != null) return
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            // ExoPlayer 绑定主线程 Looper，构建/配置必须在主线程完成；
+            // 跨线程调用时切回主线程同步完成初始化，避免触发 Media3 的
+            // "Player is accessed on the wrong thread" 校验异常。
+            val latch = CountDownLatch(1)
+            val mainHandler = Handler(Looper.getMainLooper())
+            mainHandler.post {
+                try {
+                    initialize()
+                } finally {
+                    latch.countDown()
+                }
+            }
+            latch.await()
+            return
+        }
         val profile = PerformanceExperimentConfig.current
         PerformanceDiagnostics.event(
             "player_experiment_profile",
@@ -76,10 +100,11 @@ class VideoPlayerManager(context: Context) {
             ),
         )
         val dataSourceFactory = CacheManager.createDataSourceFactory(appContext)
-        val mediaSourceFactory = ProgressiveMediaSource.Factory(dataSourceFactory)
+        val mediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
         val renderersFactory = DefaultRenderersFactory(appContext)
             .setEnableDecoderFallback(true)
         val trackSelector = DefaultTrackSelector(appContext)
+        this.trackSelector = trackSelector
         val bandwidthMeter = DefaultBandwidthMeter.Builder(appContext).build()
         this.bandwidthMeter = bandwidthMeter
         val allocator = DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE)
@@ -280,11 +305,11 @@ class VideoPlayerManager(context: Context) {
         val p = player ?: run { initialize(); player } ?: return
         Log.d(TAG, "play() url=$videoUrl")
         playStartTimeMs = SystemClock.elapsedRealtime()
-        currentVideoId = videoId ?: currentVideoId
-        currentFeedIndex = feedIndex
-        currentQualityName = qualityName ?: currentQualityName
 
         if (videoUrl == currentVideoUrl && p.playbackState != Player.STATE_IDLE && p.playbackState != Player.STATE_ENDED) {
+            // resume 不是一次新的播放请求：清掉 playStartTimeMs，
+            // 避免把“从 resume 到下一次 BUFFERING→READY”的间隔误报成 video_ready 耗时。
+            playStartTimeMs = 0
             PerformanceDiagnostics.event(
                 "video_resume_current",
                 playbackAttributes(
@@ -301,6 +326,10 @@ class VideoPlayerManager(context: Context) {
         currentQualityName = qualityName
         bufferingCountForCurrentVideo = 0
         lastHealthLogMs = 0
+        // 新媒体源会重新走一遍 BUFFERING→READY：重置上个视频遗留的卡顿计时/trace，
+        // 否则换源瞬间的 READY 会把旧起点算进新视频的卡顿时长，污染自动降清晰度判定。
+        bufferingStartMs = 0
+        endBufferingTrace()
         val preloadedMediaSource = preloadController?.getMediaSource(videoUrl)
         val source = if (preloadedMediaSource != null) "preload_hit" else "direct"
         beginFirstFrameTrace(reason = "play", source = source)
@@ -335,6 +364,26 @@ class VideoPlayerManager(context: Context) {
         player?.setPlaybackSpeed(normalizedSpeed)
     }
 
+    fun setAutoHlsVideoBitrateLimitEnabled(enabled: Boolean) {
+        val selector = trackSelector ?: run {
+            initialize()
+            trackSelector
+        } ?: return
+        if (isAutoHlsVideoBitrateLimited == enabled) return
+
+        val maxVideoBitrate = if (enabled) {
+            AUTO_HLS_MAX_VIDEO_BITRATE_BPS
+        } else {
+            UNRESTRICTED_MAX_VIDEO_BITRATE_BPS
+        }
+        selector.setParameters(
+            selector.buildUponParameters()
+                .setMaxVideoBitrate(maxVideoBitrate),
+        )
+        isAutoHlsVideoBitrateLimited = enabled
+        Log.d(TAG, "Auto HLS max video bitrate=${if (enabled) maxVideoBitrate else "unrestricted"}")
+    }
+
     val currentPosition: Long get() = player?.currentPosition ?: 0
     val duration: Long get() = player?.duration ?: 0
     val isPlaying: Boolean get() = player?.isPlaying == true
@@ -346,6 +395,25 @@ class VideoPlayerManager(context: Context) {
     fun addCallback(cb: PlayerCallback) { callbacks.add(cb) }
     fun removeCallback(cb: PlayerCallback) { callbacks.remove(cb) }
     fun clearCallbacks() { callbacks.clear() }
+
+    /**
+     * 后台预热播放器依赖的重资源。
+     *
+     * SimpleCache 构造会读取缓存目录索引（500MB LRU 的磁盘 IO），
+     * 把它提前到后台线程完成，主线程 initialize() 时直接复用，
+     * 减少首帧前的主线程阻塞。可在任意线程调用，幂等。
+     */
+    fun warmUpAsync() {
+        CacheManager.getInstance(appContext)
+    }
+
+    /**
+     * 当前缓冲不足时暂停预加载，把带宽让给正在播放的视频。
+     * 已预加载的媒体源会保留（消费端可继续命中），仅停止继续拉取。
+     */
+    fun pausePreloading() {
+        preloadController?.removeAllExceptCurrent()
+    }
 
     fun notifyProgress() {
         val p = player ?: return
@@ -406,6 +474,9 @@ class VideoPlayerManager(context: Context) {
         val pos = p.currentPosition
         val shouldPlay = p.playWhenReady || p.isPlaying
         endQualitySwitchTrace()
+        // 换源同样会重新走 BUFFERING→READY：重置卡顿计时，避免跨源污染。
+        bufferingStartMs = 0
+        endBufferingTrace()
         qualitySwitchFromName = currentQualityName
         qualitySwitchToName = qualityName
         qualitySwitchTrigger = trigger
@@ -449,6 +520,7 @@ class VideoPlayerManager(context: Context) {
         clearCallbacks()
         player?.release()
         player = null
+        trackSelector = null
         currentVideoUrl = null
         currentVideoId = null
         currentFeedIndex = C.INDEX_UNSET
@@ -456,6 +528,7 @@ class VideoPlayerManager(context: Context) {
         currentVideoWidth = 0
         currentVideoHeight = 0
         bandwidthMeter = null
+        isAutoHlsVideoBitrateLimited = false
     }
 
     private fun maybeReportPlaybackHealth(event: PlayerCallback.PlaybackEvent.Progress) {

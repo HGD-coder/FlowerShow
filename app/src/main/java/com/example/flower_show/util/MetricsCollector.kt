@@ -76,9 +76,13 @@ object MetricsCollector {
                 val cached = entries.find { it.key.contains("cached=true") }?.value
                 val uncached = entries.find { it.key.contains("cached=false") }?.value
                 if (cached != null && uncached != null && cached.count > 0 && uncached.count > 0) {
-                    val diff = uncached.avg() - cached.avg()
-                    val pct = (diff / uncached.avg() * 100).toInt()
-                    sb.appendLine("  -> Cache improvement: avg ${formatMs(cached.avg())} vs ${formatMs(uncached.avg())} (saved ${formatMs(diff.toLong())}, -${pct}%)")
+                    val uncachedAvg = uncached.avg()
+                    // 平均值为 0 时避免除零产生 Infinity/NaN 输出。
+                    if (uncachedAvg > 0.0) {
+                        val diff = uncachedAvg - cached.avg()
+                        val pct = (diff / uncachedAvg * 100).toInt()
+                        sb.appendLine("  -> Cache improvement: avg ${formatMs(cached.avg())} vs ${formatMs(uncachedAvg)} (saved ${formatMs(diff.toLong())}, -${pct}%)")
+                    }
                 }
             }
             if (metricName == "search_query") {
@@ -103,6 +107,8 @@ object MetricsCollector {
 
     private fun formatValue(metricName: String, value: Number): String = when {
         metricName.endsWith("_bytes") -> formatBytes(value)
+        // 结果条数之类的计数指标不是毫秒，直接按数字输出
+        metricName.endsWith("_count") -> value.toLong().toString()
         else -> formatMs(value)
     }
 
