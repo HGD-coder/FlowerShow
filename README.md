@@ -5,171 +5,199 @@
 <h1 align="center">FlowerShow</h1>
 
 <p align="center">
-  基于 Android、Jetpack Compose 和 Media3 的本地短视频/图文信息流应用。
+  基于 Kotlin、Jetpack Compose 与 AndroidX Media3 构建的短视频、图文与社交信息流客户端。
+</p>
+
+<p align="center">
+  <strong>简体中文</strong> · <a href="./README_EN.md">English</a>
 </p>
 
 ## 项目简介
 
-FlowerShow 是一个面向短视频浏览场景的 Android 应用原型，支持本地爬虫素材播放、视频清晰度切换、图文卡展示、搜索推荐、性能基线采集和播放器优化对比。项目当前主要用于验证短视频 Feed 的播放体验、缓存/预加载效果，以及图文与视频混排体验。
+FlowerShow 是一个面向短视频浏览与社交互动场景的 Android 项目。应用以单 Activity 和 Compose Navigation 组织页面，通过统一 Gateway 接入推荐流、搜索、认证、用户关系、评论、通知和聊天接口；播放侧围绕 Media3 构建共享播放器、磁盘缓存、邻近内容预加载、清晰度切换和可观测性能指标。
 
-## 核心功能
+项目同时保留了端侧 ONNX 向量检索与本地素材仓库，用于离线实验和测试。当前生产默认链路使用经过认证的网络仓库，端侧向量检索不等同于线上搜索的默认实现。
 
-- 短视频信息流：竖屏沉浸式播放，支持连续滑动浏览。
-- 图文卡展示：支持本地爬虫图片素材，以图文卡形式混入 Feed。
-- 清晰度切换：支持多清晰度视频源切换，并记录切换耗时。
-- 倍速播放：横屏可切换 `0.5x`、`1x`、`1.5x`、`2x`，竖屏长按临时 `2x`。
-- 搜索体验：支持本地搜索、搜索建议、图文/视频结果展示。
-- 播放优化：集成 Media3 缓存、预加载窗口和短视频 LoadControl。
-- 性能基线：提供脚本采集 baseline 与 optimized 的对比数据。
+## 核心能力
+
+| 领域 | 能力 |
+|---|---|
+| 信息流 | 推荐流与关注流、游标分页、视频/单图/图集混排、竖屏连续浏览 |
+| 视频播放 | Media3 ExoPlayer、单播放器复用、播放进度与拖动、倍速、横屏沉浸播放 |
+| 播放优化 | 500 MB LRU 磁盘缓存、邻近窗口预加载、短视频 LoadControl、画质切换保持进度 |
+| 搜索 | 服务端搜索与推荐词、本地搜索历史、结果分页与去重、从结果定位到指定内容 |
+| 端侧 AI | ONNX Runtime、WordPiece 分词、中文向量索引与词法回退；用于离线/实验路径 |
+| 认证 | 注册、登录、会话恢复、单设备/全设备登出、401 自动刷新、Keystore 加密 Refresh Token |
+| 社交 | 个人主页、关注/粉丝、点赞、收藏、评论、作品可见性和通知已读状态 |
+| 消息 | 私聊、群聊、历史消息分页、已读回执、视频分享与群成员管理 |
+| 实时通信 | WebSocket 实时消息，断线时回退 REST 轮询并自动重连 |
+| 推送 | 可选 Firebase Cloud Messaging，按构建配置启用设备注册与通知服务 |
+| 性能工程 | 首帧、缓冲、缓存命中、预加载、画质切换等埋点，以及 Macrobenchmark 基准测试 |
+
+## 运行时架构
+
+GitHub 首页会根据当前主题自动选择浅色或深色架构预览图。
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/archify/flowershow-runtime.architecture.visual-check.1440x900.dark.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./docs/archify/flowershow-runtime.architecture.visual-check.1440x900.light.png" />
+  <img src="./docs/archify/flowershow-runtime.architecture.visual-check.1440x900.light.png" alt="FlowerShow 运行时架构预览" />
+</picture>
+
+[获取完整交互式架构图](./docs/archify/flowershow-runtime.architecture.html)（GitHub README 只展示静态预览；请从文件页下载 HTML 后用浏览器打开）。架构图是生成时快照，运行配置与实现细节以当前源码为准。
+
+### 主要数据流
+
+```text
+Compose UI
+   │ Intent / 用户操作
+   ▼
+MVI ViewModel
+   │ Repository 接口
+   ├── Feed / Search / Social / Chat ──► Authenticated OkHttp ──► Gateway API
+   ├── Chat realtime ──────────────────► WebSocket（断线回退 REST 轮询）
+   └── Playback ───────────────────────► Media3 Player + Cache + Preload
+
+Gateway Base URL
+   ├── REST API:  {gateway}/api/v1
+   ├── Media:     {gateway}/media
+   └── WebSocket: ws(s)://{host}/ws/chat
+```
 
 ## 技术栈
 
-- Android + Kotlin
-- Jetpack Compose
-- AndroidX Media3 / ExoPlayer
-- MVI 风格 ViewModel 状态管理
-- Coil 图片加载
-- ONNX Runtime Android 本地向量检索
-- Gradle + JaCoCo + Macrobenchmark
+| 分类 | 技术 |
+|---|---|
+| 语言与构建 | Kotlin、Gradle Wrapper、JDK 17 |
+| UI | Jetpack Compose、Material 3、Compose Navigation |
+| 状态管理 | MVI 风格 Intent/State、Android ViewModel、StateFlow、Coroutines |
+| 媒体 | AndroidX Media3 / ExoPlayer、SimpleCache、DefaultPreloadManager |
+| 网络与实时通信 | OkHttp、REST、WebSocket、Gson |
+| 图片 | Coil |
+| 端侧检索 | ONNX Runtime Android、WordPiece、向量索引 |
+| 安全与推送 | Android Keystore、Firebase Cloud Messaging（可选） |
+| 质量保障 | JUnit、MockWebServer、Compose UI Test、Espresso、JaCoCo、Macrobenchmark |
+
+Android 配置：`minSdk 28`、`compileSdk 35`、`targetSdk 35`，应用 ID 为 `com.example.flower_show`。
+
+## 项目结构
+
+```text
+flowershow/
+├── app/
+│   └── src/main/java/com/example/flower_show/
+│       ├── ai/          # ONNX 推理、分词、向量索引与搜索建议
+│       ├── config/      # Gateway、REST、媒体和 WebSocket 地址
+│       ├── data/        # 本地数据、API、认证、社交、聊天与 Repository
+│       ├── model/       # Feed、视频、社交、聊天和推荐数据模型
+│       ├── player/      # Media3 播放器、缓存、预加载与 LoadControl
+│       ├── push/        # FCM 消息服务与通知处理
+│       ├── ui/          # Compose 页面、组件、预览和主题
+│       ├── util/        # 性能埋点、诊断与实验配置
+│       └── viewmodel/   # Feed、搜索、认证、社交与聊天 MVI 状态
+├── macrobenchmark/      # 冷启动、首帧、Feed 与画质切换基准测试
+├── docs/                # 架构、性能、搜索、预处理与代码阅读文档
+└── tools/               # 性能采集和视频预处理工具
+```
 
 ## 环境要求
 
-- Android Studio 或 JDK 17 环境
-- Android SDK 与 `adb`
-- 一台 Android 真机或模拟器
-- 本地素材服务器，默认端口为 `8081`
+- Android Studio，或可用的 JDK 17 + Android SDK 环境。
+- Android SDK 35；运行设备最低 Android 9（API 28）。
+- Android 真机或模拟器；设备需能访问所配置的 Gateway。
+- 使用设备测试、UI 测试或 Macrobenchmark 时需要可用的 `adb`。
 
-如果本机没有全局配置 Java，可以在 PowerShell 中临时设置：
+## 快速开始
+
+### 1. 获取项目
 
 ```powershell
-$env:JAVA_HOME='D:\android-studio-app\jbr'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
+git clone https://github.com/HGD-coder/FlowerShow.git
+cd FlowerShow
 ```
 
-## 本地运行
+### 2. 配置后端 Gateway
 
-1. 启动素材服务器：
+构建属性 `FLOWER_SHOW_PUBLIC_GATEWAY_BASE_URL` 是唯一的公开网关入口，可由 `gradle.properties` 或命令行 `-P` 参数提供。未设置该属性时，构建脚本回退到：
 
-```powershell
-cd D:\MediaCrawler\MediaCrawler
-.\start_video_server.bat
+```text
+http://10.0.2.2:8088
 ```
 
-2. 检查真机素材服务器 IP：
-
-真机运行时需要确保 `AssetJsonLoader.kt` 中的 `LAN_IP` 与电脑局域网 IP 一致；模拟器会自动使用 `10.0.2.2`。
-
-3. 构建并安装 Debug APK：
+`10.0.2.2` 适用于 Android 模拟器访问宿主机。克隆后请先检查 `gradle.properties` 中的环境配置；真机运行时，请使用手机可访问的局域网地址或 HTTPS 域名。可以仅对当前构建覆盖：
 
 ```powershell
-cd D:\android-studio\flowershow
+.\gradlew.bat :app:assembleDebug `
+  -PFLOWER_SHOW_PUBLIC_GATEWAY_BASE_URL=https://your-domain.example.com
+```
+
+应用会自动从 Gateway 派生 REST、媒体和 WebSocket 地址，不需要分别配置。Debug 构建允许明文 HTTP 以便本地调试；Release 构建要求安全网络配置，生产环境建议始终使用 HTTPS/WSS。
+
+### 3. 可选：启用 Firebase Cloud Messaging
+
+1. 在 Firebase Console 创建 Android 应用，`applicationId` 必须是 `com.example.flower_show`。
+2. 下载 `google-services.json` 并放到 `app/google-services.json`。
+3. 重新构建应用；Gradle 仅在该文件存在时应用 Google Services 插件。
+
+缺少 Firebase 配置时，FCM、设备 Token 注册和通知服务会被关闭，但普通构建、Feed、搜索和聊天功能仍可编译。不要向仓库提交服务账号密钥、私钥或后端凭据。
+
+### 4. 构建与安装
+
+```powershell
+# 构建 Debug APK
 .\gradlew.bat :app:assembleDebug
+
+# 安装到当前连接设备
 adb install -r .\app\build\outputs\apk\debug\app-debug.apk
 ```
 
-Backend gateway URL is configured in one place:
+也可以直接在 Android Studio 中选择 `app` 配置运行。
 
-```properties
-FLOWER_SHOW_PUBLIC_GATEWAY_BASE_URL=https://mit-mentioned-avi-mark.trycloudflare.com
-```
-
-The app derives API and media URLs from it:
-
-```text
-API:   {gateway}/api/v1
-Media: {gateway}/media
-```
-
-You can also override it for one build:
+## 测试与质量
 
 ```powershell
-.\gradlew.bat :app:assembleDebug -PFLOWER_SHOW_PUBLIC_GATEWAY_BASE_URL=https://your-domain.example.com
+# JVM 单元测试；任务结束后同时生成 JaCoCo 报告
+.\gradlew.bat :app:testDebugUnitTest
+
+# Android 仪器化与 Compose UI 测试，需要设备或模拟器
+.\gradlew.bat :app:connectedDebugAndroidTest
+
+# 独立生成/刷新 JaCoCo 报告
+.\gradlew.bat :app:jacocoTestReport
+
+# Macrobenchmark，需要满足基准测试条件的设备
+.\gradlew.bat :macrobenchmark:connectedBenchmarkAndroidTest
 ```
 
-### Firebase Cloud Messaging
+JaCoCo HTML 报告默认位于 `app/build/reports/jacoco/jacocoTestReport/html/index.html`。基准测试覆盖冷启动、视频首帧、Feed 滑动/缓冲和清晰度切换；具体结果必须在目标设备上采集，README 不把设计目标当作实测成绩。
 
-要启用推送，请在 Firebase Console 中创建 Android 应用，并确保其 applicationId 精确为
-`com.example.flower_show`，然后将该应用下载的配置文件放到：
+## 性能采集
 
-```text
-app/google-services.json
-```
-
-Gradle 只会在该文件存在时应用 Google Services 插件。仓库默认不包含此文件；缺少配置时
-FCM 会被禁用，但单元测试和 APK 构建仍可正常完成。不要把服务账号密钥或其他真实私钥放入
-Android 客户端或提交到仓库。
-
-也可以直接通过 Android Studio 运行 `app` 模块。
-
-## 性能测试
-
-项目提供 `tools/perf-run.ps1` 用于采集性能数据。推荐使用 5 轮 baseline + 5 轮 optimized：
+项目提供 `tools/perf-run.ps1` 采集 baseline 与 optimized 会话：
 
 ```powershell
 .\tools\perf-run.ps1 -Suite single -Profile baseline -Runs 5 -ClearMode EveryRun
 .\tools\perf-run.ps1 -Suite single -Profile optimized -Runs 5 -ClearMode EveryRun -SkipBuild -SkipInstall
 ```
 
-每轮建议保持一致操作：
+重点指标包括视频 READY/首帧/缓冲耗时、缓存命中、预加载窗口、LoadControl 配置和画质切换恢复耗时。采集流程、设备条件和指标解释见 [性能基线说明](./docs/PERFORMANCE_BASELINE.md)。
 
-- 首页停留约 10 秒。
-- 匀速刷约 30 个视频。
-- 在第 30 个视频附近切换画质 3 次。
-- 搜索同一个关键词并打开同一个结果。
-- 回到终端按 Enter 结束本轮。
+## 文档导航
 
-输出目录：
+- [代码阅读指南](./docs/CODE_READING_GUIDE.md)
+- [项目技术文档](./docs/FlowerShow%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.md)
+- [性能基线与 Macrobenchmark](./docs/PERFORMANCE_BASELINE.md)
+- [端侧向量搜索](./docs/LOCAL_VECTOR_SEARCH.md)
+- [视频预处理](./docs/VIDEO_PREPROCESSING.md)
+- [UI 与存储课程](./docs/course-02-ui-and-storage.md)
+- [网络与线程课程](./docs/course-03-network-and-threading.md)
+- [性能、架构与 AI 课程](./docs/course-04-performance-architecture-ai.md)
+- [运行时架构 HTML](./docs/archify/flowershow-runtime.architecture.html)
 
-- 单轮/单组结果：`performance-runs/manual-six-*/session-summary.csv`
-- 汇总结果：`performance-runs/results.csv`
+## 使用边界与安全说明
 
-注意：`performance-runs/` 是本地测试产物，已加入 `.gitignore`，不会进入仓库。
-
-## 当前核心性能指标
-
-当前推荐关注以下指标：
-
-| 指标 | 说明 |
-|---|---|
-| 视频就绪耗时 | 当前视频从请求播放到播放器就绪的耗时 |
-| 视频缓冲耗时 | 播放过程中 buffering 状态持续时间 |
-| 视频首帧耗时 | 播放或切换后首帧展示耗时 |
-| 缓存命中率 | Media3 缓存命中占比 |
-| 画质切换耗时 | 手动切换清晰度后恢复播放的耗时，建议作为辅助指标 |
-
-`首页视频流就绪耗时` 和 `信息流卡顿率` 当前不建议作为核心指标：前者容易被页面重组/搜索返回污染，后者在当前优化项下变化不明显。
-
-## 目录结构
-
-```text
-app/src/main/java/com/example/flower_show
-├── ai/                 # 本地搜索、向量检索与分词
-├── data/               # 素材加载、仓库与搜索匹配
-├── model/              # 视频、图文卡、清晰度等数据模型
-├── player/             # Media3 播放、缓存、预加载与 LoadControl
-├── ui/                 # Compose 页面与组件
-├── util/               # 性能诊断、实验配置与指标采集
-└── viewmodel/          # MVI 状态与业务调度
-```
-
-## 常用命令
-
-```powershell
-# 构建 Debug APK
-.\gradlew.bat :app:assembleDebug
-
-# 运行单元测试
-.\gradlew.bat :app:testDebugUnitTest
-
-# 生成性能测试计划但不执行
-.\tools\perf-run.ps1 -Suite single -Profile optimized -Runs 5 -ClearMode EveryRun -DryRun
-```
-
-## 说明
-
-本项目依赖本地爬虫素材和局域网 HTTP 服务。若真机上出现视频、图文或音乐加载失败，优先检查：
-
-- `D:\MediaCrawler\MediaCrawler` 素材服务器是否已启动。
-- 手机与电脑是否在同一局域网。
-- `AssetJsonLoader.kt` 中的 `LAN_IP` 是否为电脑当前 IP。
-- Windows 防火墙是否允许 `8081` 端口访问。
+- 推荐流、生产搜索、社交和聊天默认依赖可访问的后端 Gateway；`FakeVideoRepository` 与端侧向量搜索主要用于离线实验和测试。
+- 本地素材文件保存的是元数据，媒体地址由 Gateway 的 `/media` 路径提供；旧版 `8081` 素材服务器流程不再是当前默认方案。
+- FCM 是可选能力。未提供 `google-services.json` 时不会启用 Firebase 组件。
+- Refresh Token 由 Android Keystore 支持的 AES/GCM 存储；仍应避免在日志、客户端代码或版本库中写入真实凭据。
+- 架构图和设计文档可能是生成时快照；出现差异时，以当前源码、构建脚本和测试为准。
