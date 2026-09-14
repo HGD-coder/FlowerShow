@@ -96,7 +96,7 @@ flowershow/
 │       ├── util/        # 性能埋点、诊断与实验配置
 │       └── viewmodel/   # Feed、搜索、认证、社交与聊天 MVI 状态
 ├── macrobenchmark/      # 冷启动、首帧、Feed 与画质切换基准测试
-├── docs/                # 架构、性能、搜索、预处理与代码阅读文档
+├── docs/                # 架构展示与核心项目文档
 └── tools/               # 性能采集和视频预处理工具
 ```
 
@@ -180,19 +180,12 @@ JaCoCo HTML 报告默认位于 `app/build/reports/jacoco/jacocoTestReport/html/i
 .\tools\perf-run.ps1 -Suite single -Profile optimized -Runs 5 -ClearMode EveryRun -SkipBuild -SkipInstall
 ```
 
-重点指标包括视频 READY/首帧/缓冲耗时、缓存命中、预加载窗口、LoadControl 配置和画质切换恢复耗时。采集流程、设备条件和指标解释见 [性能基线说明](./docs/PERFORMANCE_BASELINE.md)。
+重点指标包括视频 READY/首帧/缓冲耗时、缓存命中、预加载窗口、LoadControl 配置和画质切换恢复耗时。每组对比应在同一台目标设备、相同网络与操作路径下采集。
 
 ## 文档导航
 
 - [代码阅读指南](./docs/CODE_READING_GUIDE.md)
 - [项目技术文档](./docs/FlowerShow%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.md)
-- [性能基线与 Macrobenchmark](./docs/PERFORMANCE_BASELINE.md)
-- [端侧向量搜索](./docs/LOCAL_VECTOR_SEARCH.md)
-- [视频预处理](./docs/VIDEO_PREPROCESSING.md)
-- [UI 与存储课程](./docs/course-02-ui-and-storage.md)
-- [网络与线程课程](./docs/course-03-network-and-threading.md)
-- [性能、架构与 AI 课程](./docs/course-04-performance-architecture-ai.md)
-- [运行时架构 HTML](./docs/archify/flowershow-runtime.architecture.html)
 
 ## 使用边界与安全说明
 

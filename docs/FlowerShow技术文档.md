@@ -143,7 +143,7 @@ flowershow/
 │       ├── test/             # 单元测试（36 个文件）
 │       └── androidTest/      # 仪器/Compose UI 测试（12 个文件）
 ├── macrobenchmark/           # 性能基准测试模块（冷启动/首帧/滚动帧率）
-├── docs/                     # 既有文档 + 培训课程资料（见 7.4 节）
+├── docs/                     # 核心项目文档与 README 架构展示资源
 ├── gradle/                   # Gradle 配置与版本目录
 ├── tools/                    # 性能采集脚本 perf-run.ps1
 ├── build.gradle.kts          # 根构建脚本
@@ -738,18 +738,15 @@ VideoViewModel（瘦身：只管 State 聚合 + 分发）
 | Baseline Profile | 预编译热路径指令的清单，加速启动与渲染 |
 | JaCoCo | Java/Kotlin 代码覆盖率工具 |
 
-### 7.4 项目既有文档
+### 7.4 项目文档
 
-`docs/` 目录下还有几份历史文档，可与本文配合阅读（本文是"全景"视角，旧文档偏"专题"）：
+`docs/` 目录仅保留两份核心 Markdown 文档，以及 README 架构图展示所需的静态资源：
 
-| 文件 | 主题 |
+| 路径 | 用途 |
 |---|---|
-| `docs/PROJECT_DOCUMENTATION.md` | 早期项目总文档 |
-| `docs/CODE_READING_GUIDE.md` | 代码阅读指引 |
-| `docs/PERFORMANCE_BASELINE.md` | 性能基线说明 |
-| `docs/LOCAL_VECTOR_SEARCH.md` | 本地向量搜索说明 |
-| `docs/VIDEO_PREPROCESSING.md` | 视频素材预处理说明 |
-| `docs/course-02/03/04-*.md` | Android 培训课程课件（与 App 代码无依赖） |
+| `docs/CODE_READING_GUIDE.md` | 按调用链阅读代码的入门指引 |
+| `docs/FlowerShow技术文档.md` | 当前项目的全景技术文档 |
+| `docs/archify/` | GitHub 首页架构预览和交互式 HTML 资源（非独立项目文档） |
 
 ### 7.5 全项目图示 prompt 汇总
 

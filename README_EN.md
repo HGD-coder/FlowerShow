@@ -96,7 +96,7 @@ flowershow/
 │       ├── util/        # Performance metrics, diagnostics, experiment settings
 │       └── viewmodel/   # Feed, search, auth, social, and chat MVI state
 ├── macrobenchmark/      # Cold start, first frame, feed, and quality benchmarks
-├── docs/                # Architecture, performance, search, preprocessing, reading guides
+├── docs/                # Architecture presentation and core project documentation
 └── tools/               # Performance collection and video preprocessing utilities
 ```
 
@@ -180,19 +180,12 @@ The JaCoCo HTML report is written to `app/build/reports/jacoco/jacocoTestReport/
 .\tools\perf-run.ps1 -Suite single -Profile optimized -Runs 5 -ClearMode EveryRun -SkipBuild -SkipInstall
 ```
 
-The main signals include READY/first-frame/buffering time, cache hits, preload window state, LoadControl settings, and quality-switch recovery. See the [performance baseline guide](./docs/PERFORMANCE_BASELINE.md) for device requirements, collection steps, and metric definitions.
+The main signals include READY/first-frame/buffering time, cache hits, preload window state, LoadControl settings, and quality-switch recovery. Collect each comparison on the same target device, network, and interaction path.
 
 ## Documentation
 
 - [Code reading guide](./docs/CODE_READING_GUIDE.md)
 - [Project technical documentation (Chinese)](./docs/FlowerShow%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.md)
-- [Performance baseline and Macrobenchmark](./docs/PERFORMANCE_BASELINE.md)
-- [On-device vector search](./docs/LOCAL_VECTOR_SEARCH.md)
-- [Video preprocessing](./docs/VIDEO_PREPROCESSING.md)
-- [UI and storage course (Chinese)](./docs/course-02-ui-and-storage.md)
-- [Networking and threading course (Chinese)](./docs/course-03-network-and-threading.md)
-- [Performance, architecture, and AI course (Chinese)](./docs/course-04-performance-architecture-ai.md)
-- [Runtime architecture HTML](./docs/archify/flowershow-runtime.architecture.html)
 
 ## Boundaries and security notes
 
