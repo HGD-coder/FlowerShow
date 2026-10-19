@@ -18,6 +18,18 @@ FlowerShow is an Android project for short-form media browsing and social intera
 
 The repository also contains an on-device ONNX vector-search path and a local asset repository for offline experiments and tests. The current production path uses authenticated network repositories; on-device vector search is not the default production search implementation.
 
+## Screenshots
+
+Video feeds, image galleries, search history, search results, and landscape playback. Click any screenshot to view the original.
+
+| Video feed | Image gallery | Search history | Search results |
+| :---: | :---: | :---: | :---: |
+| [<img src="./docs/screenshots/feed-video.png" alt="Video feed" width="180" />](./docs/screenshots/feed-video.png) | [<img src="./docs/screenshots/image-gallery.png" alt="Image gallery" width="180" />](./docs/screenshots/image-gallery.png) | [<img src="./docs/screenshots/search-history.png" alt="Search history" width="180" />](./docs/screenshots/search-history.png) | [<img src="./docs/screenshots/search-results.png" alt="Search results" width="180" />](./docs/screenshots/search-results.png) |
+
+### Landscape playback
+
+[![Landscape playback](./docs/screenshots/landscape-playback.png)](./docs/screenshots/landscape-playback.png)
+
 ## Key capabilities
 
 | Area | Capabilities |

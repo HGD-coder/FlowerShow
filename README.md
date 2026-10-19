@@ -18,6 +18,18 @@ FlowerShow 是一个面向短视频浏览与社交互动场景的 Android 项目
 
 项目同时保留了端侧 ONNX 向量检索与本地素材仓库，用于离线实验和测试。当前生产默认链路使用经过认证的网络仓库，端侧向量检索不等同于线上搜索的默认实现。
 
+## 界面预览
+
+推荐视频、图集浏览、搜索历史、搜索结果与横屏播放。点击图片可查看原图。
+
+| 推荐视频 | 图集浏览 | 搜索历史 | 搜索结果 |
+| :---: | :---: | :---: | :---: |
+| [<img src="./docs/screenshots/feed-video.png" alt="推荐视频" width="180" />](./docs/screenshots/feed-video.png) | [<img src="./docs/screenshots/image-gallery.png" alt="图集浏览" width="180" />](./docs/screenshots/image-gallery.png) | [<img src="./docs/screenshots/search-history.png" alt="搜索历史" width="180" />](./docs/screenshots/search-history.png) | [<img src="./docs/screenshots/search-results.png" alt="搜索结果" width="180" />](./docs/screenshots/search-results.png) |
+
+### 横屏播放
+
+[![横屏播放](./docs/screenshots/landscape-playback.png)](./docs/screenshots/landscape-playback.png)
+
 ## 核心能力
 
 | 领域 | 能力 |
